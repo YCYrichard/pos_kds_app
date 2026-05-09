@@ -13,9 +13,7 @@ class PosKdsApp extends StatelessWidget {
       title: 'POS KDS App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFC97D60),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC97D60)),
         useMaterial3: true,
       ),
       home: const _AppShell(),
@@ -33,19 +31,16 @@ class _AppShell extends StatefulWidget {
 class _AppShellState extends State<_AppShell> {
   int _currentIndex = 0;
 
-  final _pages = const [
-    FrontdeskPage(),
-    KitchenPage(),
-    BackofficePage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      const FrontdeskPage(),
+      KitchenPage(isActive: _currentIndex == 1),
+      const BackofficePage(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {

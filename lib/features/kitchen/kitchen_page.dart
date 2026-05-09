@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/events/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../shared/widgets/kitchen_order_card.dart';
 import 'kitchen_controller.dart';
 
 class KitchenPage extends StatelessWidget {
-  const KitchenPage({super.key});
+  const KitchenPage({super.key, required this.isActive});
+
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +19,15 @@ class KitchenPage extends StatelessWidget {
       create: (_) =>
           KitchenController(orderRepository: context.read<OrderRepository>())
             ..loadOrders(),
-      child: const _KitchenView(),
+      child: _KitchenView(isActive: isActive),
     );
   }
 }
 
 class _KitchenView extends StatefulWidget {
-  const _KitchenView();
+  const _KitchenView({required this.isActive});
+
+  final bool isActive;
 
   @override
   State<_KitchenView> createState() => _KitchenViewState();
@@ -30,13 +35,71 @@ class _KitchenView extends StatefulWidget {
 
 class _KitchenViewState extends State<_KitchenView> {
   Timer? _refreshTimer;
+  StreamSubscription<OrderEvent>? _orderEventSubscription;
+  bool _didRefreshOnActivate = false;
 
   @override
   void initState() {
     super.initState();
+    _subscribeToOrderEvents();
+    _syncRefreshLifecycle();
+  }
+
+  @override
+  void didUpdateWidget(covariant _KitchenView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isActive != widget.isActive) {
+      if (widget.isActive) {
+        _didRefreshOnActivate = false;
+      }
+      _syncRefreshLifecycle();
+    }
+  }
+
+  void _subscribeToOrderEvents() {
+    _orderEventSubscription?.cancel();
+    _orderEventSubscription = OrderEventBus.instance.stream.listen((event) {
+      if (!mounted) return;
+      if (!widget.isActive) return;
+
+      switch (event.type) {
+        case OrderEventType.created:
+          final controller = context.read<KitchenController>();
+          if (!controller.loading) {
+            controller.loadOrders();
+          }
+          break;
+      }
+    });
+  }
+
+  void _syncRefreshLifecycle() {
+    if (!mounted) return;
+
+    if (widget.isActive) {
+      if (!_didRefreshOnActivate) {
+        _didRefreshOnActivate = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !widget.isActive) return;
+          final controller = context.read<KitchenController>();
+          if (!controller.loading) {
+            controller.loadOrders();
+          }
+        });
+      }
+      _startPolling();
+    } else {
+      _stopPolling();
+    }
+  }
+
+  void _startPolling() {
+    if (_refreshTimer != null) return;
 
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (!mounted) return;
+      if (!widget.isActive) return;
 
       final controller = context.read<KitchenController>();
       if (!controller.loading) {
@@ -45,9 +108,15 @@ class _KitchenViewState extends State<_KitchenView> {
     });
   }
 
+  void _stopPolling() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
+
   @override
   void dispose() {
-    _refreshTimer?.cancel();
+    _stopPolling();
+    _orderEventSubscription?.cancel();
     super.dispose();
   }
 

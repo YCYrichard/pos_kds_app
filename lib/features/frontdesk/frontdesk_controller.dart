@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/events/order_event_bus.dart';
 import '../../data/models/order.dart';
 import '../../data/models/order_item.dart';
 import '../../data/repositories/menu_repository.dart';
@@ -40,8 +41,8 @@ class FrontdeskController extends ChangeNotifier {
   FrontdeskController({
     required MenuRepository menuRepository,
     required OrderRepository orderRepository,
-  })  : _menuRepository = menuRepository,
-        _orderRepository = orderRepository;
+  }) : _menuRepository = menuRepository,
+       _orderRepository = orderRepository;
 
   final MenuRepository _menuRepository;
   final OrderRepository _orderRepository;
@@ -124,7 +125,9 @@ class FrontdeskController extends ChangeNotifier {
     }
 
     final index = _items.indexWhere(
-      (e) => e.itemCode == menuItem.itemCode && e.spicyLevel == _selectedSpicyLevel,
+      (e) =>
+          e.itemCode == menuItem.itemCode &&
+          e.spicyLevel == _selectedSpicyLevel,
     );
 
     if (index >= 0) {
@@ -205,6 +208,8 @@ class FrontdeskController extends ChangeNotifier {
             )
             .toList(),
       );
+
+      OrderEventBus.instance.emitOrderCreated();
 
       _items.clear();
       _itemCodeInput = '';
