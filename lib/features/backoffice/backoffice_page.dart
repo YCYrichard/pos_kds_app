@@ -8,7 +8,7 @@ class BackofficePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('後台摘要')),
       body: const Center(
-        child: Text('後台頁骨架已建立'),
+        child: Text('Backoffice MVP 尚未開始，這裡先保留為 placeholder'),
       ),
     );
   }

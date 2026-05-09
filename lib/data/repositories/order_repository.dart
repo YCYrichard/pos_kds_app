@@ -2,6 +2,13 @@ import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 
+class OrderBundle {
+  final OrderEntity order;
+  final List<OrderItemEntity> items;
+
+  const OrderBundle({required this.order, required this.items});
+}
+
 class OrderRepository {
   Future<int> createOrder({
     required OrderEntity order,
@@ -39,6 +46,19 @@ class OrderRepository {
       orderBy: 'created_at ASC',
     );
     return result.map(OrderEntity.fromMap).toList();
+  }
+
+  Future<List<OrderBundle>> getActiveOrderBundles() async {
+    final orders = await getActiveOrders();
+    final bundles = <OrderBundle>[];
+
+    for (final order in orders) {
+      if (order.id == null) continue;
+      final items = await getOrderItems(order.id!);
+      bundles.add(OrderBundle(order: order, items: items));
+    }
+
+    return bundles;
   }
 
   Future<List<OrderEntity>> getAllOrders() async {
@@ -126,11 +146,9 @@ class OrderRepository {
       "SELECT COUNT(*) AS count FROM orders WHERE status != 'completed'",
     );
 
-    final revenueResult = await db.rawQuery('''
-      SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
-      FROM order_items oi
-      JOIN menu_items mi ON mi.item_code = oi.item_code
-    ''');
+    final revenueResult = await db.rawQuery(
+      'SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total FROM order_items oi JOIN menu_items mi ON mi.item_code = oi.item_code',
+    );
 
     return {
       'totalOrders': (totalOrdersResult.first['count'] as int?) ?? 0,

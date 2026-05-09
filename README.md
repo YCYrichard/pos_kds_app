@@ -40,3 +40,36 @@ flutter create pos_kds_app
 cd C:\\dev\\workspace\\pos_kds_app
 code .
 ```
+
+
+## Frontdesk MVP（新增）
+
+已新增第一階段可操作版前台點單功能：
+- 內用 / 外帶切換
+- 桌號 / 取餐號輸入
+- 數字 keypad 輸入品項號碼
+- 辣度選擇
+- 加入目前訂單
+- 送單寫入 SQLite
+
+新增檔案：
+- `lib/features/frontdesk/frontdesk_controller.dart`
+- `lib/shared/widgets/numeric_keypad.dart`
+- `lib/shared/widgets/current_order_panel.dart`
+- 更新 `lib/features/frontdesk/frontdesk_page.dart`
+
+
+## Kitchen MVP（新增）
+
+此版本以上一個 Frontdesk package 為 base，新增：
+- App shell 三頁切換（Frontdesk / Kitchen / Backoffice placeholder）
+- Kitchen 單欄列表
+- 讀取 active orders + order items
+- 後廚單品完成按鈕
+- 完成後刷新 order status 與 active queue
+
+Git 建議：
+- branch: `feature/kitchen-mvp`
+- commit 1: `feat(app): add basic shell navigation`
+- commit 2: `feat(kitchen): add single-column kitchen order list`
+- commit 3: `feat(kitchen): add item completion and active order refresh`
