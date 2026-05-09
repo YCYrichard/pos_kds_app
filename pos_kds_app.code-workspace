@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "dart.flutterHotReloadOnSave": "all",
+    "dart.openDevTools": "flutter",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/.dart_tool": true,
+      "**/build": true
+    }
+  }
+}

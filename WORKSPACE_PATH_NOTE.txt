@@ -1,0 +1,3 @@
+Workspace root: C:\dev\workspace
+Project path: C:\dev\workspace\pos_kds_app
+Workspace file: C:\dev\workspace\pos_kds_app.code-workspace
