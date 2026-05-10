@@ -57,7 +57,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                 if (controller.orderType == OrderType.dineIn)
                   _TableSelector(controller: controller)
                 else
-                  _TakeawaySerialField(controller: controller),
+                  _TakeawaySerialCard(controller: controller),
                 const SizedBox(height: 16),
                 Card(
                   child: Padding(
@@ -236,33 +236,75 @@ class _TableSelector extends StatelessWidget {
   }
 }
 
-class _TakeawaySerialField extends StatelessWidget {
-  const _TakeawaySerialField({required this.controller});
+class _TakeawaySerialCard extends StatelessWidget {
+  const _TakeawaySerialCard({required this.controller});
 
   final FrontdeskController controller;
 
   @override
   Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: '取餐流水號',
-        border: OutlineInputBorder(),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              controller.isLoadingOptions ? '載入中...' : controller.pickupNo,
-              style: Theme.of(context).textTheme.titleMedium,
+    final colorScheme = Theme.of(context).colorScheme;
+    final serialText = controller.isLoadingOptions
+        ? '...'
+        : controller.pickupNo;
+
+    return Card(
+      color: colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                Icons.confirmation_number_outlined,
+                color: colorScheme.primary,
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: controller.isLoadingOptions
-                ? null
-                : controller.loadServiceOptions,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '取餐流水號',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    serialText,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    controller.isLoadingOptions ? '正在更新號碼...' : '送單時將自動使用此號碼',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton.tonalIcon(
+              onPressed: controller.isLoadingOptions
+                  ? null
+                  : controller.loadServiceOptions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('更新'),
+            ),
+          ],
+        ),
       ),
     );
   }
