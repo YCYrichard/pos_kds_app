@@ -9,6 +9,18 @@ class OrderBundle {
   const OrderBundle({required this.order, required this.items});
 }
 
+class OrderDashboardSummary {
+  final int todayOrders;
+  final int pendingOrders;
+  final int todayRevenue;
+
+  const OrderDashboardSummary({
+    required this.todayOrders,
+    required this.pendingOrders,
+    required this.todayRevenue,
+  });
+}
+
 class OrderRepository {
   Future<int> createOrder({
     required OrderEntity order,
@@ -67,6 +79,19 @@ class OrderRepository {
     return result.map(OrderEntity.fromMap).toList();
   }
 
+  Future<List<OrderBundle>> getAllOrderBundles() async {
+    final orders = await getAllOrders();
+    final bundles = <OrderBundle>[];
+
+    for (final order in orders) {
+      if (order.id == null) continue;
+      final items = await getOrderItems(order.id!);
+      bundles.add(OrderBundle(order: order, items: items));
+    }
+
+    return bundles;
+  }
+
   Future<List<OrderItemEntity>> getOrderItems(int orderId) async {
     final db = await AppDatabase.database;
     final result = await db.query(
@@ -82,10 +107,7 @@ class OrderRepository {
     final db = await AppDatabase.database;
     await db.update(
       'order_items',
-      {
-        'status': 'completed',
-        'completed_at': DateTime.now().toIso8601String(),
-      },
+      {'status': 'completed', 'completed_at': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [itemId],
     );
@@ -135,25 +157,47 @@ class OrderRepository {
     }
   }
 
-  Future<Map<String, int>> getDashboardSummary() async {
+  Future<OrderDashboardSummary> getDashboardSummary() async {
     final db = await AppDatabase.database;
 
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+    final tomorrowStart = DateTime(
+      now.year,
+      now.month,
+      now.day + 1,
+    ).toIso8601String();
+
     final totalOrdersResult = await db.rawQuery(
-      'SELECT COUNT(*) AS count FROM orders',
+      '''
+      SELECT COUNT(*) AS count
+      FROM orders
+      WHERE created_at >= ? AND created_at < ?
+      ''',
+      [todayStart, tomorrowStart],
     );
 
-    final pendingOrdersResult = await db.rawQuery(
-      "SELECT COUNT(*) AS count FROM orders WHERE status != 'completed'",
-    );
+    final pendingOrdersResult = await db.rawQuery('''
+      SELECT COUNT(*) AS count
+      FROM orders
+      WHERE status != 'completed'
+      ''');
 
     final revenueResult = await db.rawQuery(
-      'SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total FROM order_items oi JOIN menu_items mi ON mi.item_code = oi.item_code',
+      '''
+      SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
+      FROM orders o
+      JOIN order_items oi ON oi.order_id = o.id
+      JOIN menu_items mi ON mi.item_code = oi.item_code
+      WHERE o.created_at >= ? AND o.created_at < ?
+      ''',
+      [todayStart, tomorrowStart],
     );
 
-    return {
-      'totalOrders': (totalOrdersResult.first['count'] as int?) ?? 0,
-      'pendingOrders': (pendingOrdersResult.first['count'] as int?) ?? 0,
-      'revenue': (revenueResult.first['total'] as int?) ?? 0,
-    };
+    return OrderDashboardSummary(
+      todayOrders: (totalOrdersResult.first['count'] as int?) ?? 0,
+      pendingOrders: (pendingOrdersResult.first['count'] as int?) ?? 0,
+      todayRevenue: (revenueResult.first['total'] as int?) ?? 0,
+    );
   }
 }
