@@ -76,121 +76,132 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
             ],
           ),
           body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                SegmentedButton<OrderType>(
-                  segments: const [
-                    ButtonSegment(value: OrderType.dineIn, label: Text('內用')),
-                    ButtonSegment(value: OrderType.takeaway, label: Text('外帶')),
-                  ],
-                  selected: {controller.orderType},
-                  onSelectionChanged: (value) =>
-                      controller.setOrderType(value.first),
-                ),
-                const SizedBox(height: 16),
-                if (controller.orderType == OrderType.dineIn) ...[
-                  _TableSelector(controller: controller),
-                  const SizedBox(height: 16),
-                  _ReleaseTableSection(
-                    controller: controller,
-                    onReleaseTable: (tableNo) =>
-                        _confirmReleaseTable(context, controller, tableNo),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SegmentedButton<OrderType>(
+                    segments: const [
+                      ButtonSegment(value: OrderType.dineIn, label: Text('內用')),
+                      ButtonSegment(
+                        value: OrderType.takeaway,
+                        label: Text('外帶'),
+                      ),
+                    ],
+                    selected: {controller.orderType},
+                    onSelectionChanged: (value) =>
+                        controller.setOrderType(value.first),
                   ),
-                ] else ...[
-                  _TakeawaySerialCard(controller: controller),
-                ],
-                const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '品項號碼輸入',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 20,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            controller.itemCodeInput.isEmpty
-                                ? '請輸入號碼'
-                                : controller.itemCodeInput,
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            FilterChip(
-                              label: const Text('不選辣度'),
-                              selected: controller.selectedSpicyLevel == null,
-                              onSelected: (_) => controller.setSpicyLevel(null),
-                            ),
-                            for (final level in SpicyLevel.values)
-                              FilterChip(
-                                label: Text(level.name),
-                                selected:
-                                    controller.selectedSpicyLevel == level,
-                                onSelected: (_) =>
-                                    controller.setSpicyLevel(level),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        NumericKeypad(
-                          onDigitTap: controller.appendItemCodeDigit,
-                          onBackspaceTap: controller.backspaceItemCode,
-                          onClearTap: controller.clearItemCode,
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.icon(
-                            onPressed: controller.addCurrentItem,
-                            icon: const Icon(Icons.add_shopping_cart_outlined),
-                            label: const Text('加入品項'),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 12),
+                  if (controller.orderType == OrderType.dineIn) ...[
+                    _CompactTableSelector(controller: controller),
+                    const SizedBox(height: 8),
+                    _CompactReleaseTableRow(
+                      controller: controller,
+                      onReleaseTable: (tableNo) =>
+                          _confirmReleaseTable(context, controller, tableNo),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text('目前訂單', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                CurrentOrderPanel(
-                  items: controller.items,
-                  onRemove: controller.removeItemAt,
-                ),
-                const SizedBox(height: 12),
-                if (controller.message != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      controller.message!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                  ] else ...[
+                    _CompactTakeawaySerialCard(controller: controller),
+                  ],
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '點單',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              controller.itemCodeInput.isEmpty
+                                  ? '請輸入號碼'
+                                  : controller.itemCodeInput,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              FilterChip(
+                                label: const Text('不選辣度'),
+                                selected: controller.selectedSpicyLevel == null,
+                                onSelected: (_) =>
+                                    controller.setSpicyLevel(null),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              for (final level in SpicyLevel.values)
+                                FilterChip(
+                                  label: Text(level.name),
+                                  selected:
+                                      controller.selectedSpicyLevel == level,
+                                  onSelected: (_) =>
+                                      controller.setSpicyLevel(level),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          NumericKeypad(
+                            onDigitTap: controller.appendItemCodeDigit,
+                            onBackspaceTap: controller.backspaceItemCode,
+                            onClearTap: controller.clearItemCode,
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: controller.addCurrentItem,
+                              icon: const Icon(
+                                Icons.add_shopping_cart_outlined,
+                              ),
+                              label: const Text('加入品項'),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '目前訂單',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 6),
+                          CurrentOrderPanel(
+                            items: controller.items,
+                            onRemove: controller.removeItemAt,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
+                  const SizedBox(height: 10),
+                  if (controller.message != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        controller.message!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  FilledButton(
                     onPressed:
                         controller.isSubmitting || controller.isLoadingOptions
                         ? null
@@ -204,7 +215,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                             }
                           },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       child: Text(
                         controller.isSubmitting
                             ? '送單中...'
@@ -214,8 +225,8 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -224,8 +235,8 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
   }
 }
 
-class _TableSelector extends StatelessWidget {
-  const _TableSelector({required this.controller});
+class _CompactTableSelector extends StatelessWidget {
+  const _CompactTableSelector({required this.controller});
 
   final FrontdeskController controller;
 
@@ -238,7 +249,7 @@ class _TableSelector extends StatelessWidget {
     if (controller.availableTables.isEmpty) {
       return Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Text(
             '目前沒有可用桌號，請先釋放桌號或等待訂單完成。',
             style: Theme.of(context).textTheme.bodyMedium,
@@ -254,22 +265,33 @@ class _TableSelector extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+        padding: const EdgeInsets.all(12),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('桌號', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: controller.availableTables.map((table) {
-                return ChoiceChip(
-                  label: Text(table),
-                  selected: selectedTable == table,
-                  onSelected: (_) => controller.setTableNo(table),
-                );
-              }).toList(),
+            SizedBox(
+              width: 48,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '桌號',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: controller.availableTables.map((table) {
+                  return ChoiceChip(
+                    label: Text(table),
+                    selected: selectedTable == table,
+                    onSelected: (_) => controller.setTableNo(table),
+                    visualDensity: VisualDensity.compact,
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
@@ -278,8 +300,8 @@ class _TableSelector extends StatelessWidget {
   }
 }
 
-class _ReleaseTableSection extends StatelessWidget {
-  const _ReleaseTableSection({
+class _CompactReleaseTableRow extends StatelessWidget {
+  const _CompactReleaseTableRow({
     required this.controller,
     required this.onReleaseTable,
   });
@@ -291,33 +313,43 @@ class _ReleaseTableSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('釋放桌號', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              '用於客人離席後，將桌號重新開放給下一組客人。',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            if (controller.occupiedTables.isEmpty)
-              Text('目前沒有占用中的桌號', style: Theme.of(context).textTheme.bodyMedium)
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: controller.occupiedTables.map((table) {
-                  return ActionChip(
-                    label: Text(table),
-                    avatar: const Icon(Icons.event_seat_outlined, size: 18),
-                    onPressed: controller.isReleasingTable
-                        ? null
-                        : () => onReleaseTable(table),
-                  );
-                }).toList(),
+            SizedBox(
+              width: 48,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '釋放',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
               ),
+            ),
+            Expanded(
+              child: controller.occupiedTables.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '目前無占用桌號',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
+                  : Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: controller.occupiedTables.map((table) {
+                        return ActionChip(
+                          label: Text(table),
+                          onPressed: controller.isReleasingTable
+                              ? null
+                              : () => onReleaseTable(table),
+                          visualDensity: VisualDensity.compact,
+                        );
+                      }).toList(),
+                    ),
+            ),
           ],
         ),
       ),
@@ -325,8 +357,8 @@ class _ReleaseTableSection extends StatelessWidget {
   }
 }
 
-class _TakeawaySerialCard extends StatelessWidget {
-  const _TakeawaySerialCard({required this.controller});
+class _CompactTakeawaySerialCard extends StatelessWidget {
+  const _CompactTakeawaySerialCard({required this.controller});
 
   final FrontdeskController controller;
 
@@ -340,57 +372,39 @@ class _TakeawaySerialCard extends StatelessWidget {
     return Card(
       color: colorScheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                Icons.confirmation_number_outlined,
-                color: colorScheme.primary,
-              ),
+            Icon(
+              Icons.confirmation_number_outlined,
+              color: colorScheme.primary,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
                   Text(
-                    '取餐流水號',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    '取餐號',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(width: 10),
                   Text(
                     serialText,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    controller.isLoadingOptions ? '正在更新號碼...' : '送單時將自動使用此號碼',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer.withOpacity(0.8),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            FilledButton.tonalIcon(
+            IconButton(
               onPressed: controller.isLoadingOptions
                   ? null
                   : controller.loadServiceOptions,
               icon: const Icon(Icons.refresh),
-              label: const Text('更新'),
             ),
           ],
         ),
