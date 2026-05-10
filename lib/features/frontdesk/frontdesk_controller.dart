@@ -42,7 +42,20 @@ class FrontdeskController extends ChangeNotifier {
     required MenuRepository menuRepository,
     required OrderRepository orderRepository,
   }) : _menuRepository = menuRepository,
-       _orderRepository = orderRepository;
+       _orderRepository = orderRepository {
+    loadServiceOptions();
+  }
+
+  static const List<String> _allTables = [
+    'A1',
+    'A2',
+    'A3',
+    'A4',
+    'B1',
+    'B2',
+    'B3',
+    'B4',
+  ];
 
   final MenuRepository _menuRepository;
   final OrderRepository _orderRepository;
@@ -53,7 +66,9 @@ class FrontdeskController extends ChangeNotifier {
   String _itemCodeInput = '';
   SpicyLevel? _selectedSpicyLevel;
   bool _isSubmitting = false;
+  bool _isLoadingOptions = false;
   String? _message;
+  List<String> _availableTables = List.of(_allTables);
   final List<DraftOrderItem> _items = [];
 
   OrderType get orderType => _orderType;
@@ -62,14 +77,53 @@ class FrontdeskController extends ChangeNotifier {
   String get itemCodeInput => _itemCodeInput;
   SpicyLevel? get selectedSpicyLevel => _selectedSpicyLevel;
   bool get isSubmitting => _isSubmitting;
+  bool get isLoadingOptions => _isLoadingOptions;
   String? get message => _message;
   List<DraftOrderItem> get items => List.unmodifiable(_items);
+  List<String> get availableTables => List.unmodifiable(_availableTables);
 
   int get totalQty => _items.fold(0, (sum, item) => sum + item.qty);
+
+  Future<void> loadServiceOptions() async {
+    _isLoadingOptions = true;
+    notifyListeners();
+
+    try {
+      final occupiedTables = await _orderRepository.getOccupiedTableNumbers();
+      final nextTakeawaySerial = await _orderRepository.getNextTakeawaySerial();
+
+      _availableTables = _allTables
+          .where((table) => !occupiedTables.contains(table))
+          .toList();
+
+      if (_tableNo.isNotEmpty && !_availableTables.contains(_tableNo)) {
+        _tableNo = '';
+      }
+
+      if (_orderType == OrderType.dineIn &&
+          _tableNo.isEmpty &&
+          _availableTables.isNotEmpty) {
+        _tableNo = _availableTables.first;
+      }
+
+      _pickupNo = nextTakeawaySerial.toString();
+      _message = null;
+    } finally {
+      _isLoadingOptions = false;
+      notifyListeners();
+    }
+  }
 
   void setOrderType(OrderType value) {
     _orderType = value;
     _message = null;
+
+    if (_orderType == OrderType.dineIn &&
+        _tableNo.isEmpty &&
+        _availableTables.isNotEmpty) {
+      _tableNo = _availableTables.first;
+    }
+
     notifyListeners();
   }
 
@@ -93,12 +147,6 @@ class FrontdeskController extends ChangeNotifier {
 
   void setTableNo(String value) {
     _tableNo = value.toUpperCase();
-    _message = null;
-    notifyListeners();
-  }
-
-  void setPickupNo(String value) {
-    _pickupNo = value;
     _message = null;
     notifyListeners();
   }
@@ -167,13 +215,13 @@ class FrontdeskController extends ChangeNotifier {
     }
 
     if (_orderType == OrderType.dineIn && _tableNo.trim().isEmpty) {
-      _message = '內用請輸入桌號';
+      _message = '內用請選擇桌號';
       notifyListeners();
       return false;
     }
 
     if (_orderType == OrderType.takeaway && _pickupNo.trim().isEmpty) {
-      _message = '外帶請輸入取餐號';
+      _message = '外帶流水號尚未準備完成';
       notifyListeners();
       return false;
     }
@@ -191,7 +239,7 @@ class FrontdeskController extends ChangeNotifier {
           orderType: _orderType.name,
           tableNo: _orderType == OrderType.dineIn ? _tableNo.trim() : null,
           pickupNo: _orderType == OrderType.takeaway ? _pickupNo.trim() : null,
-          status: 'pending',
+          status: 'created',
           totalItems: totalQty,
           createdAt: now.toIso8601String(),
         ),
@@ -203,7 +251,7 @@ class FrontdeskController extends ChangeNotifier {
                 itemName: item.itemName,
                 qty: item.qty,
                 spicyLevel: item.spicyLevel?.name,
-                status: 'pending',
+                status: 'created',
               ),
             )
             .toList(),
@@ -214,9 +262,9 @@ class FrontdeskController extends ChangeNotifier {
       _items.clear();
       _itemCodeInput = '';
       _selectedSpicyLevel = null;
-      _tableNo = _orderType == OrderType.dineIn ? _tableNo : '';
-      _pickupNo = _orderType == OrderType.takeaway ? _pickupNo : '';
       _message = '訂單已送出';
+
+      await loadServiceOptions();
       return true;
     } finally {
       _isSubmitting = false;

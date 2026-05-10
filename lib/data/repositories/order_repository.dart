@@ -111,6 +111,51 @@ class OrderRepository {
     return result.map(OrderItemEntity.fromMap).toList();
   }
 
+  Future<List<String>> getOccupiedTableNumbers() async {
+    final db = await AppDatabase.database;
+    final result = await db.query(
+      'orders',
+      columns: ['table_no'],
+      where:
+          'order_type = ? AND status != ? AND table_no IS NOT NULL AND table_no != ?',
+      whereArgs: ['dineIn', 'completed', ''],
+    );
+
+    final tableSet = <String>{};
+    for (final row in result) {
+      final value = (row['table_no'] as String?)?.trim() ?? '';
+      if (value.isNotEmpty) {
+        tableSet.add(value);
+      }
+    }
+
+    final tables = tableSet.toList()..sort();
+    return tables;
+  }
+
+  Future<int> getNextTakeawaySerial() async {
+    final db = await AppDatabase.database;
+    final result = await db.query(
+      'orders',
+      columns: ['pickup_no'],
+      where: 'order_type = ? AND pickup_no IS NOT NULL AND pickup_no != ?',
+      whereArgs: ['takeaway', ''],
+      orderBy: 'id DESC',
+    );
+
+    var maxSerial = 100;
+
+    for (final row in result) {
+      final raw = (row['pickup_no'] as String?)?.trim() ?? '';
+      final parsed = int.tryParse(raw);
+      if (parsed != null && parsed > maxSerial) {
+        maxSerial = parsed;
+      }
+    }
+
+    return maxSerial + 1;
+  }
+
   Future<void> completeOrderItem(int itemId) async {
     final db = await AppDatabase.database;
     await db.update(

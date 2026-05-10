@@ -24,31 +24,22 @@ class _FrontdeskView extends StatefulWidget {
 }
 
 class _FrontdeskViewState extends State<_FrontdeskView> {
-  late final TextEditingController _tableController;
-  late final TextEditingController _pickupController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tableController = TextEditingController();
-    _pickupController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _tableController.dispose();
-    _pickupController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<FrontdeskController>(
       builder: (context, controller, _) {
-        _syncControllerTexts(controller);
-
         return Scaffold(
-          appBar: AppBar(title: const Text('前台點單')),
+          appBar: AppBar(
+            title: const Text('前台點單'),
+            actions: [
+              IconButton(
+                onPressed: controller.isLoadingOptions
+                    ? null
+                    : controller.loadServiceOptions,
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
+          ),
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -64,27 +55,9 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                 ),
                 const SizedBox(height: 16),
                 if (controller.orderType == OrderType.dineIn)
-                  TextField(
-                    controller: _tableController,
-                    decoration: const InputDecoration(
-                      labelText: '桌號',
-                      hintText: '例如 A1',
-                      border: OutlineInputBorder(),
-                    ),
-                    textCapitalization: TextCapitalization.characters,
-                    onChanged: controller.setTableNo,
-                  )
+                  _TableSelector(controller: controller)
                 else
-                  TextField(
-                    controller: _pickupController,
-                    decoration: const InputDecoration(
-                      labelText: '取餐號',
-                      hintText: '例如 101',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: controller.setPickupNo,
-                  ),
+                  _TakeawaySerialField(controller: controller),
                 const SizedBox(height: 16),
                 Card(
                   child: Padding(
@@ -175,7 +148,8 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: controller.isSubmitting
+                    onPressed:
+                        controller.isSubmitting || controller.isLoadingOptions
                         ? null
                         : () async {
                             final ok = await controller.submitOrder();
@@ -188,7 +162,13 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                           },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Text(controller.isSubmitting ? '送單中...' : '送出訂單'),
+                      child: Text(
+                        controller.isSubmitting
+                            ? '送單中...'
+                            : controller.isLoadingOptions
+                            ? '資料更新中...'
+                            : '送出訂單',
+                      ),
                     ),
                   ),
                 ),
@@ -199,19 +179,84 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
       },
     );
   }
+}
 
-  void _syncControllerTexts(FrontdeskController controller) {
-    if (_tableController.text != controller.tableNo) {
-      _tableController.value = _tableController.value.copyWith(
-        text: controller.tableNo,
-        selection: TextSelection.collapsed(offset: controller.tableNo.length),
+class _TableSelector extends StatelessWidget {
+  const _TableSelector({required this.controller});
+
+  final FrontdeskController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    if (controller.isLoadingOptions) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.availableTables.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            '目前沒有可用桌號，請等待未完成訂單結單後再使用。',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
       );
     }
-    if (_pickupController.text != controller.pickupNo) {
-      _pickupController.value = _pickupController.value.copyWith(
-        text: controller.pickupNo,
-        selection: TextSelection.collapsed(offset: controller.pickupNo.length),
-      );
-    }
+
+    final selectedValue =
+        controller.availableTables.contains(controller.tableNo)
+        ? controller.tableNo
+        : controller.availableTables.first;
+
+    return DropdownButtonFormField<String>(
+      value: selectedValue,
+      decoration: const InputDecoration(
+        labelText: '桌號',
+        border: OutlineInputBorder(),
+      ),
+      items: controller.availableTables
+          .map(
+            (table) =>
+                DropdownMenuItem<String>(value: table, child: Text(table)),
+          )
+          .toList(),
+      onChanged: (value) {
+        if (value == null) return;
+        controller.setTableNo(value);
+      },
+    );
+  }
+}
+
+class _TakeawaySerialField extends StatelessWidget {
+  const _TakeawaySerialField({required this.controller});
+
+  final FrontdeskController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputDecorator(
+      decoration: const InputDecoration(
+        labelText: '取餐流水號',
+        border: OutlineInputBorder(),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              controller.isLoadingOptions ? '載入中...' : controller.pickupNo,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          IconButton(
+            onPressed: controller.isLoadingOptions
+                ? null
+                : controller.loadServiceOptions,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+    );
   }
 }
