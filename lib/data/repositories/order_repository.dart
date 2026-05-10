@@ -2,7 +2,7 @@ import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 
-enum KitchenSortOption { oldestFirst, newestFirst, statusPriority }
+enum KitchenSortOption { oldestFirst, newestFirst }
 
 class OrderBundle {
   final OrderEntity order;
@@ -55,27 +55,6 @@ class OrderRepository {
     KitchenSortOption sortOption = KitchenSortOption.oldestFirst,
   }) async {
     final db = await AppDatabase.database;
-
-    if (sortOption == KitchenSortOption.statusPriority) {
-      final result = await db.rawQuery(
-        '''
-        SELECT *
-        FROM orders
-        WHERE status != ?
-        ORDER BY
-          CASE
-            WHEN status = 'created' THEN 0
-            WHEN status = 'preparing' THEN 1
-            ELSE 2
-          END ASC,
-          created_at ASC
-        ''',
-        ['completed'],
-      );
-
-      return result.map(OrderEntity.fromMap).toList();
-    }
-
     final result = await db.query(
       'orders',
       where: 'status != ?',
@@ -84,7 +63,6 @@ class OrderRepository {
           ? 'created_at DESC'
           : 'created_at ASC',
     );
-
     return result.map(OrderEntity.fromMap).toList();
   }
 

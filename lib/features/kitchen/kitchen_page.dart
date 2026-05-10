@@ -155,10 +155,6 @@ class _KitchenViewState extends State<_KitchenView> {
                               value: KitchenSortOption.newestFirst,
                               child: Text('最新優先'),
                             ),
-                            DropdownMenuItem(
-                              value: KitchenSortOption.statusPriority,
-                              child: Text('狀態優先'),
-                            ),
                           ],
                         ),
                       ),
