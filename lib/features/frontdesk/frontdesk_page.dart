@@ -24,6 +24,41 @@ class _FrontdeskView extends StatefulWidget {
 }
 
 class _FrontdeskViewState extends State<_FrontdeskView> {
+  Future<void> _confirmReleaseTable(
+    BuildContext context,
+    FrontdeskController controller,
+    String tableNo,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('釋放桌號'),
+          content: Text('確認將桌號 $tableNo 釋放為可用狀態？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('確認釋放'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    await controller.releaseTable(tableNo);
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('桌號 $tableNo 已釋放')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<FrontdeskController>(
@@ -54,10 +89,17 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                       controller.setOrderType(value.first),
                 ),
                 const SizedBox(height: 16),
-                if (controller.orderType == OrderType.dineIn)
-                  _TableSelector(controller: controller)
-                else
+                if (controller.orderType == OrderType.dineIn) ...[
+                  _TableSelector(controller: controller),
+                  const SizedBox(height: 16),
+                  _ReleaseTableSection(
+                    controller: controller,
+                    onReleaseTable: (tableNo) =>
+                        _confirmReleaseTable(context, controller, tableNo),
+                  ),
+                ] else ...[
                   _TakeawaySerialCard(controller: controller),
+                ],
                 const SizedBox(height: 16),
                 Card(
                   child: Padding(
@@ -198,7 +240,7 @@ class _TableSelector extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            '目前沒有可用桌號，請等待未完成訂單結單後再使用。',
+            '目前沒有可用桌號，請先釋放桌號或等待訂單完成。',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
@@ -229,6 +271,53 @@ class _TableSelector extends StatelessWidget {
                 );
               }).toList(),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReleaseTableSection extends StatelessWidget {
+  const _ReleaseTableSection({
+    required this.controller,
+    required this.onReleaseTable,
+  });
+
+  final FrontdeskController controller;
+  final ValueChanged<String> onReleaseTable;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('釋放桌號', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(
+              '用於客人離席後，將桌號重新開放給下一組客人。',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            if (controller.occupiedTables.isEmpty)
+              Text('目前沒有占用中的桌號', style: Theme.of(context).textTheme.bodyMedium)
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: controller.occupiedTables.map((table) {
+                  return ActionChip(
+                    label: Text(table),
+                    avatar: const Icon(Icons.event_seat_outlined, size: 18),
+                    onPressed: controller.isReleasingTable
+                        ? null
+                        : () => onReleaseTable(table),
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),

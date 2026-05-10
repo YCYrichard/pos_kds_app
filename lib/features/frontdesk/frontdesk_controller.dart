@@ -67,8 +67,10 @@ class FrontdeskController extends ChangeNotifier {
   SpicyLevel? _selectedSpicyLevel;
   bool _isSubmitting = false;
   bool _isLoadingOptions = false;
+  bool _isReleasingTable = false;
   String? _message;
   List<String> _availableTables = List.of(_allTables);
+  List<String> _occupiedTables = const [];
   final List<DraftOrderItem> _items = [];
 
   OrderType get orderType => _orderType;
@@ -78,9 +80,11 @@ class FrontdeskController extends ChangeNotifier {
   SpicyLevel? get selectedSpicyLevel => _selectedSpicyLevel;
   bool get isSubmitting => _isSubmitting;
   bool get isLoadingOptions => _isLoadingOptions;
+  bool get isReleasingTable => _isReleasingTable;
   String? get message => _message;
   List<DraftOrderItem> get items => List.unmodifiable(_items);
   List<String> get availableTables => List.unmodifiable(_availableTables);
+  List<String> get occupiedTables => List.unmodifiable(_occupiedTables);
 
   int get totalQty => _items.fold(0, (sum, item) => sum + item.qty);
 
@@ -92,6 +96,7 @@ class FrontdeskController extends ChangeNotifier {
       final occupiedTables = await _orderRepository.getOccupiedTableNumbers();
       final nextTakeawaySerial = await _orderRepository.getNextTakeawaySerial();
 
+      _occupiedTables = occupiedTables;
       _availableTables = _allTables
           .where((table) => !occupiedTables.contains(table))
           .toList();
@@ -110,6 +115,23 @@ class FrontdeskController extends ChangeNotifier {
       _message = null;
     } finally {
       _isLoadingOptions = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> releaseTable(String tableNo) async {
+    if (_isReleasingTable) return;
+
+    _isReleasingTable = true;
+    _message = null;
+    notifyListeners();
+
+    try {
+      await _orderRepository.releaseTable(tableNo);
+      await loadServiceOptions();
+      _message = '桌號 $tableNo 已釋放';
+    } finally {
+      _isReleasingTable = false;
       notifyListeners();
     }
   }
@@ -239,9 +261,10 @@ class FrontdeskController extends ChangeNotifier {
           orderType: _orderType.name,
           tableNo: _orderType == OrderType.dineIn ? _tableNo.trim() : null,
           pickupNo: _orderType == OrderType.takeaway ? _pickupNo.trim() : null,
-          status: 'created',
+          status: 'pending',
           totalItems: totalQty,
           createdAt: now.toIso8601String(),
+          releasedAt: null,
         ),
         items: _items
             .map(
@@ -251,7 +274,7 @@ class FrontdeskController extends ChangeNotifier {
                 itemName: item.itemName,
                 qty: item.qty,
                 spicyLevel: item.spicyLevel?.name,
-                status: 'created',
+                status: 'pending',
               ),
             )
             .toList(),

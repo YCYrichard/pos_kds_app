@@ -116,8 +116,13 @@ class OrderRepository {
     final result = await db.query(
       'orders',
       columns: ['table_no'],
-      where:
-          'order_type = ? AND status != ? AND table_no IS NOT NULL AND table_no != ?',
+      where: '''
+        order_type = ?
+        AND status != ?
+        AND released_at IS NULL
+        AND table_no IS NOT NULL
+        AND table_no != ?
+      ''',
       whereArgs: ['dineIn', 'completed', ''],
     );
 
@@ -154,6 +159,21 @@ class OrderRepository {
     }
 
     return maxSerial + 1;
+  }
+
+  Future<void> releaseTable(String tableNo) async {
+    final db = await AppDatabase.database;
+    await db.update(
+      'orders',
+      {'released_at': DateTime.now().toIso8601String()},
+      where: '''
+        order_type = ?
+        AND status != ?
+        AND released_at IS NULL
+        AND table_no = ?
+      ''',
+      whereArgs: ['dineIn', 'completed', tableNo],
+    );
   }
 
   Future<void> completeOrderItem(int itemId) async {

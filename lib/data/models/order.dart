@@ -8,6 +8,7 @@ class OrderEntity {
   final int totalItems;
   final String createdAt;
   final String? completedAt;
+  final String? releasedAt;
 
   const OrderEntity({
     this.id,
@@ -19,9 +20,10 @@ class OrderEntity {
     required this.totalItems,
     required this.createdAt,
     this.completedAt,
+    this.releasedAt,
   });
 
-  Map<String, dynamic> toMap() {
+  Map<String, Object?> toMap() {
     return {
       'id': id,
       'order_no': orderNo,
@@ -32,10 +34,11 @@ class OrderEntity {
       'total_items': totalItems,
       'created_at': createdAt,
       'completed_at': completedAt,
+      'released_at': releasedAt,
     };
   }
 
-  factory OrderEntity.fromMap(Map<String, dynamic> map) {
+  factory OrderEntity.fromMap(Map<String, Object?> map) {
     return OrderEntity(
       id: map['id'] as int?,
       orderNo: map['order_no'] as String,
@@ -46,6 +49,7 @@ class OrderEntity {
       totalItems: map['total_items'] as int,
       createdAt: map['created_at'] as String,
       completedAt: map['completed_at'] as String?,
+      releasedAt: map['released_at'] as String?,
     );
   }
 }

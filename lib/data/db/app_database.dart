@@ -18,14 +18,19 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
+        await db.execute('PRAGMA foreign_keys = ON;');
       },
       onCreate: (db, version) async {
         await db.execute(createMenuItemsTable);
         await db.execute(createOrdersTable);
         await db.execute(createOrderItemsTable);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE orders ADD COLUMN released_at TEXT');
+        }
       },
     );
   }
