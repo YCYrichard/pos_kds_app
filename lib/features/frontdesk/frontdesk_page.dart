@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/repositories/menu_repository.dart';
-import '../../data/repositories/order_repository.dart';
 import '../../domain/enums/order_type.dart';
 import '../../domain/enums/spicy_level.dart';
 import '../../shared/widgets/current_order_panel.dart';
@@ -14,13 +12,7 @@ class FrontdeskPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => FrontdeskController(
-        menuRepository: context.read<MenuRepository>(),
-        orderRepository: context.read<OrderRepository>(),
-      ),
-      child: const _FrontdeskView(),
-    );
+    return const _FrontdeskView();
   }
 }
 
@@ -67,7 +59,8 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                     ButtonSegment(value: OrderType.takeaway, label: Text('外帶')),
                   ],
                   selected: {controller.orderType},
-                  onSelectionChanged: (value) => controller.setOrderType(value.first),
+                  onSelectionChanged: (value) =>
+                      controller.setOrderType(value.first),
                 ),
                 const SizedBox(height: 16),
                 if (controller.orderType == OrderType.dineIn)
@@ -99,17 +92,27 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('品項號碼輸入', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          '品項號碼輸入',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 20,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).colorScheme.outline),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            controller.itemCodeInput.isEmpty ? '請輸入號碼' : controller.itemCodeInput,
+                            controller.itemCodeInput.isEmpty
+                                ? '請輸入號碼'
+                                : controller.itemCodeInput,
                             style: Theme.of(context).textTheme.headlineMedium,
                           ),
                         ),
@@ -125,8 +128,10 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                             for (final level in SpicyLevel.values)
                               FilterChip(
                                 label: Text(level.name),
-                                selected: controller.selectedSpicyLevel == level,
-                                onSelected: (_) => controller.setSpicyLevel(level),
+                                selected:
+                                    controller.selectedSpicyLevel == level,
+                                onSelected: (_) =>
+                                    controller.setSpicyLevel(level),
                               ),
                           ],
                         ),
@@ -162,21 +167,25 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       controller.message!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: controller.isSubmitting ? null : () async {
-                      final ok = await controller.submitOrder();
-                      if (!context.mounted) return;
-                      if (ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('訂單已成功送出')),
-                        );
-                      }
-                    },
+                    onPressed: controller.isSubmitting
+                        ? null
+                        : () async {
+                            final ok = await controller.submitOrder();
+                            if (!context.mounted) return;
+                            if (ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('訂單已成功送出')),
+                              );
+                            }
+                          },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(controller.isSubmitting ? '送單中...' : '送出訂單'),

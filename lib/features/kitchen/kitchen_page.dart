@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/events/order_event_bus.dart';
-import '../../data/repositories/order_repository.dart';
 import '../../shared/widgets/kitchen_order_card.dart';
 import 'kitchen_controller.dart';
 
@@ -15,12 +14,7 @@ class KitchenPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) =>
-          KitchenController(orderRepository: context.read<OrderRepository>())
-            ..loadOrders(),
-      child: _KitchenView(isActive: isActive),
-    );
+    return _KitchenView(isActive: isActive);
   }
 }
 

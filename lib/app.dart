@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'data/repositories/menu_repository.dart';
+import 'data/repositories/order_repository.dart';
 import 'features/backoffice/backoffice_page.dart';
+import 'features/frontdesk/frontdesk_controller.dart';
 import 'features/frontdesk/frontdesk_page.dart';
+import 'features/kitchen/kitchen_controller.dart';
 import 'features/kitchen/kitchen_page.dart';
 
 class PosKdsApp extends StatelessWidget {
@@ -29,13 +34,45 @@ class _AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<_AppShell> {
+  late final FrontdeskController _frontdeskController;
+  late final KitchenController _kitchenController;
+
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final menuRepository = context.read<MenuRepository>();
+    final orderRepository = context.read<OrderRepository>();
+
+    _frontdeskController = FrontdeskController(
+      menuRepository: menuRepository,
+      orderRepository: orderRepository,
+    );
+
+    _kitchenController = KitchenController(orderRepository: orderRepository)
+      ..loadOrders();
+  }
+
+  @override
+  void dispose() {
+    _frontdeskController.dispose();
+    _kitchenController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      const FrontdeskPage(),
-      KitchenPage(isActive: _currentIndex == 1),
+      ChangeNotifierProvider<FrontdeskController>.value(
+        value: _frontdeskController,
+        child: const FrontdeskPage(),
+      ),
+      ChangeNotifierProvider<KitchenController>.value(
+        value: _kitchenController,
+        child: KitchenPage(isActive: _currentIndex == 1),
+      ),
       const BackofficePage(),
     ];
 
