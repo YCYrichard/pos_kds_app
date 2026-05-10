@@ -2,6 +2,8 @@ import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 
+enum KitchenSortOption { oldestFirst, newestFirst, statusPriority }
+
 class OrderBundle {
   final OrderEntity order;
   final List<OrderItemEntity> items;
@@ -49,19 +51,47 @@ class OrderRepository {
     });
   }
 
-  Future<List<OrderEntity>> getActiveOrders() async {
+  Future<List<OrderEntity>> getActiveOrders({
+    KitchenSortOption sortOption = KitchenSortOption.oldestFirst,
+  }) async {
     final db = await AppDatabase.database;
+
+    if (sortOption == KitchenSortOption.statusPriority) {
+      final result = await db.rawQuery(
+        '''
+        SELECT *
+        FROM orders
+        WHERE status != ?
+        ORDER BY
+          CASE
+            WHEN status = 'created' THEN 0
+            WHEN status = 'preparing' THEN 1
+            ELSE 2
+          END ASC,
+          created_at ASC
+        ''',
+        ['completed'],
+      );
+
+      return result.map(OrderEntity.fromMap).toList();
+    }
+
     final result = await db.query(
       'orders',
       where: 'status != ?',
       whereArgs: ['completed'],
-      orderBy: 'created_at ASC',
+      orderBy: sortOption == KitchenSortOption.newestFirst
+          ? 'created_at DESC'
+          : 'created_at ASC',
     );
+
     return result.map(OrderEntity.fromMap).toList();
   }
 
-  Future<List<OrderBundle>> getActiveOrderBundles() async {
-    final orders = await getActiveOrders();
+  Future<List<OrderBundle>> getActiveOrderBundles({
+    KitchenSortOption sortOption = KitchenSortOption.oldestFirst,
+  }) async {
+    final orders = await getActiveOrders(sortOption: sortOption);
     final bundles = <OrderBundle>[];
 
     for (final order in orders) {

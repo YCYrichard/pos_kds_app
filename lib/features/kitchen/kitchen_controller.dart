@@ -13,24 +13,28 @@ class KitchenOrderBundle {
 
 class KitchenController extends ChangeNotifier {
   KitchenController({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository;
+    : _orderRepository = orderRepository;
 
   final OrderRepository _orderRepository;
 
   bool _loading = false;
   String? _message;
   List<KitchenOrderBundle> _orders = [];
+  KitchenSortOption _sortOption = KitchenSortOption.oldestFirst;
 
   bool get loading => _loading;
   String? get message => _message;
   List<KitchenOrderBundle> get orders => List.unmodifiable(_orders);
+  KitchenSortOption get sortOption => _sortOption;
 
   Future<void> loadOrders() async {
     _loading = true;
     notifyListeners();
 
     try {
-      final bundles = await _orderRepository.getActiveOrderBundles();
+      final bundles = await _orderRepository.getActiveOrderBundles(
+        sortOption: _sortOption,
+      );
       _orders = bundles
           .map((e) => KitchenOrderBundle(order: e.order, items: e.items))
           .toList();
@@ -39,6 +43,12 @@ class KitchenController extends ChangeNotifier {
       _loading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> setSortOption(KitchenSortOption value) async {
+    if (_sortOption == value) return;
+    _sortOption = value;
+    await loadOrders();
   }
 
   Future<void> completeItem(int itemId) async {
