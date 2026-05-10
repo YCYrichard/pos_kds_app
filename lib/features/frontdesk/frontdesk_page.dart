@@ -92,6 +92,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
+                          runSpacing: 8,
                           children: [
                             FilterChip(
                               label: const Text('不選辣度'),
@@ -204,27 +205,33 @@ class _TableSelector extends StatelessWidget {
       );
     }
 
-    final selectedValue =
+    final selectedTable =
         controller.availableTables.contains(controller.tableNo)
         ? controller.tableNo
         : controller.availableTables.first;
 
-    return DropdownButtonFormField<String>(
-      value: selectedValue,
-      decoration: const InputDecoration(
-        labelText: '桌號',
-        border: OutlineInputBorder(),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('桌號', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.availableTables.map((table) {
+                return ChoiceChip(
+                  label: Text(table),
+                  selected: selectedTable == table,
+                  onSelected: (_) => controller.setTableNo(table),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
-      items: controller.availableTables
-          .map(
-            (table) =>
-                DropdownMenuItem<String>(value: table, child: Text(table)),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value == null) return;
-        controller.setTableNo(value);
-      },
     );
   }
 }
