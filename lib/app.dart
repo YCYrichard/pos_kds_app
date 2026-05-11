@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
+import 'features/backoffice/backoffice_controller.dart';
 import 'features/backoffice/backoffice_page.dart';
 import 'features/frontdesk/frontdesk_controller.dart';
 import 'features/frontdesk/frontdesk_page.dart';
@@ -46,6 +47,7 @@ class _AppShell extends StatefulWidget {
 class _AppShellState extends State<_AppShell> {
   late final FrontdeskController _frontdeskController;
   late final KitchenController _kitchenController;
+  late final BackofficeController _backofficeController;
 
   int _currentIndex = 0;
 
@@ -64,12 +66,17 @@ class _AppShellState extends State<_AppShell> {
     _kitchenController = KitchenController(
       orderRepository: orderRepository,
     )..loadOrders();
+
+    _backofficeController = BackofficeController(
+      orderRepository: orderRepository,
+    )..loadDashboard();
   }
 
   @override
   void dispose() {
     _frontdeskController.dispose();
     _kitchenController.dispose();
+    _backofficeController.dispose();
     super.dispose();
   }
 
@@ -86,7 +93,10 @@ class _AppShellState extends State<_AppShell> {
         value: _kitchenController,
         child: KitchenPage(isActive: _currentIndex == 1),
       ),
-      BackofficePage(isActive: _currentIndex == 2),
+      ChangeNotifierProvider.value(
+        value: _backofficeController,
+        child: BackofficePage(isActive: _currentIndex == 2),
+      ),
     ];
 
     return Scaffold(

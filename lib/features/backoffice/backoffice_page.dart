@@ -275,7 +275,9 @@ class _OrderDetailSheet extends StatelessWidget {
                 ),
                 if (order.orderType == 'dineIn')
                   _DetailRow(
-                      label: l10n.tableLabel, value: order.tableNo ?? '-'),
+                    label: l10n.tableLabel,
+                    value: order.tableNo ?? '-',
+                  ),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
                     label: l10n.pickupLabel,
