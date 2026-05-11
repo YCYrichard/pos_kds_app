@@ -62,12 +62,46 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
     );
   }
 
+  String? _resolveFrontdeskMessage(
+    BuildContext context,
+    FrontdeskController controller,
+  ) {
+    final l10n = context.l10n;
+    final key = controller.messageKey;
+    final args = controller.messageArgs;
+
+    switch (key) {
+      case FrontdeskMessage.releaseTableDone:
+        return l10n.releaseTableDone(args['tableNo'] ?? '');
+      case FrontdeskMessage.enterItemCodeFirst:
+        return l10n.enterItemCodeFirst;
+      case FrontdeskMessage.itemCodeNotFound:
+        return l10n.itemCodeNotFound(args['itemCode'] ?? '');
+      case FrontdeskMessage.itemAdded:
+        return l10n.itemAdded(args['itemName'] ?? '');
+      case FrontdeskMessage.itemRemoved:
+        return l10n.itemRemoved(args['itemName'] ?? '');
+      case FrontdeskMessage.orderNeedsAtLeastOneItem:
+        return l10n.orderNeedsAtLeastOneItem;
+      case FrontdeskMessage.dineInSelectTable:
+        return l10n.dineInSelectTable;
+      case FrontdeskMessage.takeawaySerialNotReady:
+        return l10n.takeawaySerialNotReady;
+      case FrontdeskMessage.orderSubmitted:
+        return l10n.orderSubmitted;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
     return Consumer<FrontdeskController>(
       builder: (context, controller, _) {
+        final messageText = _resolveFrontdeskMessage(context, controller);
+
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.frontdeskTitle),
@@ -199,11 +233,11 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  if (controller.message != null)
+                  if (messageText != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
-                        controller.message!,
+                        messageText,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),

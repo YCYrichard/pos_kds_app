@@ -109,6 +109,22 @@ class _KitchenViewState extends State<_KitchenView> {
     _refreshTimer = null;
   }
 
+  String? _resolveKitchenMessage(
+    BuildContext context,
+    KitchenController controller,
+  ) {
+    final l10n = context.l10n;
+
+    switch (controller.messageKey) {
+      case KitchenMessage.noPendingOrders:
+        return l10n.noPendingOrders;
+      case KitchenMessage.itemCompleted:
+        return l10n.itemCompleted;
+      default:
+        return null;
+    }
+  }
+
   @override
   void dispose() {
     _stopPolling();
@@ -122,6 +138,8 @@ class _KitchenViewState extends State<_KitchenView> {
 
     return Consumer<KitchenController>(
       builder: (context, controller, _) {
+        final messageText = _resolveKitchenMessage(context, controller);
+
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.kitchenTitle),
@@ -173,9 +191,7 @@ class _KitchenViewState extends State<_KitchenView> {
                       ? const Center(child: CircularProgressIndicator())
                       : controller.orders.isEmpty
                           ? Center(
-                              child: Text(
-                                controller.message ?? l10n.noPendingOrders,
-                              ),
+                              child: Text(messageText ?? l10n.noPendingOrders),
                             )
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
@@ -189,7 +205,13 @@ class _KitchenViewState extends State<_KitchenView> {
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(l10n.itemCompleted),
+                                        content: Text(
+                                          _resolveKitchenMessage(
+                                                context,
+                                                controller,
+                                              ) ??
+                                              l10n.itemCompleted,
+                                        ),
                                       ),
                                     );
                                   },

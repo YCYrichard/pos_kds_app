@@ -37,6 +37,18 @@ class DraftOrderItem {
   }
 }
 
+class FrontdeskMessage {
+  static const String releaseTableDone = 'releaseTableDone';
+  static const String enterItemCodeFirst = 'enterItemCodeFirst';
+  static const String itemCodeNotFound = 'itemCodeNotFound';
+  static const String itemAdded = 'itemAdded';
+  static const String itemRemoved = 'itemRemoved';
+  static const String orderNeedsAtLeastOneItem = 'orderNeedsAtLeastOneItem';
+  static const String dineInSelectTable = 'dineInSelectTable';
+  static const String takeawaySerialNotReady = 'takeawaySerialNotReady';
+  static const String orderSubmitted = 'orderSubmitted';
+}
+
 class FrontdeskController extends ChangeNotifier {
   FrontdeskController({
     required MenuRepository menuRepository,
@@ -68,7 +80,10 @@ class FrontdeskController extends ChangeNotifier {
   bool _isSubmitting = false;
   bool _isLoadingOptions = false;
   bool _isReleasingTable = false;
-  String? _message;
+
+  String? _messageKey;
+  Map<String, String> _messageArgs = {};
+
   List<String> _availableTables = List.of(_allTables);
   List<String> _occupiedTables = const [];
   final List<DraftOrderItem> _items = [];
@@ -81,12 +96,25 @@ class FrontdeskController extends ChangeNotifier {
   bool get isSubmitting => _isSubmitting;
   bool get isLoadingOptions => _isLoadingOptions;
   bool get isReleasingTable => _isReleasingTable;
-  String? get message => _message;
+
+  String? get messageKey => _messageKey;
+  Map<String, String> get messageArgs => Map.unmodifiable(_messageArgs);
+
   List<DraftOrderItem> get items => List.unmodifiable(_items);
   List<String> get availableTables => List.unmodifiable(_availableTables);
   List<String> get occupiedTables => List.unmodifiable(_occupiedTables);
 
   int get totalQty => _items.fold(0, (sum, item) => sum + item.qty);
+
+  void _clearMessage() {
+    _messageKey = null;
+    _messageArgs = {};
+  }
+
+  void _setMessage(String key, [Map<String, String> args = const {}]) {
+    _messageKey = key;
+    _messageArgs = args;
+  }
 
   Future<void> loadServiceOptions() async {
     _isLoadingOptions = true;
@@ -111,7 +139,7 @@ class FrontdeskController extends ChangeNotifier {
       }
 
       _pickupNo = nextTakeawaySerial.toString();
-      _message = null;
+      _clearMessage();
     } finally {
       _isLoadingOptions = false;
       notifyListeners();
@@ -122,13 +150,16 @@ class FrontdeskController extends ChangeNotifier {
     if (_isReleasingTable) return;
 
     _isReleasingTable = true;
-    _message = null;
+    _clearMessage();
     notifyListeners();
 
     try {
       await _orderRepository.releaseTable(tableNo);
       await loadServiceOptions();
-      _message = '桌號 $tableNo 已釋放';
+      _setMessage(
+        FrontdeskMessage.releaseTableDone,
+        {'tableNo': tableNo},
+      );
     } finally {
       _isReleasingTable = false;
       notifyListeners();
@@ -137,7 +168,7 @@ class FrontdeskController extends ChangeNotifier {
 
   void setOrderType(OrderType value) {
     _orderType = value;
-    _message = null;
+    _clearMessage();
 
     if (_orderType == OrderType.dineIn &&
         _tableNo.isEmpty &&
@@ -150,14 +181,14 @@ class FrontdeskController extends ChangeNotifier {
 
   void setPickupNo(String value) {
     _pickupNo = value;
-    _message = null;
+    _clearMessage();
     notifyListeners();
   }
 
   void appendItemCodeDigit(String digit) {
     if (_itemCodeInput.length >= 3) return;
     _itemCodeInput += digit;
-    _message = null;
+    _clearMessage();
     notifyListeners();
   }
 
@@ -174,27 +205,32 @@ class FrontdeskController extends ChangeNotifier {
 
   void setTableNo(String value) {
     _tableNo = value.toUpperCase();
-    _message = null;
+    _clearMessage();
     notifyListeners();
   }
 
   void setSpicyLevel(SpicyLevel? value) {
     _selectedSpicyLevel = value;
-    _message = null;
+    _clearMessage();
     notifyListeners();
   }
 
   Future<bool> addCurrentItem() async {
-    _message = null;
+    _clearMessage();
+
     if (_itemCodeInput.trim().isEmpty) {
-      _message = '請先輸入品項號碼';
+      _setMessage(FrontdeskMessage.enterItemCodeFirst);
       notifyListeners();
       return false;
     }
 
-    final menuItem = await _menuRepository.getByCode(_itemCodeInput.trim());
+    final inputCode = _itemCodeInput.trim();
+    final menuItem = await _menuRepository.getByCode(inputCode);
     if (menuItem == null) {
-      _message = '找不到品項號碼 ${_itemCodeInput.trim()}';
+      _setMessage(
+        FrontdeskMessage.itemCodeNotFound,
+        {'itemCode': inputCode},
+      );
       notifyListeners();
       return false;
     }
@@ -219,7 +255,10 @@ class FrontdeskController extends ChangeNotifier {
 
     _itemCodeInput = '';
     _selectedSpicyLevel = null;
-    _message = '已加入 ${menuItem.itemName}';
+    _setMessage(
+      FrontdeskMessage.itemAdded,
+      {'itemName': menuItem.itemName},
+    );
     notifyListeners();
     return true;
   }
@@ -227,28 +266,31 @@ class FrontdeskController extends ChangeNotifier {
   void removeItemAt(int index) {
     if (index < 0 || index >= _items.length) return;
     final removed = _items.removeAt(index);
-    _message = '已移除 ${removed.itemName}';
+    _setMessage(
+      FrontdeskMessage.itemRemoved,
+      {'itemName': removed.itemName},
+    );
     notifyListeners();
   }
 
   Future<bool> submitOrder() async {
     if (_isSubmitting) return false;
-    _message = null;
+    _clearMessage();
 
     if (_items.isEmpty) {
-      _message = '訂單至少需要一個品項';
+      _setMessage(FrontdeskMessage.orderNeedsAtLeastOneItem);
       notifyListeners();
       return false;
     }
 
     if (_orderType == OrderType.dineIn && _tableNo.trim().isEmpty) {
-      _message = '內用請選擇桌號';
+      _setMessage(FrontdeskMessage.dineInSelectTable);
       notifyListeners();
       return false;
     }
 
     if (_orderType == OrderType.takeaway && _pickupNo.trim().isEmpty) {
-      _message = '外帶流水號尚未準備完成';
+      _setMessage(FrontdeskMessage.takeawaySerialNotReady);
       notifyListeners();
       return false;
     }
@@ -290,7 +332,7 @@ class FrontdeskController extends ChangeNotifier {
       _items.clear();
       _itemCodeInput = '';
       _selectedSpicyLevel = null;
-      _message = '訂單已送出';
+      _setMessage(FrontdeskMessage.orderSubmitted);
 
       await loadServiceOptions();
       return true;
