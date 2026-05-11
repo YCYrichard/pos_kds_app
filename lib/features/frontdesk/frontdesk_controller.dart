@@ -41,8 +41,8 @@ class FrontdeskController extends ChangeNotifier {
   FrontdeskController({
     required MenuRepository menuRepository,
     required OrderRepository orderRepository,
-  }) : _menuRepository = menuRepository,
-       _orderRepository = orderRepository {
+  })  : _menuRepository = menuRepository,
+        _orderRepository = orderRepository {
     loadServiceOptions();
   }
 
@@ -97,9 +97,8 @@ class FrontdeskController extends ChangeNotifier {
       final nextTakeawaySerial = await _orderRepository.getNextTakeawaySerial();
 
       _occupiedTables = occupiedTables;
-      _availableTables = _allTables
-          .where((table) => !occupiedTables.contains(table))
-          .toList();
+      _availableTables =
+          _allTables.where((table) => !occupiedTables.contains(table)).toList();
 
       if (_tableNo.isNotEmpty && !_availableTables.contains(_tableNo)) {
         _tableNo = '';
@@ -146,6 +145,12 @@ class FrontdeskController extends ChangeNotifier {
       _tableNo = _availableTables.first;
     }
 
+    notifyListeners();
+  }
+
+  void setPickupNo(String value) {
+    _pickupNo = value;
+    _message = null;
     notifyListeners();
   }
 
