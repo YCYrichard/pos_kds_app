@@ -86,5 +86,103 @@
       "qty": {},
       "spicy": {}
     }
-  }
+  },
+  "kitchenTitle": "後廚 KDS",
+  "sortLabel": "排序",
+  "sortOldestFirst": "最早優先",
+  "sortNewestFirst": "最新優先",
+  "noPendingOrders": "目前沒有待處理訂單",
+  "itemCompleted": "品項已完成",
+
+  "backofficeTitle": "後台摘要",
+  "orderListTitle": "訂單列表",
+  "noOrderRecords": "目前沒有訂單紀錄",
+  "todayOrders": "今日訂單",
+  "pendingOrders": "待完成",
+  "todayRevenue": "今日營收",
+
+  "dineInWithTable": "內用｜桌號 {tableNo}",
+  "@dineInWithTable": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+
+  "takeawayWithPickup": "外帶｜取餐號 {pickupNo}",
+  "@takeawayWithPickup": {
+    "placeholders": {
+      "pickupNo": {}
+    }
+  },
+
+  "createdTime": "建立時間",
+  "totalItems": "總品項數",
+  "orderDetailTitle": "訂單明細",
+  "orderNumber": "訂單編號",
+  "orderTypeLabel": "訂單類型",
+  "tableLabel": "桌號",
+  "pickupLabel": "取餐號",
+  "statusLabel": "狀態",
+  "completedTime": "完成時間",
+  "itemsTitle": "品項",
+
+  "statusCreated": "已建立",
+  "statusPreparing": "製作中",
+  "statusCompleted": "已完成",
+
+  "noSpicyConfigured": "不辣度設定",
+  "spicyLevelValue": "辣度 {level}",
+  "@spicyLevelValue": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+
+  "quantityWithSpicy": "數量 {qty}｜{spicy}",
+  "@quantityWithSpicy": {
+    "placeholders": {
+      "qty": {},
+      "spicy": {}
+    }
+  },
+
+  "currentOrderEmpty": "目前尚未加入品項",
+  "spicyNotSelected": "辣度：未選",
+  "spicyPrefix": "辣度：{level}",
+  "@spicyPrefix": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+
+  "orderPrefix": "訂單 {orderNo}",
+  "@orderPrefix": {
+    "placeholders": {
+      "orderNo": {}
+    }
+  },
+
+  "typePrefix": "類型：{type}",
+  "@typePrefix": {
+    "placeholders": {
+      "type": {}
+    }
+  },
+
+  "tablePrefix": "桌號：{tableNo}",
+  "@tablePrefix": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+
+  "pickupPrefix": "取餐號：{pickupNo}",
+  "@pickupPrefix": {
+    "placeholders": {
+      "pickupNo": {}
+    }
+  },
+
+  "completeAction": "完成",
+  "orderDetailPageStub": "訂單明細頁骨架已建立"
 }
