@@ -1,0 +1,39 @@
+{
+  "@@locale": "en",
+  "appTitle": "POS KDS App",
+  "tabFrontdesk": "Frontdesk",
+  "tabKitchen": "Kitchen",
+  "tabBackoffice": "Backoffice",
+  "frontdeskTitle": "Frontdesk",
+  "orderTypeDineIn": "Dine in",
+  "orderTypeTakeaway": "Takeaway",
+  "tableNumber": "Table",
+  "pickupNumber": "Pickup no.",
+  "orderingTitle": "Ordering",
+  "pleaseEnterNumber": "Please enter number",
+  "noSpicyLevel": "No spicy level",
+  "addItem": "Add item",
+  "currentOrder": "Current order",
+  "orderSubmitted": "Order submitted successfully",
+  "submitting": "Submitting...",
+  "submitOrder": "Submit order",
+  "commonRefresh": "Refresh",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "releaseTableTitle": "Release table",
+  "releaseTableShort": "Release",
+  "releaseTableConfirm": "Release table {tableNo}?",
+  "@releaseTableConfirm": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+  "releaseTableDone": "Table {tableNo} released",
+  "@releaseTableDone": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+  "noAvailableTables": "No available tables. Release a table or wait for an order to finish.",
+  "noOccupiedTables": "No occupied tables"
+}

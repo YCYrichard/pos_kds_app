@@ -1,0 +1,39 @@
+{
+  "@@locale": "zh",
+  "appTitle": "POS KDS App",
+  "tabFrontdesk": "前台",
+  "tabKitchen": "後廚",
+  "tabBackoffice": "後台",
+  "frontdeskTitle": "前台點單",
+  "orderTypeDineIn": "內用",
+  "orderTypeTakeaway": "外帶",
+  "tableNumber": "桌號",
+  "pickupNumber": "取餐號",
+  "orderingTitle": "點單",
+  "pleaseEnterNumber": "請輸入號碼",
+  "noSpicyLevel": "不選辣度",
+  "addItem": "加入品項",
+  "currentOrder": "目前訂單",
+  "orderSubmitted": "訂單已成功送出",
+  "submitting": "送單中...",
+  "submitOrder": "送出訂單",
+  "commonRefresh": "更新",
+  "commonCancel": "取消",
+  "commonConfirm": "確認",
+  "releaseTableTitle": "釋放桌號",
+  "releaseTableShort": "釋放",
+  "releaseTableConfirm": "確認將桌號 {tableNo} 釋放為可用狀態？",
+  "@releaseTableConfirm": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+  "releaseTableDone": "桌號 {tableNo} 已釋放",
+  "@releaseTableDone": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+  "noAvailableTables": "目前沒有可用桌號，請先釋放桌號或等待訂單完成。",
+  "noOccupiedTables": "目前無占用桌號"
+}

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../domain/enums/order_type.dart';
 import '../../domain/enums/spicy_level.dart';
+import '../../l10n/l10n.dart';
 import '../../shared/widgets/current_order_panel.dart';
 import '../../shared/widgets/numeric_keypad.dart';
 import 'frontdesk_controller.dart';
@@ -29,20 +30,22 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
     FrontdeskController controller,
     String tableNo,
   ) async {
+    final l10n = context.l10n;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('釋放桌號'),
-          content: Text('確認將桌號 $tableNo 釋放為可用狀態？'),
+          title: Text(l10n.releaseTableTitle),
+          content: Text(l10n.releaseTableConfirm(tableNo)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('取消'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('確認釋放'),
+              child: Text(l10n.commonConfirm),
             ),
           ],
         );
@@ -54,24 +57,27 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
     await controller.releaseTable(tableNo);
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('桌號 $tableNo 已釋放')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.releaseTableDone(tableNo))),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Consumer<FrontdeskController>(
       builder: (context, controller, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('前台點單'),
+            title: Text(l10n.frontdeskTitle),
             actions: [
               IconButton(
                 onPressed: controller.isLoadingOptions
                     ? null
                     : controller.loadServiceOptions,
                 icon: const Icon(Icons.refresh),
+                tooltip: l10n.commonRefresh,
               ),
             ],
           ),
@@ -82,11 +88,14 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SegmentedButton<OrderType>(
-                    segments: const [
-                      ButtonSegment(value: OrderType.dineIn, label: Text('內用')),
+                    segments: [
+                      ButtonSegment(
+                        value: OrderType.dineIn,
+                        label: Text(l10n.orderTypeDineIn),
+                      ),
                       ButtonSegment(
                         value: OrderType.takeaway,
-                        label: Text('外帶'),
+                        label: Text(l10n.orderTypeTakeaway),
                       ),
                     ],
                     selected: {controller.orderType},
@@ -113,7 +122,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '點單',
+                            l10n.orderingTitle,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
@@ -131,7 +140,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                             ),
                             child: Text(
                               controller.itemCodeInput.isEmpty
-                                  ? '請輸入號碼'
+                                  ? l10n.pleaseEnterNumber
                                   : controller.itemCodeInput,
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
@@ -142,7 +151,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                             runSpacing: 6,
                             children: [
                               FilterChip(
-                                label: const Text('不選辣度'),
+                                label: Text(l10n.noSpicyLevel),
                                 selected: controller.selectedSpicyLevel == null,
                                 onSelected: (_) =>
                                     controller.setSpicyLevel(null),
@@ -170,15 +179,14 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                             width: double.infinity,
                             child: FilledButton.icon(
                               onPressed: controller.addCurrentItem,
-                              icon: const Icon(
-                                Icons.add_shopping_cart_outlined,
-                              ),
-                              label: const Text('加入品項'),
+                              icon:
+                                  const Icon(Icons.add_shopping_cart_outlined),
+                              label: Text(l10n.addItem),
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '目前訂單',
+                            l10n.currentOrder,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           const SizedBox(height: 6),
@@ -204,24 +212,24 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                   FilledButton(
                     onPressed:
                         controller.isSubmitting || controller.isLoadingOptions
-                        ? null
-                        : () async {
-                            final ok = await controller.submitOrder();
-                            if (!context.mounted) return;
-                            if (ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('訂單已成功送出')),
-                              );
-                            }
-                          },
+                            ? null
+                            : () async {
+                                final ok = await controller.submitOrder();
+                                if (!context.mounted) return;
+                                if (ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(l10n.orderSubmitted),
+                                    ),
+                                  );
+                                }
+                              },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       child: Text(
                         controller.isSubmitting
-                            ? '送單中...'
-                            : controller.isLoadingOptions
-                            ? '資料更新中...'
-                            : '送出訂單',
+                            ? l10n.submitting
+                            : l10n.submitOrder,
                       ),
                     ),
                   ),
@@ -236,12 +244,16 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
 }
 
 class _CompactTableSelector extends StatelessWidget {
-  const _CompactTableSelector({required this.controller});
+  const _CompactTableSelector({
+    required this.controller,
+  });
 
   final FrontdeskController controller;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (controller.isLoadingOptions) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -251,7 +263,7 @@ class _CompactTableSelector extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Text(
-            '目前沒有可用桌號，請先釋放桌號或等待訂單完成。',
+            l10n.noAvailableTables,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
@@ -260,8 +272,8 @@ class _CompactTableSelector extends StatelessWidget {
 
     final selectedTable =
         controller.availableTables.contains(controller.tableNo)
-        ? controller.tableNo
-        : controller.availableTables.first;
+            ? controller.tableNo
+            : controller.availableTables.first;
 
     return Card(
       child: Padding(
@@ -274,7 +286,7 @@ class _CompactTableSelector extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '桌號',
+                  l10n.tableNumber,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -311,6 +323,8 @@ class _CompactReleaseTableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -322,7 +336,7 @@ class _CompactReleaseTableRow extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(
-                  '釋放',
+                  l10n.releaseTableShort,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -332,7 +346,7 @@ class _CompactReleaseTableRow extends StatelessWidget {
                   ? Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
-                        '目前無占用桌號',
+                        l10n.noOccupiedTables,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     )
@@ -358,16 +372,18 @@ class _CompactReleaseTableRow extends StatelessWidget {
 }
 
 class _CompactTakeawaySerialCard extends StatelessWidget {
-  const _CompactTakeawaySerialCard({required this.controller});
+  const _CompactTakeawaySerialCard({
+    required this.controller,
+  });
 
   final FrontdeskController controller;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    final serialText = controller.isLoadingOptions
-        ? '...'
-        : controller.pickupNo;
+    final serialText =
+        controller.isLoadingOptions ? '...' : controller.pickupNo;
 
     return Card(
       color: colorScheme.primaryContainer,
@@ -384,18 +400,18 @@ class _CompactTakeawaySerialCard extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    '取餐號',
+                    l10n.pickupNumber,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     serialText,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                   ),
                 ],
               ),
@@ -405,6 +421,7 @@ class _CompactTakeawaySerialCard extends StatelessWidget {
                   ? null
                   : controller.loadServiceOptions,
               icon: const Icon(Icons.refresh),
+              tooltip: l10n.commonRefresh,
             ),
           ],
         ),
