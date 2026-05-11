@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/events/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../shared/widgets/kitchen_order_card.dart';
 import 'kitchen_controller.dart';
 
@@ -30,7 +31,7 @@ class _KitchenView extends StatefulWidget {
 
 class _KitchenViewState extends State<_KitchenView> {
   Timer? _refreshTimer;
-  StreamSubscription<OrderEvent>? _orderEventSubscription;
+  StreamSubscription? _orderEventSubscription;
   bool _didRefreshOnActivate = false;
 
   @override
@@ -117,15 +118,18 @@ class _KitchenViewState extends State<_KitchenView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Consumer<KitchenController>(
       builder: (context, controller, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('後廚 KDS'),
+            title: Text(l10n.kitchenTitle),
             actions: [
               IconButton(
                 onPressed: controller.loadOrders,
                 icon: const Icon(Icons.refresh),
+                tooltip: l10n.commonRefresh,
               ),
             ],
           ),
@@ -136,7 +140,10 @@ class _KitchenViewState extends State<_KitchenView> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Row(
                     children: [
-                      Text('排序', style: Theme.of(context).textTheme.titleSmall),
+                      Text(
+                        l10n.sortLabel,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButton<KitchenSortOption>(
@@ -146,14 +153,14 @@ class _KitchenViewState extends State<_KitchenView> {
                             if (value == null) return;
                             controller.setSortOption(value);
                           },
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: KitchenSortOption.oldestFirst,
-                              child: Text('最早優先'),
+                              child: Text(l10n.sortOldestFirst),
                             ),
                             DropdownMenuItem(
                               value: KitchenSortOption.newestFirst,
-                              child: Text('最新優先'),
+                              child: Text(l10n.sortNewestFirst),
                             ),
                           ],
                         ),
@@ -165,24 +172,30 @@ class _KitchenViewState extends State<_KitchenView> {
                   child: controller.loading
                       ? const Center(child: CircularProgressIndicator())
                       : controller.orders.isEmpty
-                      ? Center(child: Text(controller.message ?? '目前沒有待處理訂單'))
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: controller.orders.length,
-                          itemBuilder: (context, index) {
-                            final bundle = controller.orders[index];
-                            return KitchenOrderCard(
-                              bundle: bundle,
-                              onCompleteItem: (itemId) async {
-                                await controller.completeItem(itemId);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('品項已完成')),
+                          ? Center(
+                              child: Text(
+                                controller.message ?? l10n.noPendingOrders,
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: controller.orders.length,
+                              itemBuilder: (context, index) {
+                                final bundle = controller.orders[index];
+                                return KitchenOrderCard(
+                                  bundle: bundle,
+                                  onCompleteItem: (itemId) async {
+                                    await controller.completeItem(itemId);
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(l10n.itemCompleted),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
-                        ),
+                            ),
                 ),
               ],
             ),

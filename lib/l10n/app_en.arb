@@ -35,5 +35,56 @@
     }
   },
   "noAvailableTables": "No available tables. Release a table or wait for an order to finish.",
-  "noOccupiedTables": "No occupied tables"
+  "noOccupiedTables": "No occupied tables",
+  "kitchenTitle": "Kitchen KDS",
+  "sortLabel": "Sort",
+  "sortOldestFirst": "Oldest first",
+  "sortNewestFirst": "Newest first",
+  "noPendingOrders": "No pending orders",
+  "itemCompleted": "Item completed",
+  "backofficeTitle": "Backoffice summary",
+  "orderListTitle": "Order list",
+  "noOrderRecords": "No order records",
+  "todayOrders": "Today's orders",
+  "pendingOrders": "Pending",
+  "todayRevenue": "Today's revenue",
+  "dineInWithTable": "Dine in | Table {tableNo}",
+  "@dineInWithTable": {
+    "placeholders": {
+      "tableNo": {}
+    }
+  },
+  "takeawayWithPickup": "Takeaway | Pickup no. {pickupNo}",
+  "@takeawayWithPickup": {
+    "placeholders": {
+      "pickupNo": {}
+    }
+  },
+  "createdTime": "Created time",
+  "totalItems": "Total items",
+  "orderDetailTitle": "Order details",
+  "orderNumber": "Order no.",
+  "orderTypeLabel": "Order type",
+  "tableLabel": "Table",
+  "pickupLabel": "Pickup no.",
+  "statusLabel": "Status",
+  "completedTime": "Completed time",
+  "itemsTitle": "Items",
+  "statusCreated": "Created",
+  "statusPreparing": "Preparing",
+  "statusCompleted": "Completed",
+  "noSpicyConfigured": "No spicy level",
+  "spicyLevelValue": "Spicy level {level}",
+  "@spicyLevelValue": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "quantityWithSpicy": "Qty {qty} | {spicy}",
+  "@quantityWithSpicy": {
+    "placeholders": {
+      "qty": {},
+      "spicy": {}
+    }
+  }
 }

@@ -253,6 +253,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No occupied tables'**
   String get noOccupiedTables;
+
+  /// No description provided for @kitchenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen KDS'**
+  String get kitchenTitle;
+
+  /// No description provided for @sortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sortLabel;
+
+  /// No description provided for @sortOldestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldestFirst;
+
+  /// No description provided for @sortNewestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortNewestFirst;
+
+  /// No description provided for @noPendingOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending orders'**
+  String get noPendingOrders;
+
+  /// No description provided for @itemCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Item completed'**
+  String get itemCompleted;
+
+  /// No description provided for @backofficeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backoffice summary'**
+  String get backofficeTitle;
+
+  /// No description provided for @orderListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order list'**
+  String get orderListTitle;
+
+  /// No description provided for @noOrderRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No order records'**
+  String get noOrderRecords;
+
+  /// No description provided for @todayOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s orders'**
+  String get todayOrders;
+
+  /// No description provided for @pendingOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pendingOrders;
+
+  /// No description provided for @todayRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s revenue'**
+  String get todayRevenue;
+
+  /// No description provided for @dineInWithTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Dine in | Table {tableNo}'**
+  String dineInWithTable(Object tableNo);
+
+  /// No description provided for @takeawayWithPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeaway | Pickup no. {pickupNo}'**
+  String takeawayWithPickup(Object pickupNo);
+
+  /// No description provided for @createdTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Created time'**
+  String get createdTime;
+
+  /// No description provided for @totalItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Total items'**
+  String get totalItems;
+
+  /// No description provided for @orderDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order details'**
+  String get orderDetailTitle;
+
+  /// No description provided for @orderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order no.'**
+  String get orderNumber;
+
+  /// No description provided for @orderTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order type'**
+  String get orderTypeLabel;
+
+  /// No description provided for @tableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get tableLabel;
+
+  /// No description provided for @pickupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup no.'**
+  String get pickupLabel;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
+  /// No description provided for @completedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed time'**
+  String get completedTime;
+
+  /// No description provided for @itemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get itemsTitle;
+
+  /// No description provided for @statusCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get statusCreated;
+
+  /// No description provided for @statusPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get statusPreparing;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @noSpicyConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No spicy level'**
+  String get noSpicyConfigured;
+
+  /// No description provided for @spicyLevelValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Spicy level {level}'**
+  String spicyLevelValue(Object level);
+
+  /// No description provided for @quantityWithSpicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty {qty} | {spicy}'**
+  String quantityWithSpicy(Object qty, Object spicy);
 }
 
 class _AppLocalizationsDelegate

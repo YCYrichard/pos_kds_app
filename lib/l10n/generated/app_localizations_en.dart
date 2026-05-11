@@ -90,4 +90,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noOccupiedTables => 'No occupied tables';
+
+  @override
+  String get kitchenTitle => 'Kitchen KDS';
+
+  @override
+  String get sortLabel => 'Sort';
+
+  @override
+  String get sortOldestFirst => 'Oldest first';
+
+  @override
+  String get sortNewestFirst => 'Newest first';
+
+  @override
+  String get noPendingOrders => 'No pending orders';
+
+  @override
+  String get itemCompleted => 'Item completed';
+
+  @override
+  String get backofficeTitle => 'Backoffice summary';
+
+  @override
+  String get orderListTitle => 'Order list';
+
+  @override
+  String get noOrderRecords => 'No order records';
+
+  @override
+  String get todayOrders => 'Today\'s orders';
+
+  @override
+  String get pendingOrders => 'Pending';
+
+  @override
+  String get todayRevenue => 'Today\'s revenue';
+
+  @override
+  String dineInWithTable(Object tableNo) {
+    return 'Dine in | Table $tableNo';
+  }
+
+  @override
+  String takeawayWithPickup(Object pickupNo) {
+    return 'Takeaway | Pickup no. $pickupNo';
+  }
+
+  @override
+  String get createdTime => 'Created time';
+
+  @override
+  String get totalItems => 'Total items';
+
+  @override
+  String get orderDetailTitle => 'Order details';
+
+  @override
+  String get orderNumber => 'Order no.';
+
+  @override
+  String get orderTypeLabel => 'Order type';
+
+  @override
+  String get tableLabel => 'Table';
+
+  @override
+  String get pickupLabel => 'Pickup no.';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get completedTime => 'Completed time';
+
+  @override
+  String get itemsTitle => 'Items';
+
+  @override
+  String get statusCreated => 'Created';
+
+  @override
+  String get statusPreparing => 'Preparing';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get noSpicyConfigured => 'No spicy level';
+
+  @override
+  String spicyLevelValue(Object level) {
+    return 'Spicy level $level';
+  }
+
+  @override
+  String quantityWithSpicy(Object qty, Object spicy) {
+    return 'Qty $qty | $spicy';
+  }
 }

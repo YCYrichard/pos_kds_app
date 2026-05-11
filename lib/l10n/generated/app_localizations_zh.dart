@@ -89,4 +89,102 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noOccupiedTables => '目前無占用桌號';
+
+  @override
+  String get kitchenTitle => '後廚 KDS';
+
+  @override
+  String get sortLabel => '排序';
+
+  @override
+  String get sortOldestFirst => '最早優先';
+
+  @override
+  String get sortNewestFirst => '最新優先';
+
+  @override
+  String get noPendingOrders => '目前沒有待處理訂單';
+
+  @override
+  String get itemCompleted => '品項已完成';
+
+  @override
+  String get backofficeTitle => '後台摘要';
+
+  @override
+  String get orderListTitle => '訂單列表';
+
+  @override
+  String get noOrderRecords => '目前沒有訂單紀錄';
+
+  @override
+  String get todayOrders => '今日訂單';
+
+  @override
+  String get pendingOrders => '待完成';
+
+  @override
+  String get todayRevenue => '今日營收';
+
+  @override
+  String dineInWithTable(Object tableNo) {
+    return '內用｜桌號 $tableNo';
+  }
+
+  @override
+  String takeawayWithPickup(Object pickupNo) {
+    return '外帶｜取餐號 $pickupNo';
+  }
+
+  @override
+  String get createdTime => '建立時間';
+
+  @override
+  String get totalItems => '總品項數';
+
+  @override
+  String get orderDetailTitle => '訂單明細';
+
+  @override
+  String get orderNumber => '訂單編號';
+
+  @override
+  String get orderTypeLabel => '訂單類型';
+
+  @override
+  String get tableLabel => '桌號';
+
+  @override
+  String get pickupLabel => '取餐號';
+
+  @override
+  String get statusLabel => '狀態';
+
+  @override
+  String get completedTime => '完成時間';
+
+  @override
+  String get itemsTitle => '品項';
+
+  @override
+  String get statusCreated => '已建立';
+
+  @override
+  String get statusPreparing => '製作中';
+
+  @override
+  String get statusCompleted => '已完成';
+
+  @override
+  String get noSpicyConfigured => '不辣度設定';
+
+  @override
+  String spicyLevelValue(Object level) {
+    return '辣度 $level';
+  }
+
+  @override
+  String quantityWithSpicy(Object qty, Object spicy) {
+    return '數量 $qty｜$spicy';
+  }
 }

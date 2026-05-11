@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/models/order_item.dart';
+import '../../l10n/l10n.dart';
 import 'backoffice_controller.dart';
 
 class BackofficePage extends StatefulWidget {
@@ -48,15 +49,18 @@ class _BackofficePageState extends State<BackofficePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Consumer<BackofficeController>(
       builder: (context, controller, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('後台摘要'),
+            title: Text(l10n.backofficeTitle),
             actions: [
               IconButton(
                 onPressed: controller.loadDashboard,
                 icon: const Icon(Icons.refresh),
+                tooltip: l10n.commonRefresh,
               ),
             ],
           ),
@@ -72,7 +76,7 @@ class _BackofficePageState extends State<BackofficePage> {
                         _SummarySection(controller: controller),
                         const SizedBox(height: 16),
                         Text(
-                          '訂單列表',
+                          l10n.orderListTitle,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
@@ -80,7 +84,9 @@ class _BackofficePageState extends State<BackofficePage> {
                           Padding(
                             padding: const EdgeInsets.only(top: 48),
                             child: Center(
-                              child: Text(controller.message ?? '目前沒有訂單紀錄'),
+                              child: Text(
+                                controller.message ?? l10n.noOrderRecords,
+                              ),
                             ),
                           )
                         else
@@ -107,6 +113,7 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final summary = controller.summary;
 
     return Column(
@@ -115,7 +122,7 @@ class _SummarySection extends StatelessWidget {
           children: [
             Expanded(
               child: _SummaryCard(
-                label: '今日訂單',
+                label: l10n.todayOrders,
                 value: '${summary.todayOrders}',
                 icon: Icons.receipt_long_outlined,
               ),
@@ -123,7 +130,7 @@ class _SummarySection extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _SummaryCard(
-                label: '待完成',
+                label: l10n.pendingOrders,
                 value: '${summary.pendingOrders}',
                 icon: Icons.pending_actions_outlined,
               ),
@@ -132,7 +139,7 @@ class _SummarySection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _SummaryCard(
-          label: '今日營收',
+          label: l10n.todayRevenue,
           value: 'NT\$ ${summary.todayRevenue}',
           icon: Icons.attach_money_outlined,
         ),
@@ -185,16 +192,17 @@ class _OrderListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final order = bundle.order;
     final subtitle = order.orderType == 'dineIn'
-        ? '內用｜桌號 ${order.tableNo ?? '-'}'
-        : '外帶｜取餐號 ${order.pickupNo ?? '-'}';
+        ? l10n.dineInWithTable(order.tableNo ?? '-')
+        : l10n.takeawayWithPickup(order.pickupNo ?? '-');
 
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          showModalBottomSheet<void>(
+          showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
@@ -220,9 +228,9 @@ class _OrderListCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(subtitle),
               const SizedBox(height: 4),
-              Text('建立時間：${_formatDateTime(order.createdAt)}'),
+              Text('${l10n.createdTime}: ${_formatDateTime(order.createdAt)}'),
               const SizedBox(height: 4),
-              Text('總品項數：${order.totalItems}'),
+              Text('${l10n.totalItems}: ${order.totalItems}'),
             ],
           ),
         ),
@@ -238,6 +246,7 @@ class _OrderDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final order = bundle.order;
 
     return SafeArea(
@@ -252,36 +261,51 @@ class _OrderDetailSheet extends StatelessWidget {
             child: ListView(
               controller: scrollController,
               children: [
-                Text('訂單明細', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  l10n.orderDetailTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 16),
-                _DetailRow(label: '訂單編號', value: order.orderNo),
+                _DetailRow(label: l10n.orderNumber, value: order.orderNo),
                 _DetailRow(
-                  label: '訂單類型',
-                  value: order.orderType == 'dineIn' ? '內用' : '外帶',
+                  label: l10n.orderTypeLabel,
+                  value: order.orderType == 'dineIn'
+                      ? l10n.orderTypeDineIn
+                      : l10n.orderTypeTakeaway,
                 ),
                 if (order.orderType == 'dineIn')
-                  _DetailRow(label: '桌號', value: order.tableNo ?? '-'),
+                  _DetailRow(
+                      label: l10n.tableLabel, value: order.tableNo ?? '-'),
                 if (order.orderType == 'takeaway')
-                  _DetailRow(label: '取餐號', value: order.pickupNo ?? '-'),
-                _DetailRow(label: '狀態', value: _statusText(order.status)),
+                  _DetailRow(
+                    label: l10n.pickupLabel,
+                    value: order.pickupNo ?? '-',
+                  ),
                 _DetailRow(
-                  label: '建立時間',
+                  label: l10n.statusLabel,
+                  value: _statusText(context, order.status),
+                ),
+                _DetailRow(
+                  label: l10n.createdTime,
                   value: _formatDateTime(order.createdAt),
                 ),
                 if (order.completedAt != null)
                   _DetailRow(
-                    label: '完成時間',
+                    label: l10n.completedTime,
                     value: _formatDateTime(order.completedAt!),
                   ),
                 const SizedBox(height: 16),
-                Text('品項', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.itemsTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 ...bundle.items.map(
                   (item) => Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       title: Text('${item.itemCode}｜${item.itemName}'),
-                      subtitle: Text(_itemSubtitle(item)),
+                      subtitle: Text(_itemSubtitle(context, item)),
                       trailing: _StatusChip(status: item.status),
                     ),
                   ),
@@ -329,7 +353,7 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final label = _statusText(status);
+    final label = _statusText(context, status);
 
     Color background;
     Color foreground;
@@ -359,20 +383,25 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-String _statusText(String status) {
+String _statusText(BuildContext context, String status) {
+  final l10n = context.l10n;
+
   switch (status) {
     case 'completed':
-      return '已完成';
+      return l10n.statusCompleted;
     case 'preparing':
-      return '製作中';
+      return l10n.statusPreparing;
     default:
-      return '已建立';
+      return l10n.statusCreated;
   }
 }
 
-String _itemSubtitle(OrderItemEntity item) {
-  final spicy = item.spicyLevel == null ? '不辣度設定' : '辣度 ${item.spicyLevel}';
-  return '數量 ${item.qty}｜$spicy';
+String _itemSubtitle(BuildContext context, OrderItemEntity item) {
+  final l10n = context.l10n;
+  final spicy = item.spicyLevel == null
+      ? l10n.noSpicyConfigured
+      : l10n.spicyLevelValue(item.spicyLevel!);
+  return l10n.quantityWithSpicy(item.qty, spicy);
 }
 
 String _formatDateTime(String value) {
