@@ -4,22 +4,35 @@
   "tabFrontdesk": "前台",
   "tabKitchen": "後廚",
   "tabBackoffice": "後台",
+
   "frontdeskTitle": "前台點單",
+  "kitchenTitle": "後廚 KDS",
+  "backofficeTitle": "後台摘要",
+
   "orderTypeDineIn": "內用",
   "orderTypeTakeaway": "外帶",
+  "orderTypeLabel": "訂單類型",
+
   "tableNumber": "桌號",
+  "tableLabel": "桌號",
   "pickupNumber": "取餐號",
+  "pickupLabel": "取餐號",
+
   "orderingTitle": "點單",
   "pleaseEnterNumber": "請輸入號碼",
   "noSpicyLevel": "不選辣度",
   "addItem": "加入品項",
   "currentOrder": "目前訂單",
+  "currentOrderEmpty": "目前尚未加入品項",
+
   "orderSubmitted": "訂單已成功送出",
   "submitting": "送單中...",
   "submitOrder": "送出訂單",
+
   "commonRefresh": "更新",
   "commonCancel": "取消",
   "commonConfirm": "確認",
+
   "releaseTableTitle": "釋放桌號",
   "releaseTableShort": "釋放",
   "releaseTableConfirm": "確認將桌號 {tableNo} 釋放為可用狀態？",
@@ -34,67 +47,16 @@
       "tableNo": {}
     }
   },
+
   "noAvailableTables": "目前沒有可用桌號，請先釋放桌號或等待訂單完成。",
   "noOccupiedTables": "目前無占用桌號",
-  "kitchenTitle": "後廚 KDS",
-  "sortLabel": "排序",
-  "sortOldestFirst": "最早優先",
-  "sortNewestFirst": "最新優先",
-  "noPendingOrders": "目前沒有待處理訂單",
-  "itemCompleted": "品項已完成",
-  "backofficeTitle": "後台摘要",
-  "orderListTitle": "訂單列表",
-  "noOrderRecords": "目前沒有訂單紀錄",
-  "todayOrders": "今日訂單",
-  "pendingOrders": "待完成",
-  "todayRevenue": "今日營收",
-  "dineInWithTable": "內用｜桌號 {tableNo}",
-  "@dineInWithTable": {
-    "placeholders": {
-      "tableNo": {}
-    }
-  },
-  "takeawayWithPickup": "外帶｜取餐號 {pickupNo}",
-  "@takeawayWithPickup": {
-    "placeholders": {
-      "pickupNo": {}
-    }
-  },
-  "createdTime": "建立時間",
-  "totalItems": "總品項數",
-  "orderDetailTitle": "訂單明細",
-  "orderNumber": "訂單編號",
-  "orderTypeLabel": "訂單類型",
-  "tableLabel": "桌號",
-  "pickupLabel": "取餐號",
-  "statusLabel": "狀態",
-  "completedTime": "完成時間",
-  "itemsTitle": "品項",
-  "statusCreated": "已建立",
-  "statusPreparing": "製作中",
-  "statusCompleted": "已完成",
-  "noSpicyConfigured": "不辣度設定",
-  "spicyLevelValue": "辣度 {level}",
-  "@spicyLevelValue": {
-    "placeholders": {
-      "level": {}
-    }
-  },
-  "quantityWithSpicy": "數量 {qty}｜{spicy}",
-  "@quantityWithSpicy": {
-    "placeholders": {
-      "qty": {},
-      "spicy": {}
-    }
-  },
-  "kitchenTitle": "後廚 KDS",
+
   "sortLabel": "排序",
   "sortOldestFirst": "最早優先",
   "sortNewestFirst": "最新優先",
   "noPendingOrders": "目前沒有待處理訂單",
   "itemCompleted": "品項已完成",
 
-  "backofficeTitle": "後台摘要",
   "orderListTitle": "訂單列表",
   "noOrderRecords": "目前沒有訂單紀錄",
   "todayOrders": "今日訂單",
@@ -107,7 +69,6 @@
       "tableNo": {}
     }
   },
-
   "takeawayWithPickup": "外帶｜取餐號 {pickupNo}",
   "@takeawayWithPickup": {
     "placeholders": {
@@ -116,14 +77,11 @@
   },
 
   "createdTime": "建立時間",
+  "completedTime": "完成時間",
   "totalItems": "總品項數",
   "orderDetailTitle": "訂單明細",
   "orderNumber": "訂單編號",
-  "orderTypeLabel": "訂單類型",
-  "tableLabel": "桌號",
-  "pickupLabel": "取餐號",
   "statusLabel": "狀態",
-  "completedTime": "完成時間",
   "itemsTitle": "品項",
 
   "statusCreated": "已建立",
@@ -146,12 +104,11 @@
     }
   },
 
-  "currentOrderEmpty": "目前尚未加入品項",
   "spicyNotSelected": "辣度：未選",
-  "spicyPrefix": "辣度：{level}",
+  "spicyPrefix": "辣度：{value}",
   "@spicyPrefix": {
     "placeholders": {
-      "level": {}
+      "value": {}
     }
   },
 
@@ -162,27 +119,54 @@
     }
   },
 
-  "typePrefix": "類型：{type}",
+  "typePrefix": "類型：{value}",
   "@typePrefix": {
     "placeholders": {
-      "type": {}
+      "value": {}
     }
   },
 
-  "tablePrefix": "桌號：{tableNo}",
+  "tablePrefix": "桌號：{value}",
   "@tablePrefix": {
     "placeholders": {
-      "tableNo": {}
+      "value": {}
     }
   },
 
-  "pickupPrefix": "取餐號：{pickupNo}",
+  "pickupPrefix": "取餐號：{value}",
   "@pickupPrefix": {
     "placeholders": {
-      "pickupNo": {}
+      "value": {}
     }
   },
 
   "completeAction": "完成",
-  "orderDetailPageStub": "訂單明細頁骨架已建立"
+
+  "orderDetailPageStub": "訂單明細頁骨架已建立",
+
+  "enterItemCodeFirst": "請先輸入品項號碼",
+  "itemCodeNotFound": "找不到品項號碼 {itemCode}",
+  "@itemCodeNotFound": {
+    "placeholders": {
+      "itemCode": {}
+    }
+  },
+
+  "itemAdded": "已加入 {itemName}",
+  "@itemAdded": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+
+  "itemRemoved": "已移除 {itemName}",
+  "@itemRemoved": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+
+  "orderNeedsAtLeastOneItem": "訂單至少需要一個品項",
+  "dineInSelectTable": "內用請選擇桌號",
+  "takeawaySerialNotReady": "外帶流水號尚未準備完成"
 }
