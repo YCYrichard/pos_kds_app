@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
+
 class OrderDetailPage extends StatelessWidget {
   const OrderDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('訂單明細')),
-      body: const Center(
-        child: Text('訂單明細頁骨架已建立'),
+      appBar: AppBar(
+        title: Text(l10n.orderDetailTitle),
+      ),
+      body: Center(
+        child: Text(l10n.orderDetailPageStub),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/frontdesk/frontdesk_controller.dart';
+import '../../l10n/l10n.dart';
 
 class CurrentOrderPanel extends StatelessWidget {
   const CurrentOrderPanel({
@@ -14,11 +15,13 @@ class CurrentOrderPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (items.isEmpty) {
-      return const Card(
+      return Card(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('目前尚未加入品項'),
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.currentOrderEmpty),
         ),
       );
     }
@@ -31,9 +34,13 @@ class CurrentOrderPanel extends StatelessWidget {
             for (var i = 0; i < items.length; i++)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('${items[i].itemCode} ${items[i].itemName} x${items[i].qty}'),
+                title: Text(
+                  '${items[i].itemCode} ${items[i].itemName} x${items[i].qty}',
+                ),
                 subtitle: Text(
-                  items[i].spicyLevel == null ? '辣度：未選' : '辣度：${items[i].spicyLevel!.name}',
+                  items[i].spicyLevel == null
+                      ? l10n.spicyNotSelected
+                      : l10n.spicyPrefix(items[i].spicyLevel!.name),
                 ),
                 trailing: IconButton(
                   onPressed: () => onRemove(i),
