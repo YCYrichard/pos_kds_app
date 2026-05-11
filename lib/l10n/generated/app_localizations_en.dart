@@ -188,4 +188,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String quantityWithSpicy(Object qty, Object spicy) {
     return 'Qty $qty | $spicy';
   }
+
+  @override
+  String get currentOrderEmpty => 'No items added yet';
+
+  @override
+  String get spicyNotSelected => 'Spicy: not selected';
+
+  @override
+  String spicyPrefix(Object level) {
+    return 'Spicy: $level';
+  }
+
+  @override
+  String orderPrefix(Object orderNo) {
+    return 'Order $orderNo';
+  }
+
+  @override
+  String typePrefix(Object type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String tablePrefix(Object tableNo) {
+    return 'Table: $tableNo';
+  }
+
+  @override
+  String pickupPrefix(Object pickupNo) {
+    return 'Pickup no.: $pickupNo';
+  }
+
+  @override
+  String get completeAction => 'Complete';
+
+  @override
+  String get orderDetailPageStub => 'Order detail page skeleton created';
 }

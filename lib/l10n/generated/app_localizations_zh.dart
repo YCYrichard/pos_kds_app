@@ -187,4 +187,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String quantityWithSpicy(Object qty, Object spicy) {
     return '數量 $qty｜$spicy';
   }
+
+  @override
+  String get currentOrderEmpty => '目前尚未加入品項';
+
+  @override
+  String get spicyNotSelected => '辣度：未選';
+
+  @override
+  String spicyPrefix(Object level) {
+    return '辣度：$level';
+  }
+
+  @override
+  String orderPrefix(Object orderNo) {
+    return '訂單 $orderNo';
+  }
+
+  @override
+  String typePrefix(Object type) {
+    return '類型：$type';
+  }
+
+  @override
+  String tablePrefix(Object tableNo) {
+    return '桌號：$tableNo';
+  }
+
+  @override
+  String pickupPrefix(Object pickupNo) {
+    return '取餐號：$pickupNo';
+  }
+
+  @override
+  String get completeAction => '完成';
+
+  @override
+  String get orderDetailPageStub => '訂單明細頁骨架已建立';
 }

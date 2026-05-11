@@ -433,6 +433,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Qty {qty} | {spicy}'**
   String quantityWithSpicy(Object qty, Object spicy);
+
+  /// No description provided for @currentOrderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items added yet'**
+  String get currentOrderEmpty;
+
+  /// No description provided for @spicyNotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Spicy: not selected'**
+  String get spicyNotSelected;
+
+  /// No description provided for @spicyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Spicy: {level}'**
+  String spicyPrefix(Object level);
+
+  /// No description provided for @orderPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {orderNo}'**
+  String orderPrefix(Object orderNo);
+
+  /// No description provided for @typePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {type}'**
+  String typePrefix(Object type);
+
+  /// No description provided for @tablePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Table: {tableNo}'**
+  String tablePrefix(Object tableNo);
+
+  /// No description provided for @pickupPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup no.: {pickupNo}'**
+  String pickupPrefix(Object pickupNo);
+
+  /// No description provided for @completeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get completeAction;
+
+  /// No description provided for @orderDetailPageStub.
+  ///
+  /// In en, this message translates to:
+  /// **'Order detail page skeleton created'**
+  String get orderDetailPageStub;
 }
 
 class _AppLocalizationsDelegate
