@@ -18,7 +18,8 @@ CREATE TABLE orders (
   status TEXT NOT NULL,
   total_items INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
-  completed_at TEXT
+  completed_at TEXT,
+  released_at TEXT
 )
 ''';
 
