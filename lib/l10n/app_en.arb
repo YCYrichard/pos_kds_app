@@ -168,5 +168,8 @@
 
   "orderNeedsAtLeastOneItem": "An order must contain at least one item",
   "dineInSelectTable": "Please select a table for dine-in",
-  "takeawaySerialNotReady": "Takeaway serial number is not ready yet"
+  "takeawaySerialNotReady": "Takeaway serial number is not ready yet",
+  "spicyMild": "Mild",
+  "spicyMedium": "Medium",
+  "spicyHot": "Hot"
 }

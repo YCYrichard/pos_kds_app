@@ -94,6 +94,20 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
     }
   }
 
+  String _spicyLevelText(BuildContext context, SpicyLevel level) {
+    final l10n = context.l10n;
+
+    // 請把這裡的 enum case 名稱改成你專案實際使用的值
+    switch (level) {
+      case SpicyLevel.mild:
+        return l10n.spicyMild;
+      case SpicyLevel.medium:
+        return l10n.spicyMedium;
+      case SpicyLevel.hot:
+        return l10n.spicyHot;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -193,7 +207,7 @@ class _FrontdeskViewState extends State<_FrontdeskView> {
                               ),
                               for (final level in SpicyLevel.values)
                                 FilterChip(
-                                  label: Text(level.name),
+                                  label: Text(_spicyLevelText(context, level)),
                                   selected:
                                       controller.selectedSpicyLevel == level,
                                   onSelected: (_) =>

@@ -168,5 +168,8 @@
 
   "orderNeedsAtLeastOneItem": "訂單至少需要一個品項",
   "dineInSelectTable": "內用請選擇桌號",
-  "takeawaySerialNotReady": "外帶流水號尚未準備完成"
+  "takeawaySerialNotReady": "外帶流水號尚未準備完成",
+  "spicyMild": "小辣",
+  "spicyMedium": "中辣",
+  "spicyHot": "大辣"
 }

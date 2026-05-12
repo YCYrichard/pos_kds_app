@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/enums/spicy_level.dart';
 import '../../features/frontdesk/frontdesk_controller.dart';
 import '../../l10n/l10n.dart';
 
@@ -12,6 +13,20 @@ class CurrentOrderPanel extends StatelessWidget {
 
   final List<DraftOrderItem> items;
   final ValueChanged<int> onRemove;
+
+  String _spicyLevelText(BuildContext context, SpicyLevel level) {
+    final l10n = context.l10n;
+
+    // 請把這裡的 enum case 名稱改成你專案實際使用的值
+    switch (level) {
+      case SpicyLevel.mild:
+        return l10n.spicyMild;
+      case SpicyLevel.medium:
+        return l10n.spicyMedium;
+      case SpicyLevel.hot:
+        return l10n.spicyHot;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +55,9 @@ class CurrentOrderPanel extends StatelessWidget {
                 subtitle: Text(
                   items[i].spicyLevel == null
                       ? l10n.spicyNotSelected
-                      : l10n.spicyPrefix(items[i].spicyLevel!.name),
+                      : l10n.spicyPrefix(
+                          _spicyLevelText(context, items[i].spicyLevel!),
+                        ),
                 ),
                 trailing: IconButton(
                   onPressed: () => onRemove(i),
