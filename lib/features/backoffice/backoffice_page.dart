@@ -190,6 +190,19 @@ class _OrderListCard extends StatelessWidget {
 
   final BackofficeOrderBundle bundle;
 
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -228,9 +241,9 @@ class _OrderListCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(subtitle),
               const SizedBox(height: 4),
-              Text('${l10n.createdTime}: ${_formatDateTime(order.createdAt)}'),
+              Text('${l10n.createdTime}：${_formatDateTime(order.createdAt)}'),
               const SizedBox(height: 4),
-              Text('${l10n.totalItems}: ${order.totalItems}'),
+              Text('${l10n.totalItems}：${order.totalItems}'),
             ],
           ),
         ),
@@ -243,6 +256,46 @@ class _OrderDetailSheet extends StatelessWidget {
   const _OrderDetailSheet({required this.bundle});
 
   final BackofficeOrderBundle bundle;
+
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
+
+  String _spicyText(BuildContext context, String? spicyLevel) {
+    final l10n = context.l10n;
+
+    if (spicyLevel == null || spicyLevel.isEmpty) {
+      return l10n.noSpicyConfigured;
+    }
+
+    switch (spicyLevel.toLowerCase()) {
+      case 'mild':
+        return l10n.spicyLevelValue(l10n.spicyMild);
+      case 'medium':
+        return l10n.spicyLevelValue(l10n.spicyMedium);
+      case 'hot':
+        return l10n.spicyLevelValue(l10n.spicyHot);
+      default:
+        return l10n.spicyLevelValue(spicyLevel);
+    }
+  }
+
+  String _itemSubtitle(BuildContext context, OrderItemEntity item) {
+    final l10n = context.l10n;
+    return l10n.quantityWithSpicy(
+      item.qty.toString(),
+      _spicyText(context, item.spicyLevel),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -275,9 +328,7 @@ class _OrderDetailSheet extends StatelessWidget {
                 ),
                 if (order.orderType == 'dineIn')
                   _DetailRow(
-                    label: l10n.tableLabel,
-                    value: order.tableNo ?? '-',
-                  ),
+                      label: l10n.tableLabel, value: order.tableNo ?? '-'),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
                     label: l10n.pickupLabel,
@@ -352,6 +403,19 @@ class _StatusChip extends StatelessWidget {
 
   final String status;
 
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -383,27 +447,6 @@ class _StatusChip extends StatelessWidget {
       visualDensity: VisualDensity.compact,
     );
   }
-}
-
-String _statusText(BuildContext context, String status) {
-  final l10n = context.l10n;
-
-  switch (status) {
-    case 'completed':
-      return l10n.statusCompleted;
-    case 'preparing':
-      return l10n.statusPreparing;
-    default:
-      return l10n.statusCreated;
-  }
-}
-
-String _itemSubtitle(BuildContext context, OrderItemEntity item) {
-  final l10n = context.l10n;
-  final spicy = item.spicyLevel == null
-      ? l10n.noSpicyConfigured
-      : l10n.spicyLevelValue(item.spicyLevel!);
-  return l10n.quantityWithSpicy(item.qty, spicy);
 }
 
 String _formatDateTime(String value) {

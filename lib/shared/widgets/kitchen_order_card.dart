@@ -14,15 +14,55 @@ class KitchenOrderCard extends StatelessWidget {
   final KitchenOrderBundle bundle;
   final ValueChanged<int> onCompleteItem;
 
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
+
+  String _orderTypeText(BuildContext context, String orderType) {
+    final l10n = context.l10n;
+
+    switch (orderType) {
+      case 'takeaway':
+        return l10n.orderTypeTakeaway;
+      case 'dineIn':
+      default:
+        return l10n.orderTypeDineIn;
+    }
+  }
+
+  String _spicyLevelText(BuildContext context, String? spicyLevel) {
+    final l10n = context.l10n;
+
+    if (spicyLevel == null || spicyLevel.isEmpty) {
+      return l10n.spicyNotSelected;
+    }
+
+    switch (spicyLevel.toLowerCase()) {
+      case 'mild':
+        return l10n.spicyPrefix(l10n.spicyMild);
+      case 'medium':
+        return l10n.spicyPrefix(l10n.spicyMedium);
+      case 'hot':
+        return l10n.spicyPrefix(l10n.spicyHot);
+      default:
+        return l10n.spicyPrefix(spicyLevel);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final order = bundle.order;
     final items = bundle.items;
-
-    final localizedOrderType = order.orderType == 'dineIn'
-        ? l10n.orderTypeDineIn
-        : l10n.orderTypeTakeaway;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -43,15 +83,18 @@ class KitchenOrderCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(l10n.typePrefix(localizedOrderType)),
+            Text(l10n.typePrefix(_orderTypeText(context, order.orderType))),
             if (order.tableNo != null && order.tableNo!.isNotEmpty)
               Text(l10n.tablePrefix(order.tableNo!)),
             if (order.pickupNo != null && order.pickupNo!.isNotEmpty)
               Text(l10n.pickupPrefix(order.pickupNo!)),
-            Text('${l10n.createdTime}: ${order.createdAt}'),
+            Text(l10n.createdTime + '：${order.createdAt}'),
             const Divider(height: 24),
             for (final item in items)
-              _OrderItemTile(item: item, onCompleteItem: onCompleteItem),
+              _OrderItemTile(
+                item: item,
+                onCompleteItem: onCompleteItem,
+              ),
           ],
         ),
       ),
@@ -60,10 +103,32 @@ class KitchenOrderCard extends StatelessWidget {
 }
 
 class _OrderItemTile extends StatelessWidget {
-  const _OrderItemTile({required this.item, required this.onCompleteItem});
+  const _OrderItemTile({
+    required this.item,
+    required this.onCompleteItem,
+  });
 
   final OrderItemEntity item;
   final ValueChanged<int> onCompleteItem;
+
+  String _spicyLevelText(BuildContext context, String? spicyLevel) {
+    final l10n = context.l10n;
+
+    if (spicyLevel == null || spicyLevel.isEmpty) {
+      return l10n.spicyNotSelected;
+    }
+
+    switch (spicyLevel.toLowerCase()) {
+      case 'mild':
+        return l10n.spicyPrefix(l10n.spicyMild);
+      case 'medium':
+        return l10n.spicyPrefix(l10n.spicyMedium);
+      case 'hot':
+        return l10n.spicyPrefix(l10n.spicyHot);
+      default:
+        return l10n.spicyPrefix(spicyLevel);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +138,7 @@ class _OrderItemTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text('${item.itemCode} ${item.itemName} x${item.qty}'),
-      subtitle: Text(
-        item.spicyLevel == null || item.spicyLevel!.isEmpty
-            ? l10n.spicyNotSelected
-            : l10n.spicyPrefix(item.spicyLevel!),
-      ),
+      subtitle: Text(_spicyLevelText(context, item.spicyLevel)),
       trailing: completed
           ? const Icon(Icons.check_circle, color: Colors.green)
           : FilledButton.tonal(
@@ -94,24 +155,29 @@ class _StatusChip extends StatelessWidget {
 
   final String status;
 
-  @override
-  Widget build(BuildContext context) {
+  String _statusText(BuildContext context, String status) {
     final l10n = context.l10n;
 
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final color = switch (status) {
       'completed' => Colors.green,
       'preparing' => Colors.orange,
       _ => Colors.blueGrey,
     };
 
-    final label = switch (status) {
-      'completed' => l10n.statusCompleted,
-      'preparing' => l10n.statusPreparing,
-      _ => l10n.statusCreated,
-    };
-
     return Chip(
-      label: Text(label),
+      label: Text(_statusText(context, status)),
       backgroundColor: color.withOpacity(0.12),
       side: BorderSide(color: color.withOpacity(0.3)),
     );
