@@ -24,16 +24,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frontdeskTitle => 'Frontdesk';
 
   @override
+  String get kitchenTitle => 'Kitchen KDS';
+
+  @override
+  String get backofficeTitle => 'Backoffice summary';
+
+  @override
   String get orderTypeDineIn => 'Dine in';
 
   @override
   String get orderTypeTakeaway => 'Takeaway';
 
   @override
+  String get orderTypeLabel => 'Order type';
+
+  @override
   String get tableNumber => 'Table';
 
   @override
+  String get tableLabel => 'Table';
+
+  @override
   String get pickupNumber => 'Pickup no.';
+
+  @override
+  String get pickupLabel => 'Pickup no.';
 
   @override
   String get orderingTitle => 'Ordering';
@@ -49,6 +64,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currentOrder => 'Current order';
+
+  @override
+  String get currentOrderEmpty => 'No items added yet';
 
   @override
   String get orderSubmitted => 'Order submitted successfully';
@@ -92,9 +110,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noOccupiedTables => 'No occupied tables';
 
   @override
-  String get kitchenTitle => 'Kitchen KDS';
-
-  @override
   String get sortLabel => 'Sort';
 
   @override
@@ -108,9 +123,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemCompleted => 'Item completed';
-
-  @override
-  String get backofficeTitle => 'Backoffice summary';
 
   @override
   String get orderListTitle => 'Order list';
@@ -141,6 +153,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createdTime => 'Created time';
 
   @override
+  String get completedTime => 'Completed time';
+
+  @override
   String get totalItems => 'Total items';
 
   @override
@@ -150,19 +165,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderNumber => 'Order no.';
 
   @override
-  String get orderTypeLabel => 'Order type';
-
-  @override
-  String get tableLabel => 'Table';
-
-  @override
-  String get pickupLabel => 'Pickup no.';
-
-  @override
   String get statusLabel => 'Status';
-
-  @override
-  String get completedTime => 'Completed time';
 
   @override
   String get itemsTitle => 'Items';
@@ -177,7 +180,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusCompleted => 'Completed';
 
   @override
-  String get noSpicyConfigured => 'No spicy level';
+  String get noSpicyConfigured => 'No spicy setting';
 
   @override
   String spicyLevelValue(Object level) {
@@ -190,14 +193,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get currentOrderEmpty => 'No items added yet';
-
-  @override
   String get spicyNotSelected => 'Spicy: not selected';
 
   @override
-  String spicyPrefix(Object level) {
-    return 'Spicy: $level';
+  String spicyPrefix(Object value) {
+    return 'Spicy: $value';
   }
 
   @override
@@ -206,23 +206,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String typePrefix(Object type) {
-    return 'Type: $type';
+  String typePrefix(Object value) {
+    return 'Type: $value';
   }
 
   @override
-  String tablePrefix(Object tableNo) {
-    return 'Table: $tableNo';
+  String tablePrefix(Object value) {
+    return 'Table: $value';
   }
 
   @override
-  String pickupPrefix(Object pickupNo) {
-    return 'Pickup no.: $pickupNo';
+  String pickupPrefix(Object value) {
+    return 'Pickup no.: $value';
   }
 
   @override
   String get completeAction => 'Complete';
 
   @override
-  String get orderDetailPageStub => 'Order detail page skeleton created';
+  String get orderDetailPageStub => 'Order detail page scaffold created';
+
+  @override
+  String get enterItemCodeFirst => 'Please enter item code first';
+
+  @override
+  String itemCodeNotFound(Object itemCode) {
+    return 'Item code $itemCode not found';
+  }
+
+  @override
+  String itemAdded(Object itemName) {
+    return 'Added $itemName';
+  }
+
+  @override
+  String itemRemoved(Object itemName) {
+    return 'Removed $itemName';
+  }
+
+  @override
+  String get orderNeedsAtLeastOneItem =>
+      'An order must contain at least one item';
+
+  @override
+  String get dineInSelectTable => 'Please select a table for dine-in';
+
+  @override
+  String get takeawaySerialNotReady =>
+      'Takeaway serial number is not ready yet';
+
+  @override
+  String get spicyMild => 'Mild';
+
+  @override
+  String get spicyMedium => 'Medium';
+
+  @override
+  String get spicyHot => 'Hot';
 }

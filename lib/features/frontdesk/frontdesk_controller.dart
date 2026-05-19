@@ -82,11 +82,11 @@ class FrontdeskController extends ChangeNotifier {
   bool _isReleasingTable = false;
 
   String? _messageKey;
-  Map<String, String> _messageArgs = {};
+  Map<String, String> _messageArgs = <String, String>{};
 
-  List<String> _availableTables = List.of(_allTables);
-  List<String> _occupiedTables = const [];
-  final List<DraftOrderItem> _items = [];
+  List<String> _availableTables = List<String>.of(_allTables);
+  List<String> _occupiedTables = const <String>[];
+  final List<DraftOrderItem> _items = <DraftOrderItem>[];
 
   OrderType get orderType => _orderType;
   String get tableNo => _tableNo;
@@ -98,20 +98,23 @@ class FrontdeskController extends ChangeNotifier {
   bool get isReleasingTable => _isReleasingTable;
 
   String? get messageKey => _messageKey;
-  Map<String, String> get messageArgs => Map.unmodifiable(_messageArgs);
+  Map<String, String> get messageArgs =>
+      Map<String, String>.unmodifiable(_messageArgs);
 
-  List<DraftOrderItem> get items => List.unmodifiable(_items);
-  List<String> get availableTables => List.unmodifiable(_availableTables);
-  List<String> get occupiedTables => List.unmodifiable(_occupiedTables);
+  List<DraftOrderItem> get items => List<DraftOrderItem>.unmodifiable(_items);
+  List<String> get availableTables =>
+      List<String>.unmodifiable(_availableTables);
+  List<String> get occupiedTables => List<String>.unmodifiable(_occupiedTables);
 
-  int get totalQty => _items.fold(0, (sum, item) => sum + item.qty);
+  int get totalQty => _items.fold<int>(0, (sum, item) => sum + item.qty);
 
   void _clearMessage() {
     _messageKey = null;
-    _messageArgs = {};
+    _messageArgs = <String, String>{};
   }
 
-  void _setMessage(String key, [Map<String, String> args = const {}]) {
+  void _setMessage(String key,
+      [Map<String, String> args = const <String, String>{}]) {
     _messageKey = key;
     _messageArgs = args;
   }
@@ -147,7 +150,9 @@ class FrontdeskController extends ChangeNotifier {
   }
 
   Future<void> releaseTable(String tableNo) async {
-    if (_isReleasingTable) return;
+    if (_isReleasingTable) {
+      return;
+    }
 
     _isReleasingTable = true;
     _clearMessage();
@@ -158,7 +163,7 @@ class FrontdeskController extends ChangeNotifier {
       await loadServiceOptions();
       _setMessage(
         FrontdeskMessage.releaseTableDone,
-        {'tableNo': tableNo},
+        <String, String>{'tableNo': tableNo},
       );
     } finally {
       _isReleasingTable = false;
@@ -186,14 +191,20 @@ class FrontdeskController extends ChangeNotifier {
   }
 
   void appendItemCodeDigit(String digit) {
-    if (_itemCodeInput.length >= 3) return;
+    if (_itemCodeInput.length >= 3) {
+      return;
+    }
+
     _itemCodeInput += digit;
     _clearMessage();
     notifyListeners();
   }
 
   void backspaceItemCode() {
-    if (_itemCodeInput.isEmpty) return;
+    if (_itemCodeInput.isEmpty) {
+      return;
+    }
+
     _itemCodeInput = _itemCodeInput.substring(0, _itemCodeInput.length - 1);
     notifyListeners();
   }
@@ -229,7 +240,7 @@ class FrontdeskController extends ChangeNotifier {
     if (menuItem == null) {
       _setMessage(
         FrontdeskMessage.itemCodeNotFound,
-        {'itemCode': inputCode},
+        <String, String>{'itemCode': inputCode},
       );
       notifyListeners();
       return false;
@@ -257,24 +268,30 @@ class FrontdeskController extends ChangeNotifier {
     _selectedSpicyLevel = null;
     _setMessage(
       FrontdeskMessage.itemAdded,
-      {'itemName': menuItem.itemName},
+      <String, String>{'itemName': menuItem.itemName},
     );
     notifyListeners();
     return true;
   }
 
   void removeItemAt(int index) {
-    if (index < 0 || index >= _items.length) return;
+    if (index < 0 || index >= _items.length) {
+      return;
+    }
+
     final removed = _items.removeAt(index);
     _setMessage(
       FrontdeskMessage.itemRemoved,
-      {'itemName': removed.itemName},
+      <String, String>{'itemName': removed.itemName},
     );
     notifyListeners();
   }
 
   Future<bool> submitOrder() async {
-    if (_isSubmitting) return false;
+    if (_isSubmitting) {
+      return false;
+    }
+
     _clearMessage();
 
     if (_items.isEmpty) {

@@ -8,7 +8,10 @@ class KitchenOrderBundle {
   final OrderEntity order;
   final List<OrderItemEntity> items;
 
-  const KitchenOrderBundle({required this.order, required this.items});
+  const KitchenOrderBundle({
+    required this.order,
+    required this.items,
+  });
 }
 
 class KitchenMessage {
@@ -24,12 +27,13 @@ class KitchenController extends ChangeNotifier {
 
   bool _loading = false;
   String? _messageKey;
-  List<KitchenOrderBundle> _orders = [];
+  List<KitchenOrderBundle> _orders = <KitchenOrderBundle>[];
   KitchenSortOption _sortOption = KitchenSortOption.oldestFirst;
 
   bool get loading => _loading;
   String? get messageKey => _messageKey;
-  List<KitchenOrderBundle> get orders => List.unmodifiable(_orders);
+  List<KitchenOrderBundle> get orders =>
+      List<KitchenOrderBundle>.unmodifiable(_orders);
   KitchenSortOption get sortOption => _sortOption;
 
   void _clearMessage() {
@@ -48,8 +52,14 @@ class KitchenController extends ChangeNotifier {
       final bundles = await _orderRepository.getActiveOrderBundles(
         sortOption: _sortOption,
       );
+
       _orders = bundles
-          .map((e) => KitchenOrderBundle(order: e.order, items: e.items))
+          .map(
+            (e) => KitchenOrderBundle(
+              order: e.order,
+              items: e.items,
+            ),
+          )
           .toList();
 
       if (_orders.isEmpty) {
@@ -64,7 +74,10 @@ class KitchenController extends ChangeNotifier {
   }
 
   Future<void> setSortOption(KitchenSortOption value) async {
-    if (_sortOption == value) return;
+    if (_sortOption == value) {
+      return;
+    }
+
     _sortOption = value;
     await loadOrders();
   }

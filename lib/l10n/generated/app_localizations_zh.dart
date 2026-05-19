@@ -24,16 +24,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get frontdeskTitle => '前台點單';
 
   @override
+  String get kitchenTitle => '後廚 KDS';
+
+  @override
+  String get backofficeTitle => '後台摘要';
+
+  @override
   String get orderTypeDineIn => '內用';
 
   @override
   String get orderTypeTakeaway => '外帶';
 
   @override
+  String get orderTypeLabel => '訂單類型';
+
+  @override
   String get tableNumber => '桌號';
 
   @override
+  String get tableLabel => '桌號';
+
+  @override
   String get pickupNumber => '取餐號';
+
+  @override
+  String get pickupLabel => '取餐號';
 
   @override
   String get orderingTitle => '點單';
@@ -49,6 +64,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get currentOrder => '目前訂單';
+
+  @override
+  String get currentOrderEmpty => '目前尚未加入品項';
 
   @override
   String get orderSubmitted => '訂單已成功送出';
@@ -91,9 +109,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noOccupiedTables => '目前無占用桌號';
 
   @override
-  String get kitchenTitle => '後廚 KDS';
-
-  @override
   String get sortLabel => '排序';
 
   @override
@@ -107,9 +122,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get itemCompleted => '品項已完成';
-
-  @override
-  String get backofficeTitle => '後台摘要';
 
   @override
   String get orderListTitle => '訂單列表';
@@ -140,6 +152,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get createdTime => '建立時間';
 
   @override
+  String get completedTime => '完成時間';
+
+  @override
   String get totalItems => '總品項數';
 
   @override
@@ -149,19 +164,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get orderNumber => '訂單編號';
 
   @override
-  String get orderTypeLabel => '訂單類型';
-
-  @override
-  String get tableLabel => '桌號';
-
-  @override
-  String get pickupLabel => '取餐號';
-
-  @override
   String get statusLabel => '狀態';
-
-  @override
-  String get completedTime => '完成時間';
 
   @override
   String get itemsTitle => '品項';
@@ -189,14 +192,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get currentOrderEmpty => '目前尚未加入品項';
-
-  @override
   String get spicyNotSelected => '辣度：未選';
 
   @override
-  String spicyPrefix(Object level) {
-    return '辣度：$level';
+  String spicyPrefix(Object value) {
+    return '辣度：$value';
   }
 
   @override
@@ -205,18 +205,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String typePrefix(Object type) {
-    return '類型：$type';
+  String typePrefix(Object value) {
+    return '類型：$value';
   }
 
   @override
-  String tablePrefix(Object tableNo) {
-    return '桌號：$tableNo';
+  String tablePrefix(Object value) {
+    return '桌號：$value';
   }
 
   @override
-  String pickupPrefix(Object pickupNo) {
-    return '取餐號：$pickupNo';
+  String pickupPrefix(Object value) {
+    return '取餐號：$value';
   }
 
   @override
@@ -224,4 +224,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderDetailPageStub => '訂單明細頁骨架已建立';
+
+  @override
+  String get enterItemCodeFirst => '請先輸入品項號碼';
+
+  @override
+  String itemCodeNotFound(Object itemCode) {
+    return '找不到品項號碼 $itemCode';
+  }
+
+  @override
+  String itemAdded(Object itemName) {
+    return '已加入 $itemName';
+  }
+
+  @override
+  String itemRemoved(Object itemName) {
+    return '已移除 $itemName';
+  }
+
+  @override
+  String get orderNeedsAtLeastOneItem => '訂單至少需要一個品項';
+
+  @override
+  String get dineInSelectTable => '內用請選擇桌號';
+
+  @override
+  String get takeawaySerialNotReady => '外帶流水號尚未準備完成';
+
+  @override
+  String get spicyMild => '小辣';
+
+  @override
+  String get spicyMedium => '中辣';
+
+  @override
+  String get spicyHot => '大辣';
 }

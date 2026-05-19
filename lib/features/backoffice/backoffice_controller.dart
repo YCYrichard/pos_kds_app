@@ -8,18 +8,21 @@ class BackofficeOrderBundle {
   final OrderEntity order;
   final List<OrderItemEntity> items;
 
-  const BackofficeOrderBundle({required this.order, required this.items});
+  const BackofficeOrderBundle({
+    required this.order,
+    required this.items,
+  });
 }
 
 class BackofficeController extends ChangeNotifier {
   BackofficeController({required OrderRepository orderRepository})
-    : _orderRepository = orderRepository;
+      : _orderRepository = orderRepository;
 
   final OrderRepository _orderRepository;
 
   bool _loading = false;
   String? _message;
-  List<BackofficeOrderBundle> _orders = const [];
+  List<BackofficeOrderBundle> _orders = const <BackofficeOrderBundle>[];
   OrderDashboardSummary _summary = const OrderDashboardSummary(
     todayOrders: 0,
     pendingOrders: 0,
@@ -28,7 +31,8 @@ class BackofficeController extends ChangeNotifier {
 
   bool get loading => _loading;
   String? get message => _message;
-  List<BackofficeOrderBundle> get orders => List.unmodifiable(_orders);
+  List<BackofficeOrderBundle> get orders =>
+      List<BackofficeOrderBundle>.unmodifiable(_orders);
   OrderDashboardSummary get summary => _summary;
 
   Future<void> loadDashboard() async {
@@ -43,10 +47,13 @@ class BackofficeController extends ChangeNotifier {
       _summary = summary;
       _orders = bundles
           .map(
-            (bundle) =>
-                BackofficeOrderBundle(order: bundle.order, items: bundle.items),
+            (bundle) => BackofficeOrderBundle(
+              order: bundle.order,
+              items: bundle.items,
+            ),
           )
           .toList();
+
       _message = _orders.isEmpty ? '目前沒有訂單紀錄' : null;
     } catch (_) {
       _message = '後台資料載入失敗';

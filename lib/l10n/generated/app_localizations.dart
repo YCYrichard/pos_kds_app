@@ -128,6 +128,18 @@ abstract class AppLocalizations {
   /// **'Frontdesk'**
   String get frontdeskTitle;
 
+  /// No description provided for @kitchenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen KDS'**
+  String get kitchenTitle;
+
+  /// No description provided for @backofficeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backoffice summary'**
+  String get backofficeTitle;
+
   /// No description provided for @orderTypeDineIn.
   ///
   /// In en, this message translates to:
@@ -140,17 +152,35 @@ abstract class AppLocalizations {
   /// **'Takeaway'**
   String get orderTypeTakeaway;
 
+  /// No description provided for @orderTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order type'**
+  String get orderTypeLabel;
+
   /// No description provided for @tableNumber.
   ///
   /// In en, this message translates to:
   /// **'Table'**
   String get tableNumber;
 
+  /// No description provided for @tableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get tableLabel;
+
   /// No description provided for @pickupNumber.
   ///
   /// In en, this message translates to:
   /// **'Pickup no.'**
   String get pickupNumber;
+
+  /// No description provided for @pickupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup no.'**
+  String get pickupLabel;
 
   /// No description provided for @orderingTitle.
   ///
@@ -181,6 +211,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current order'**
   String get currentOrder;
+
+  /// No description provided for @currentOrderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items added yet'**
+  String get currentOrderEmpty;
 
   /// No description provided for @orderSubmitted.
   ///
@@ -254,12 +290,6 @@ abstract class AppLocalizations {
   /// **'No occupied tables'**
   String get noOccupiedTables;
 
-  /// No description provided for @kitchenTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Kitchen KDS'**
-  String get kitchenTitle;
-
   /// No description provided for @sortLabel.
   ///
   /// In en, this message translates to:
@@ -289,12 +319,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Item completed'**
   String get itemCompleted;
-
-  /// No description provided for @backofficeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Backoffice summary'**
-  String get backofficeTitle;
 
   /// No description provided for @orderListTitle.
   ///
@@ -344,6 +368,12 @@ abstract class AppLocalizations {
   /// **'Created time'**
   String get createdTime;
 
+  /// No description provided for @completedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed time'**
+  String get completedTime;
+
   /// No description provided for @totalItems.
   ///
   /// In en, this message translates to:
@@ -362,35 +392,11 @@ abstract class AppLocalizations {
   /// **'Order no.'**
   String get orderNumber;
 
-  /// No description provided for @orderTypeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Order type'**
-  String get orderTypeLabel;
-
-  /// No description provided for @tableLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Table'**
-  String get tableLabel;
-
-  /// No description provided for @pickupLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Pickup no.'**
-  String get pickupLabel;
-
   /// No description provided for @statusLabel.
   ///
   /// In en, this message translates to:
   /// **'Status'**
   String get statusLabel;
-
-  /// No description provided for @completedTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Completed time'**
-  String get completedTime;
 
   /// No description provided for @itemsTitle.
   ///
@@ -419,7 +425,7 @@ abstract class AppLocalizations {
   /// No description provided for @noSpicyConfigured.
   ///
   /// In en, this message translates to:
-  /// **'No spicy level'**
+  /// **'No spicy setting'**
   String get noSpicyConfigured;
 
   /// No description provided for @spicyLevelValue.
@@ -434,12 +440,6 @@ abstract class AppLocalizations {
   /// **'Qty {qty} | {spicy}'**
   String quantityWithSpicy(Object qty, Object spicy);
 
-  /// No description provided for @currentOrderEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No items added yet'**
-  String get currentOrderEmpty;
-
   /// No description provided for @spicyNotSelected.
   ///
   /// In en, this message translates to:
@@ -449,8 +449,8 @@ abstract class AppLocalizations {
   /// No description provided for @spicyPrefix.
   ///
   /// In en, this message translates to:
-  /// **'Spicy: {level}'**
-  String spicyPrefix(Object level);
+  /// **'Spicy: {value}'**
+  String spicyPrefix(Object value);
 
   /// No description provided for @orderPrefix.
   ///
@@ -461,20 +461,20 @@ abstract class AppLocalizations {
   /// No description provided for @typePrefix.
   ///
   /// In en, this message translates to:
-  /// **'Type: {type}'**
-  String typePrefix(Object type);
+  /// **'Type: {value}'**
+  String typePrefix(Object value);
 
   /// No description provided for @tablePrefix.
   ///
   /// In en, this message translates to:
-  /// **'Table: {tableNo}'**
-  String tablePrefix(Object tableNo);
+  /// **'Table: {value}'**
+  String tablePrefix(Object value);
 
   /// No description provided for @pickupPrefix.
   ///
   /// In en, this message translates to:
-  /// **'Pickup no.: {pickupNo}'**
-  String pickupPrefix(Object pickupNo);
+  /// **'Pickup no.: {value}'**
+  String pickupPrefix(Object value);
 
   /// No description provided for @completeAction.
   ///
@@ -485,8 +485,68 @@ abstract class AppLocalizations {
   /// No description provided for @orderDetailPageStub.
   ///
   /// In en, this message translates to:
-  /// **'Order detail page skeleton created'**
+  /// **'Order detail page scaffold created'**
   String get orderDetailPageStub;
+
+  /// No description provided for @enterItemCodeFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter item code first'**
+  String get enterItemCodeFirst;
+
+  /// No description provided for @itemCodeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Item code {itemCode} not found'**
+  String itemCodeNotFound(Object itemCode);
+
+  /// No description provided for @itemAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {itemName}'**
+  String itemAdded(Object itemName);
+
+  /// No description provided for @itemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {itemName}'**
+  String itemRemoved(Object itemName);
+
+  /// No description provided for @orderNeedsAtLeastOneItem.
+  ///
+  /// In en, this message translates to:
+  /// **'An order must contain at least one item'**
+  String get orderNeedsAtLeastOneItem;
+
+  /// No description provided for @dineInSelectTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a table for dine-in'**
+  String get dineInSelectTable;
+
+  /// No description provided for @takeawaySerialNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeaway serial number is not ready yet'**
+  String get takeawaySerialNotReady;
+
+  /// No description provided for @spicyMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Mild'**
+  String get spicyMild;
+
+  /// No description provided for @spicyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get spicyMedium;
+
+  /// No description provided for @spicyHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Hot'**
+  String get spicyHot;
 }
 
 class _AppLocalizationsDelegate

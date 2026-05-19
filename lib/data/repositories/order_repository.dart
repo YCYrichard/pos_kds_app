@@ -8,7 +8,10 @@ class OrderBundle {
   final OrderEntity order;
   final List<OrderItemEntity> items;
 
-  const OrderBundle({required this.order, required this.items});
+  const OrderBundle({
+    required this.order,
+    required this.items,
+  });
 }
 
 class OrderDashboardSummary {
@@ -30,7 +33,7 @@ class OrderRepository {
   }) async {
     final db = await AppDatabase.database;
 
-    return db.transaction((txn) async {
+    return db.transaction<int>((txn) async {
       final orderId = await txn.insert('orders', order.toMap());
 
       for (final item in items) {
@@ -63,6 +66,7 @@ class OrderRepository {
           ? 'created_at DESC'
           : 'created_at ASC',
     );
+
     return result.map(OrderEntity.fromMap).toList();
   }
 
@@ -73,8 +77,12 @@ class OrderRepository {
     final bundles = <OrderBundle>[];
 
     for (final order in orders) {
-      if (order.id == null) continue;
-      final items = await getOrderItems(order.id!);
+      final orderId = order.id;
+      if (orderId == null) {
+        continue;
+      }
+
+      final items = await getOrderItems(orderId);
       bundles.add(OrderBundle(order: order, items: items));
     }
 
@@ -92,8 +100,12 @@ class OrderRepository {
     final bundles = <OrderBundle>[];
 
     for (final order in orders) {
-      if (order.id == null) continue;
-      final items = await getOrderItems(order.id!);
+      final orderId = order.id;
+      if (orderId == null) {
+        continue;
+      }
+
+      final items = await getOrderItems(orderId);
       bundles.add(OrderBundle(order: order, items: items));
     }
 
@@ -108,6 +120,7 @@ class OrderRepository {
       whereArgs: [orderId],
       orderBy: 'id ASC',
     );
+
     return result.map(OrderItemEntity.fromMap).toList();
   }
 
@@ -117,12 +130,12 @@ class OrderRepository {
       'orders',
       columns: ['table_no'],
       where: '''
-        order_type = ?
-        AND status != ?
-        AND released_at IS NULL
-        AND table_no IS NOT NULL
-        AND table_no != ?
-      ''',
+order_type = ?
+AND status != ?
+AND released_at IS NULL
+AND table_no IS NOT NULL
+AND table_no != ?
+''',
       whereArgs: ['dineIn', 'completed', ''],
     );
 
@@ -167,11 +180,11 @@ class OrderRepository {
       'orders',
       {'released_at': DateTime.now().toIso8601String()},
       where: '''
-        order_type = ?
-        AND status != ?
-        AND released_at IS NULL
-        AND table_no = ?
-      ''',
+order_type = ?
+AND status != ?
+AND released_at IS NULL
+AND table_no = ?
+''',
       whereArgs: ['dineIn', 'completed', tableNo],
     );
   }
@@ -192,7 +205,10 @@ class OrderRepository {
       limit: 1,
     );
 
-    if (itemRow.isEmpty) return;
+    if (itemRow.isEmpty) {
+      return;
+    }
+
     final orderId = itemRow.first['order_id'] as int;
     await refreshOrderStatus(orderId);
   }
@@ -205,7 +221,9 @@ class OrderRepository {
       whereArgs: [orderId],
     );
 
-    if (items.isEmpty) return;
+    if (items.isEmpty) {
+      return;
+    }
 
     final allCompleted = items.every((e) => e['status'] == 'completed');
     final anyCompleted = items.any((e) => e['status'] == 'completed');
@@ -243,27 +261,29 @@ class OrderRepository {
 
     final totalOrdersResult = await db.rawQuery(
       '''
-      SELECT COUNT(*) AS count
-      FROM orders
-      WHERE created_at >= ? AND created_at < ?
-      ''',
+SELECT COUNT(*) AS count
+FROM orders
+WHERE created_at >= ? AND created_at < ?
+''',
       [todayStart, tomorrowStart],
     );
 
-    final pendingOrdersResult = await db.rawQuery('''
-      SELECT COUNT(*) AS count
-      FROM orders
-      WHERE status != 'completed'
-      ''');
+    final pendingOrdersResult = await db.rawQuery(
+      '''
+SELECT COUNT(*) AS count
+FROM orders
+WHERE status != 'completed'
+''',
+    );
 
     final revenueResult = await db.rawQuery(
       '''
-      SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
-      FROM orders o
-      JOIN order_items oi ON oi.order_id = o.id
-      JOIN menu_items mi ON mi.item_code = oi.item_code
-      WHERE o.created_at >= ? AND o.created_at < ?
-      ''',
+SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+JOIN menu_items mi ON mi.item_code = oi.item_code
+WHERE o.created_at >= ? AND o.created_at < ?
+''',
       [todayStart, tomorrowStart],
     );
 
