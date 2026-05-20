@@ -5,7 +5,7 @@ CREATE TABLE menu_items (
   item_name TEXT NOT NULL,
   price INTEGER NOT NULL,
   is_active INTEGER NOT NULL DEFAULT 1
-)
+);
 ''';
 
 const String createOrdersTable = '''
@@ -20,7 +20,7 @@ CREATE TABLE orders (
   created_at TEXT NOT NULL,
   completed_at TEXT,
   released_at TEXT
-)
+);
 ''';
 
 const String createOrderItemsTable = '''
@@ -34,5 +34,5 @@ CREATE TABLE order_items (
   status TEXT NOT NULL,
   completed_at TEXT,
   FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
-)
+);
 ''';

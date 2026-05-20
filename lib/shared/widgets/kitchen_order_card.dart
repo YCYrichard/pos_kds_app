@@ -88,7 +88,7 @@ class KitchenOrderCard extends StatelessWidget {
               Text(l10n.tablePrefix(order.tableNo!)),
             if (order.pickupNo != null && order.pickupNo!.isNotEmpty)
               Text(l10n.pickupPrefix(order.pickupNo!)),
-            Text(l10n.createdTime + '：${order.createdAt}'),
+            Text('${l10n.createdTime}：${order.createdAt}'),
             const Divider(height: 24),
             for (final item in items)
               _OrderItemTile(
@@ -178,8 +178,8 @@ class _StatusChip extends StatelessWidget {
 
     return Chip(
       label: Text(_statusText(context, status)),
-      backgroundColor: color.withOpacity(0.12),
-      side: BorderSide(color: color.withOpacity(0.3)),
+      backgroundColor: color.withValues(alpha: 0.12),
+      side: BorderSide(color: color.withValues(alpha: 0.3)),
     );
   }
 }

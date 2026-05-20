@@ -29,7 +29,9 @@ class AppDatabase {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db.execute('ALTER TABLE orders ADD COLUMN released_at TEXT');
+          await db.execute(
+            'ALTER TABLE orders ADD COLUMN released_at TEXT',
+          );
         }
       },
     );
