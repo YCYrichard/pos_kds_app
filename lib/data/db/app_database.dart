@@ -5,16 +5,18 @@ import 'schema.dart';
 
 class AppDatabase {
   static Database? _database;
+  static const String _dbName = 'pos_kds_app.db';
 
   static Future<Database> get database async {
     if (_database != null) return _database!;
+
     _database = await _initDb();
     return _database!;
   }
 
   static Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'pos_kds_app.db');
+    final path = join(dbPath, _dbName);
 
     return openDatabase(
       path,
@@ -35,5 +37,17 @@ class AppDatabase {
         }
       },
     );
+  }
+
+  static Future<void> resetDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, _dbName);
+
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+
+    await deleteDatabase(path);
   }
 }
