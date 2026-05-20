@@ -130,6 +130,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noOrderRecords => '目前沒有訂單紀錄';
 
   @override
+  String get backofficeLoadFailed => '後台資料載入失敗';
+
+  @override
   String get todayOrders => '今日訂單';
 
   @override
@@ -179,7 +182,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusCompleted => '已完成';
 
   @override
-  String get noSpicyConfigured => '不辣度設定';
+  String get noSpicyConfigured => '未設定辣度';
 
   @override
   String spicyLevelValue(Object level) {

@@ -14,6 +14,11 @@ class BackofficeOrderBundle {
   });
 }
 
+class BackofficeMessage {
+  static const String noOrderRecords = 'noOrderRecords';
+  static const String loadFailed = 'backofficeLoadFailed';
+}
+
 class BackofficeController extends ChangeNotifier {
   BackofficeController({required OrderRepository orderRepository})
       : _orderRepository = orderRepository;
@@ -21,7 +26,7 @@ class BackofficeController extends ChangeNotifier {
   final OrderRepository _orderRepository;
 
   bool _loading = false;
-  String? _message;
+  String? _messageKey;
   List<BackofficeOrderBundle> _orders = const <BackofficeOrderBundle>[];
   OrderDashboardSummary _summary = const OrderDashboardSummary(
     todayOrders: 0,
@@ -30,14 +35,22 @@ class BackofficeController extends ChangeNotifier {
   );
 
   bool get loading => _loading;
-  String? get message => _message;
+  String? get messageKey => _messageKey;
   List<BackofficeOrderBundle> get orders =>
       List<BackofficeOrderBundle>.unmodifiable(_orders);
   OrderDashboardSummary get summary => _summary;
 
+  void _clearMessage() {
+    _messageKey = null;
+  }
+
+  void _setMessage(String key) {
+    _messageKey = key;
+  }
+
   Future<void> loadDashboard() async {
     _loading = true;
-    _message = null;
+    _clearMessage();
     notifyListeners();
 
     try {
@@ -54,9 +67,11 @@ class BackofficeController extends ChangeNotifier {
           )
           .toList();
 
-      _message = _orders.isEmpty ? '目前沒有訂單紀錄' : null;
+      if (_orders.isEmpty) {
+        _setMessage(BackofficeMessage.noOrderRecords);
+      }
     } catch (_) {
-      _message = '後台資料載入失敗';
+      _setMessage(BackofficeMessage.loadFailed);
     } finally {
       _loading = false;
       notifyListeners();

@@ -332,6 +332,12 @@ abstract class AppLocalizations {
   /// **'No order records'**
   String get noOrderRecords;
 
+  /// No description provided for @backofficeLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load backoffice data'**
+  String get backofficeLoadFailed;
+
   /// No description provided for @todayOrders.
   ///
   /// In en, this message translates to:

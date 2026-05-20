@@ -47,12 +47,30 @@ class _BackofficePageState extends State<BackofficePage> {
     }
   }
 
+  String? _resolveBackofficeMessage(
+    BuildContext context,
+    BackofficeController controller,
+  ) {
+    final l10n = context.l10n;
+
+    switch (controller.messageKey) {
+      case BackofficeMessage.noOrderRecords:
+        return l10n.noOrderRecords;
+      case BackofficeMessage.loadFailed:
+        return l10n.backofficeLoadFailed;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
     return Consumer<BackofficeController>(
       builder: (context, controller, _) {
+        final messageText = _resolveBackofficeMessage(context, controller);
+
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.backofficeTitle),
@@ -85,7 +103,7 @@ class _BackofficePageState extends State<BackofficePage> {
                             padding: const EdgeInsets.only(top: 48),
                             child: Center(
                               child: Text(
-                                controller.message ?? l10n.noOrderRecords,
+                                messageText ?? l10n.noOrderRecords,
                               ),
                             ),
                           )
@@ -331,9 +349,7 @@ class _OrderDetailSheet extends StatelessWidget {
                       label: l10n.tableLabel, value: order.tableNo ?? '-'),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
-                    label: l10n.pickupLabel,
-                    value: order.pickupNo ?? '-',
-                  ),
+                      label: l10n.pickupLabel, value: order.pickupNo ?? '-'),
                 _DetailRow(
                   label: l10n.statusLabel,
                   value: _statusText(context, order.status),
@@ -386,11 +402,17 @@ class _DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 88,
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            width: 92,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
           Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyLarge),
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
         ],
       ),
@@ -403,59 +425,44 @@ class _StatusChip extends StatelessWidget {
 
   final String status;
 
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final label = _statusText(context, status);
+    final l10n = context.l10n;
 
-    Color background;
-    Color foreground;
+    final String label;
+    final Color color;
 
     switch (status) {
       case 'completed':
-        background = scheme.primaryContainer;
-        foreground = scheme.onPrimaryContainer;
+        label = l10n.statusCompleted;
+        color = Colors.green;
         break;
       case 'preparing':
-        background = scheme.secondaryContainer;
-        foreground = scheme.onSecondaryContainer;
+        label = l10n.statusPreparing;
+        color = Colors.orange;
         break;
       default:
-        background = scheme.surfaceVariant;
-        foreground = scheme.onSurfaceVariant;
+        label = l10n.statusCreated;
+        color = Colors.blueGrey;
         break;
     }
 
     return Chip(
       label: Text(label),
-      backgroundColor: background,
-      labelStyle: TextStyle(color: foreground),
-      side: BorderSide.none,
+      labelStyle: const TextStyle(color: Colors.white),
+      backgroundColor: color,
       visualDensity: VisualDensity.compact,
     );
   }
 }
 
 String _formatDateTime(String value) {
-  final dt = DateTime.tryParse(value);
-  if (dt == null) return value;
+  final dateTime = DateTime.tryParse(value);
+  if (dateTime == null) {
+    return value;
+  }
 
-  final mm = dt.month.toString().padLeft(2, '0');
-  final dd = dt.day.toString().padLeft(2, '0');
-  final hh = dt.hour.toString().padLeft(2, '0');
-  final mi = dt.minute.toString().padLeft(2, '0');
-  return '$mm/$dd $hh:$mi';
+  final hour = dateTime.hour.toString().padLeft(2, '0');
+  final minute = dateTime.minute.toString().padLeft(2, '0');
+  return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
 }

@@ -4,35 +4,28 @@
   "tabFrontdesk": "Frontdesk",
   "tabKitchen": "Kitchen",
   "tabBackoffice": "Backoffice",
-
   "frontdeskTitle": "Frontdesk",
   "kitchenTitle": "Kitchen KDS",
   "backofficeTitle": "Backoffice summary",
-
   "orderTypeDineIn": "Dine in",
   "orderTypeTakeaway": "Takeaway",
   "orderTypeLabel": "Order type",
-
   "tableNumber": "Table",
   "tableLabel": "Table",
   "pickupNumber": "Pickup no.",
   "pickupLabel": "Pickup no.",
-
   "orderingTitle": "Ordering",
   "pleaseEnterNumber": "Please enter number",
   "noSpicyLevel": "No spicy level",
   "addItem": "Add item",
   "currentOrder": "Current order",
   "currentOrderEmpty": "No items added yet",
-
   "orderSubmitted": "Order submitted successfully",
   "submitting": "Submitting...",
   "submitOrder": "Submit order",
-
   "commonRefresh": "Refresh",
   "commonCancel": "Cancel",
   "commonConfirm": "Confirm",
-
   "releaseTableTitle": "Release table",
   "releaseTableShort": "Release",
   "releaseTableConfirm": "Release table {tableNo}?",
@@ -47,22 +40,19 @@
       "tableNo": {}
     }
   },
-
   "noAvailableTables": "No available tables. Release a table or wait for an order to finish.",
   "noOccupiedTables": "No occupied tables",
-
   "sortLabel": "Sort",
   "sortOldestFirst": "Oldest first",
   "sortNewestFirst": "Newest first",
   "noPendingOrders": "No pending orders",
   "itemCompleted": "Item completed",
-
   "orderListTitle": "Order list",
   "noOrderRecords": "No order records",
+  "backofficeLoadFailed": "Failed to load backoffice data",
   "todayOrders": "Today's orders",
   "pendingOrders": "Pending",
   "todayRevenue": "Today's revenue",
-
   "dineInWithTable": "Dine in | Table {tableNo}",
   "@dineInWithTable": {
     "placeholders": {
@@ -75,7 +65,6 @@
       "pickupNo": {}
     }
   },
-
   "createdTime": "Created time",
   "completedTime": "Completed time",
   "totalItems": "Total items",
@@ -83,11 +72,9 @@
   "orderNumber": "Order no.",
   "statusLabel": "Status",
   "itemsTitle": "Items",
-
   "statusCreated": "Created",
   "statusPreparing": "Preparing",
   "statusCompleted": "Completed",
-
   "noSpicyConfigured": "No spicy setting",
   "spicyLevelValue": "Spicy level {level}",
   "@spicyLevelValue": {
@@ -95,7 +82,6 @@
       "level": {}
     }
   },
-
   "quantityWithSpicy": "Qty {qty} | {spicy}",
   "@quantityWithSpicy": {
     "placeholders": {
@@ -103,7 +89,6 @@
       "spicy": {}
     }
   },
-
   "spicyNotSelected": "Spicy: not selected",
   "spicyPrefix": "Spicy: {value}",
   "@spicyPrefix": {
@@ -111,39 +96,32 @@
       "value": {}
     }
   },
-
   "orderPrefix": "Order {orderNo}",
   "@orderPrefix": {
     "placeholders": {
       "orderNo": {}
     }
   },
-
   "typePrefix": "Type: {value}",
   "@typePrefix": {
     "placeholders": {
       "value": {}
     }
   },
-
   "tablePrefix": "Table: {value}",
   "@tablePrefix": {
     "placeholders": {
       "value": {}
     }
   },
-
   "pickupPrefix": "Pickup no.: {value}",
   "@pickupPrefix": {
     "placeholders": {
       "value": {}
     }
   },
-
   "completeAction": "Complete",
-
   "orderDetailPageStub": "Order detail page scaffold created",
-
   "enterItemCodeFirst": "Please enter item code first",
   "itemCodeNotFound": "Item code {itemCode} not found",
   "@itemCodeNotFound": {
@@ -151,21 +129,18 @@
       "itemCode": {}
     }
   },
-
   "itemAdded": "Added {itemName}",
   "@itemAdded": {
     "placeholders": {
       "itemName": {}
     }
   },
-
   "itemRemoved": "Removed {itemName}",
   "@itemRemoved": {
     "placeholders": {
       "itemName": {}
     }
   },
-
   "orderNeedsAtLeastOneItem": "An order must contain at least one item",
   "dineInSelectTable": "Please select a table for dine-in",
   "takeawaySerialNotReady": "Takeaway serial number is not ready yet",

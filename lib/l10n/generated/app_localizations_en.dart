@@ -131,6 +131,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noOrderRecords => 'No order records';
 
   @override
+  String get backofficeLoadFailed => 'Failed to load backoffice data';
+
+  @override
   String get todayOrders => 'Today\'s orders';
 
   @override
