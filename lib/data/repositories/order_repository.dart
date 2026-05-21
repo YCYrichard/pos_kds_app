@@ -46,6 +46,7 @@ class OrderRepository {
             qty: item.qty,
             spicyLevel: item.spicyLevel,
             status: item.status,
+            completedAt: item.completedAt,
           ).toMap(),
         );
       }
@@ -67,7 +68,7 @@ class OrderRepository {
           : 'created_at ASC',
     );
 
-    return result.map(OrderEntity.fromMap).toList();
+    return result.map((row) => OrderEntity.fromMap(row)).toList();
   }
 
   Future<List<OrderBundle>> getActiveOrderBundles({
@@ -77,13 +78,15 @@ class OrderRepository {
     final bundles = <OrderBundle>[];
 
     for (final order in orders) {
-      final orderId = order.id;
-      if (orderId == null) {
-        continue;
-      }
+      if (order.id == null) continue;
 
-      final items = await getOrderItems(orderId);
-      bundles.add(OrderBundle(order: order, items: items));
+      final items = await getOrderItems(order.id!);
+      bundles.add(
+        OrderBundle(
+          order: order,
+          items: items,
+        ),
+      );
     }
 
     return bundles;
@@ -91,8 +94,12 @@ class OrderRepository {
 
   Future<List<OrderEntity>> getAllOrders() async {
     final db = await AppDatabase.database;
-    final result = await db.query('orders', orderBy: 'created_at DESC');
-    return result.map(OrderEntity.fromMap).toList();
+    final result = await db.query(
+      'orders',
+      orderBy: 'created_at DESC',
+    );
+
+    return result.map((row) => OrderEntity.fromMap(row)).toList();
   }
 
   Future<List<OrderBundle>> getAllOrderBundles() async {
@@ -100,13 +107,15 @@ class OrderRepository {
     final bundles = <OrderBundle>[];
 
     for (final order in orders) {
-      final orderId = order.id;
-      if (orderId == null) {
-        continue;
-      }
+      if (order.id == null) continue;
 
-      final items = await getOrderItems(orderId);
-      bundles.add(OrderBundle(order: order, items: items));
+      final items = await getOrderItems(order.id!);
+      bundles.add(
+        OrderBundle(
+          order: order,
+          items: items,
+        ),
+      );
     }
 
     return bundles;
@@ -121,7 +130,7 @@ class OrderRepository {
       orderBy: 'id ASC',
     );
 
-    return result.map(OrderItemEntity.fromMap).toList();
+    return result.map((row) => OrderItemEntity.fromMap(row)).toList();
   }
 
   Future<List<String>> getOccupiedTableNumbers() async {
@@ -140,6 +149,7 @@ AND table_no != ?
     );
 
     final tableSet = <String>{};
+
     for (final row in result) {
       final value = (row['table_no'] as String?)?.trim() ?? '';
       if (value.isNotEmpty) {
@@ -191,9 +201,13 @@ AND table_no = ?
 
   Future<void> completeOrderItem(int itemId) async {
     final db = await AppDatabase.database;
+
     await db.update(
       'order_items',
-      {'status': 'completed', 'completed_at': DateTime.now().toIso8601String()},
+      {
+        'status': 'completed',
+        'completed_at': DateTime.now().toIso8601String(),
+      },
       where: 'id = ?',
       whereArgs: [itemId],
     );
@@ -205,9 +219,7 @@ AND table_no = ?
       limit: 1,
     );
 
-    if (itemRow.isEmpty) {
-      return;
-    }
+    if (itemRow.isEmpty) return;
 
     final orderId = itemRow.first['order_id'] as int;
     await refreshOrderStatus(orderId);
@@ -221,9 +233,7 @@ AND table_no = ?
       whereArgs: [orderId],
     );
 
-    if (items.isEmpty) {
-      return;
-    }
+    if (items.isEmpty) return;
 
     final allCompleted = items.every((e) => e['status'] == 'completed');
     final anyCompleted = items.any((e) => e['status'] == 'completed');
@@ -252,7 +262,11 @@ AND table_no = ?
     final db = await AppDatabase.database;
 
     final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+    final todayStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).toIso8601String();
     final tomorrowStart = DateTime(
       now.year,
       now.month,
