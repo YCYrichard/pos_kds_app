@@ -7,6 +7,8 @@ import 'app_role.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
+import 'device_persistence/device_config_store.dart';
+import 'device_persistence/device_record.dart';
 import 'role_policy_service.dart';
 import 'sync_mode.dart';
 
@@ -17,12 +19,15 @@ Future<void> bootstrapApp(
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final deviceConfig = _buildDeviceConfig(installedRole);
+  final deviceConfigStore = DeviceConfigStore();
+  final deviceRecord = await deviceConfigStore.loadOrCreate(installedRole);
+  final deviceConfig = _toDeviceConfig(deviceRecord);
+
   final rolePolicyService = const RolePolicyService();
   final resolution = rolePolicyService.resolve(
     deviceConfig: deviceConfig,
     requestedRole: requestedRole,
-    hostDeviceId: hostDeviceId,
+    hostDeviceId: hostDeviceId ?? deviceRecord.hostDeviceId,
   );
 
   final context = await _createBootstrapContext(
@@ -37,6 +42,7 @@ Future<void> bootstrapApp(
   runApp(
     MultiProvider(
       providers: [
+        Provider<DeviceConfigStore>.value(value: deviceConfigStore),
         Provider<DeviceConfig>.value(value: deviceConfig),
         Provider<RolePolicyService>.value(value: rolePolicyService),
         Provider<AppBootstrapContext>.value(value: context),
@@ -48,58 +54,15 @@ Future<void> bootstrapApp(
   );
 }
 
-DeviceConfig _buildDeviceConfig(AppRole installedRole) {
-  switch (installedRole) {
-    case AppRole.frontdesk:
-      return const DeviceConfig(
-        deviceId: 'frontdesk-device-01',
-        deviceName: 'Frontdesk Terminal',
-        installedRole: AppRole.frontdesk,
-        allowedRuntimeRoles: {
-          AppRole.frontdesk,
-        },
-        defaultSyncMode: SyncMode.standalone,
-        allowRoleOverride: false,
-      );
-    case AppRole.kitchen:
-      return const DeviceConfig(
-        deviceId: 'kitchen-device-01',
-        deviceName: 'Kitchen Terminal',
-        installedRole: AppRole.kitchen,
-        allowedRuntimeRoles: {
-          AppRole.kitchen,
-        },
-        defaultSyncMode: SyncMode.standalone,
-        allowRoleOverride: false,
-      );
-    case AppRole.backoffice:
-      return const DeviceConfig(
-        deviceId: 'backoffice-device-01',
-        deviceName: 'Backoffice Terminal',
-        installedRole: AppRole.backoffice,
-        allowedRuntimeRoles: {
-          AppRole.backoffice,
-          AppRole.frontdesk,
-          AppRole.kitchen,
-        },
-        defaultSyncMode: SyncMode.viewer,
-        allowRoleOverride: true,
-      );
-    case AppRole.combined:
-      return const DeviceConfig(
-        deviceId: 'combined-device-01',
-        deviceName: 'Combined Admin Terminal',
-        installedRole: AppRole.combined,
-        allowedRuntimeRoles: {
-          AppRole.combined,
-          AppRole.backoffice,
-          AppRole.frontdesk,
-          AppRole.kitchen,
-        },
-        defaultSyncMode: SyncMode.host,
-        allowRoleOverride: true,
-      );
-  }
+DeviceConfig _toDeviceConfig(DeviceRecord record) {
+  return DeviceConfig(
+    deviceId: record.deviceId,
+    deviceName: record.deviceName,
+    installedRole: record.installedRole,
+    allowedRuntimeRoles: record.allowedRuntimeRoles,
+    defaultSyncMode: record.defaultSyncMode,
+    allowRoleOverride: record.allowRoleOverride,
+  );
 }
 
 Future<AppBootstrapContext> _createBootstrapContext({
