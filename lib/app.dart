@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
+import 'app_bootstrap_context.dart';
 import 'app_role.dart';
 import 'app_shells/backoffice_app_shell.dart';
 import 'app_shells/combined_app_shell.dart';
@@ -18,8 +20,10 @@ class PosKdsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bootstrapContext = context.read<AppBootstrapContext>();
+
     return MaterialApp(
-      title: _appTitle(role),
+      title: _appTitle(bootstrapContext.role),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -34,7 +38,7 @@ class PosKdsApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: _AppRoot(role: role),
+      home: _AppRoot(role: bootstrapContext.role),
     );
   }
 

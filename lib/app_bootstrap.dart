@@ -10,7 +10,7 @@ import 'data/repositories/order_repository.dart';
 Future<void> bootstrapApp(AppRole role) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final context = await _createBootstrapContext();
+  final context = await _createBootstrapContext(role);
 
   runApp(
     MultiProvider(
@@ -24,14 +24,23 @@ Future<void> bootstrapApp(AppRole role) async {
   );
 }
 
-Future<AppBootstrapContext> _createBootstrapContext() async {
+Future<AppBootstrapContext> _createBootstrapContext(AppRole role) async {
   final menuRepository = MenuRepository();
   await menuRepository.seedDefaultMenu();
 
   final orderRepository = OrderRepository();
+  final startedAt = DateTime.now();
 
   return AppBootstrapContext(
+    role: role,
+    appInstanceId: _buildAppInstanceId(role, startedAt),
+    startedAt: startedAt,
     menuRepository: menuRepository,
     orderRepository: orderRepository,
   );
+}
+
+String _buildAppInstanceId(AppRole role, DateTime startedAt) {
+  final timestamp = startedAt.millisecondsSinceEpoch;
+  return '${role.name}_$timestamp';
 }
