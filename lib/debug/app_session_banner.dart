@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../app_bootstrap_context.dart';
-import '../app_role.dart';
-import '../sync_mode.dart';
 
 class AppSessionBanner extends StatelessWidget {
   const AppSessionBanner({
@@ -26,7 +24,7 @@ class AppSessionBanner extends StatelessWidget {
       color: colorScheme.surfaceContainerHighest,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -34,62 +32,144 @@ class AppSessionBanner extends StatelessWidget {
             ),
           ),
         ),
-        child: DefaultTextStyle(
-          style: theme.textTheme.bodySmall!.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 4,
-            children: [
-              _MetaText(
-                label: 'device',
-                value: contextData.deviceConfig.deviceName,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Debug Session',
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
               ),
-              _MetaText(
-                label: 'deviceId',
-                value: contextData.deviceConfig.deviceId,
-              ),
-              _MetaText(
-                label: 'installedRole',
-                value: _roleText(contextData.deviceConfig.installedRole),
-              ),
-              _MetaText(
-                label: 'runtimeRole',
-                value: _roleText(contextData.runtimeRole),
-              ),
-              _MetaText(
-                label: 'syncMode',
-                value: _syncModeText(contextData.resolvedSyncMode),
-              ),
-              _MetaText(
-                label: 'instance',
-                value: contextData.appInstanceId,
-              ),
-              if (contextData.hostDeviceId != null &&
-                  contextData.hostDeviceId!.isNotEmpty)
-                _MetaText(
-                  label: 'host',
-                  value: contextData.hostDeviceId!,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoChip(
+                  label: 'Device',
+                  value: contextData.deviceConfig.deviceName,
                 ),
+                _InfoChip(
+                  label: 'Installed',
+                  value: contextData.deviceConfig.installedRole.name,
+                ),
+                _InfoChip(
+                  label: 'Runtime',
+                  value: contextData.runtimeRole.name,
+                  highlight: contextData.runtimeRole !=
+                      contextData.deviceConfig.installedRole,
+                ),
+                _InfoChip(
+                  label: 'Sync',
+                  value: contextData.resolvedSyncMode.name,
+                ),
+                _InfoChip(
+                  label: 'Override',
+                  value: contextData.canOverrideRole ? 'enabled' : 'disabled',
+                ),
+                _InfoChip(
+                  label: 'Host',
+                  value: contextData.hostDeviceId ?? 'none',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _InfoLine(
+              label: 'Device ID',
+              value: contextData.deviceConfig.deviceId,
+            ),
+            const SizedBox(height: 4),
+            _InfoLine(
+              label: 'Instance',
+              value: contextData.appInstanceId,
+            ),
+            const SizedBox(height: 4),
+            _InfoLine(
+              label: 'Reason',
+              value: contextData.resolutionReason,
+            ),
+            if (contextData.takeoverSourceRole != null) ...[
+              const SizedBox(height: 4),
+              _InfoLine(
+                label: 'Takeover From',
+                value: contextData.takeoverSourceRole!.name,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
+}
 
-  String _roleText(AppRole role) {
-    return role.name;
-  }
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
 
-  String _syncModeText(SyncMode mode) {
-    return mode.name;
+  final String label;
+  final String value;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final backgroundColor = highlight
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceContainerLow;
+
+    final foregroundColor = highlight
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: highlight
+              ? colorScheme.primary.withValues(alpha: 0.35)
+              : colorScheme.outlineVariant,
+        ),
+      ),
+      child: DefaultTextStyle(
+        style: theme.textTheme.bodySmall!.copyWith(
+          color: foregroundColor,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: foregroundColor.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-class _MetaText extends StatelessWidget {
-  const _MetaText({
+class _InfoLine extends StatelessWidget {
+  const _InfoLine({
     required this.label,
     required this.value,
   });
@@ -99,6 +179,26 @@ class _MetaText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('$label=$value');
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return RichText(
+      text: TextSpan(
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          TextSpan(
+            text: value,
+          ),
+        ],
+      ),
+    );
   }
 }
