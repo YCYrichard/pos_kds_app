@@ -8,7 +8,7 @@ import 'app_shells/backoffice_app_shell.dart';
 import 'app_shells/combined_app_shell.dart';
 import 'app_shells/frontdesk_app_shell.dart';
 import 'app_shells/kitchen_app_shell.dart';
-import 'device_config.dart';
+import 'debug/app_session_banner.dart';
 import 'l10n/generated/app_localizations.dart';
 
 class PosKdsApp extends StatelessWidget {
@@ -22,10 +22,9 @@ class PosKdsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bootstrapContext = context.read<AppBootstrapContext>();
-    final deviceConfig = context.read<DeviceConfig>();
 
     return MaterialApp(
-      title: _appTitle(bootstrapContext.role, deviceConfig),
+      title: _appTitle(bootstrapContext.runtimeRole),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -40,11 +39,21 @@ class PosKdsApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: _AppRoot(role: bootstrapContext.role),
+      home: _AppRoot(role: bootstrapContext.runtimeRole),
+      builder: (context, child) {
+        return Column(
+          children: [
+            AppSessionBanner(contextData: bootstrapContext),
+            Expanded(
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  String _appTitle(AppRole role, DeviceConfig deviceConfig) {
+  String _appTitle(AppRole role) {
     switch (role) {
       case AppRole.frontdesk:
         return 'POS Frontdesk App';
@@ -53,9 +62,7 @@ class PosKdsApp extends StatelessWidget {
       case AppRole.backoffice:
         return 'POS Backoffice App';
       case AppRole.combined:
-        return deviceConfig.deviceName == 'combined-device'
-            ? 'POS KDS App'
-            : 'POS Combined App';
+        return 'POS KDS App';
     }
   }
 }
