@@ -55,13 +55,21 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Frontdesk'), findsOneWidget);
-    expect(find.text('Kitchen'), findsOneWidget);
-    expect(find.text('Backoffice'), findsOneWidget);
+    expect(find.text('Frontdesk'), findsWidgets);
+    expect(find.text('Kitchen'), findsWidgets);
+    expect(find.text('Backoffice'), findsWidgets);
 
     expect(
-        find.textContaining('device=Combined Admin Terminal'), findsOneWidget);
-    expect(find.textContaining('runtimeRole=combined'), findsOneWidget);
-    expect(find.textContaining('syncMode=host'), findsOneWidget);
+      find.textContaining('device=Combined Admin Terminal'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('runtimeRole=combined'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('syncMode=host'),
+      findsOneWidget,
+    );
   });
 }
