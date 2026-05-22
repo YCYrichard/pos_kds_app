@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'app_bootstrap_context.dart';
 import 'app_role.dart';
+import 'bootstrap_guard_mismatch.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
@@ -21,6 +22,19 @@ Future<void> bootstrapApp(
 
   final deviceConfigStore = DeviceConfigStore();
   final deviceRecord = await deviceConfigStore.loadOrCreate(installedRole);
+
+  if (deviceRecord.installedRole != installedRole) {
+    runApp(
+      BootstrapGuardMismatchApp(
+        expectedRole: installedRole,
+        persistedRole: deviceRecord.installedRole,
+        deviceId: deviceRecord.deviceId,
+        deviceName: deviceRecord.deviceName,
+      ),
+    );
+    return;
+  }
+
   final deviceConfig = _toDeviceConfig(deviceRecord);
 
   final rolePolicyService = const RolePolicyService();
