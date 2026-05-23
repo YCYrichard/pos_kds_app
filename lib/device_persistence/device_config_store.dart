@@ -38,6 +38,23 @@ class DeviceConfigStore {
     );
   }
 
+  Future<void> clear() async {
+    final file = await _getConfigFile();
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
+  Future<bool> exists() async {
+    final file = await _getConfigFile();
+    return file.exists();
+  }
+
+  Future<String> getConfigFilePath() async {
+    final file = await _getConfigFile();
+    return file.path;
+  }
+
   Future<File> _getConfigFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = p.join(

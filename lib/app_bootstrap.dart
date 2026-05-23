@@ -30,6 +30,7 @@ Future<void> bootstrapApp(
         persistedRole: deviceRecord.installedRole,
         deviceId: deviceRecord.deviceId,
         deviceName: deviceRecord.deviceName,
+        deviceConfigStore: deviceConfigStore,
       ),
     );
     return;
