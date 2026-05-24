@@ -80,7 +80,8 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
       setState(() {
         _record = updated;
         _isSaving = false;
-        _message = 'Saved and current debug session panel refreshed.';
+        _message =
+            'Saved. Current debug session panel refreshed, including Host and Sync.';
       });
     } catch (error) {
       if (!mounted) return;
