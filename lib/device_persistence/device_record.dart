@@ -20,6 +20,28 @@ class DeviceRecord {
   final SyncMode defaultSyncMode;
   final String? hostDeviceId;
 
+  DeviceRecord copyWith({
+    String? deviceId,
+    String? deviceName,
+    AppRole? installedRole,
+    bool? allowRoleOverride,
+    Set<AppRole>? allowedRuntimeRoles,
+    SyncMode? defaultSyncMode,
+    String? hostDeviceId,
+    bool clearHostDeviceId = false,
+  }) {
+    return DeviceRecord(
+      deviceId: deviceId ?? this.deviceId,
+      deviceName: deviceName ?? this.deviceName,
+      installedRole: installedRole ?? this.installedRole,
+      allowRoleOverride: allowRoleOverride ?? this.allowRoleOverride,
+      allowedRuntimeRoles: allowedRuntimeRoles ?? this.allowedRuntimeRoles,
+      defaultSyncMode: defaultSyncMode ?? this.defaultSyncMode,
+      hostDeviceId:
+          clearHostDeviceId ? null : (hostDeviceId ?? this.hostDeviceId),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'deviceId': deviceId,

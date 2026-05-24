@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../app_bootstrap_context.dart';
+import '../device_persistence/device_config_store.dart';
+import 'device_config_editor_page.dart';
 
 class AppSessionBanner extends StatelessWidget {
   const AppSessionBanner({
@@ -35,12 +38,31 @@ class AppSessionBanner extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Debug Session',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Debug Session',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final store = context.read<DeviceConfigStore>();
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DeviceConfigEditorPage(
+                          deviceConfigStore: store,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Edit'),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Wrap(

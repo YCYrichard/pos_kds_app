@@ -29,6 +29,18 @@ class DeviceConfigStore {
     return record;
   }
 
+  Future<DeviceRecord?> loadExisting() async {
+    final file = await _getConfigFile();
+
+    if (!await file.exists()) {
+      return null;
+    }
+
+    final raw = await file.readAsString();
+    final decoded = jsonDecode(raw) as Map<String, dynamic>;
+    return DeviceRecord.fromMap(decoded);
+  }
+
   Future<void> save(DeviceRecord record) async {
     final file = await _getConfigFile();
     await file.create(recursive: true);
@@ -36,6 +48,26 @@ class DeviceConfigStore {
       jsonEncode(record.toMap()),
       flush: true,
     );
+  }
+
+  Future<DeviceRecord> updateIdentityFields({
+    required String deviceName,
+    required String? hostDeviceId,
+  }) async {
+    final existing = await loadExisting();
+    if (existing == null) {
+      throw StateError('No existing device config found.');
+    }
+
+    final normalizedHost = hostDeviceId?.trim() ?? '';
+    final updated = existing.copyWith(
+      deviceName: deviceName.trim(),
+      hostDeviceId: normalizedHost,
+      clearHostDeviceId: normalizedHost.isEmpty,
+    );
+
+    await save(updated);
+    return updated;
   }
 
   Future<void> clear() async {
