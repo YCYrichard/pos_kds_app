@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'app_bootstrap_context.dart';
 import 'app_role.dart';
+import 'app_session_state.dart';
 import 'bootstrap_guard_mismatch.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
@@ -54,6 +55,10 @@ Future<void> bootstrapApp(
     takeoverSourceRole: resolution.takeoverSourceRole,
   );
 
+  final sessionState = AppSessionState(
+    bootstrapContext: context,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -61,6 +66,7 @@ Future<void> bootstrapApp(
         Provider<DeviceConfig>.value(value: deviceConfig),
         Provider<RolePolicyService>.value(value: rolePolicyService),
         Provider<AppBootstrapContext>.value(value: context),
+        ChangeNotifierProvider<AppSessionState>.value(value: sessionState),
         Provider<MenuRepository>.value(value: context.menuRepository),
         Provider<OrderRepository>.value(value: context.orderRepository),
       ],

@@ -43,7 +43,7 @@ class PosKdsApp extends StatelessWidget {
       builder: (context, child) {
         return Column(
           children: [
-            AppSessionBanner(contextData: bootstrapContext),
+            const AppSessionBanner(),
             Expanded(
               child: child ?? const SizedBox.shrink(),
             ),

@@ -2,17 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../app_bootstrap_context.dart';
+import '../app_session_state.dart';
 import '../device_persistence/device_config_store.dart';
 import 'device_config_editor_page.dart';
 
 class AppSessionBanner extends StatelessWidget {
-  const AppSessionBanner({
-    super.key,
-    required this.contextData,
-  });
-
-  final AppBootstrapContext contextData;
+  const AppSessionBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,105 +18,108 @@ class AppSessionBanner extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Material(
-      color: colorScheme.surfaceContainerHighest,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: colorScheme.outlineVariant,
-            ),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Debug Session',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
+    return Consumer<AppSessionState>(
+      builder: (context, session, child) {
+        return Material(
+          color: colorScheme.surfaceContainerHighest,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant,
                 ),
-                TextButton(
-                  onPressed: () {
-                    final store = context.read<DeviceConfigStore>();
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => DeviceConfigEditorPage(
-                          deviceConfigStore: store,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Debug Session',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
                         ),
                       ),
-                    );
-                  },
-                  child: const Text('Edit'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        final store = context.read<DeviceConfigStore>();
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => DeviceConfigEditorPage(
+                              deviceConfigStore: store,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('Edit'),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _InfoChip(
+                      label: 'Device',
+                      value: session.deviceName,
+                    ),
+                    _InfoChip(
+                      label: 'Installed',
+                      value: session.installedRole.name,
+                    ),
+                    _InfoChip(
+                      label: 'Runtime',
+                      value: session.runtimeRole.name,
+                      highlight: session.runtimeRole != session.installedRole,
+                    ),
+                    _InfoChip(
+                      label: 'Sync',
+                      value: session.resolvedSyncMode.name,
+                    ),
+                    _InfoChip(
+                      label: 'Override',
+                      value: session.canOverrideRole ? 'enabled' : 'disabled',
+                    ),
+                    _InfoChip(
+                      label: 'Host',
+                      value: session.hostDeviceId ?? 'none',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  label: 'Device ID',
+                  value: session.deviceId,
+                ),
+                const SizedBox(height: 4),
+                _InfoLine(
+                  label: 'Instance',
+                  value: session.appInstanceId,
+                ),
+                const SizedBox(height: 4),
+                _InfoLine(
+                  label: 'Reason',
+                  value: session.resolutionReason,
+                ),
+                if (session.takeoverSourceRole != null) ...[
+                  const SizedBox(height: 4),
+                  _InfoLine(
+                    label: 'Takeover From',
+                    value: session.takeoverSourceRole!.name,
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InfoChip(
-                  label: 'Device',
-                  value: contextData.deviceConfig.deviceName,
-                ),
-                _InfoChip(
-                  label: 'Installed',
-                  value: contextData.deviceConfig.installedRole.name,
-                ),
-                _InfoChip(
-                  label: 'Runtime',
-                  value: contextData.runtimeRole.name,
-                  highlight: contextData.runtimeRole !=
-                      contextData.deviceConfig.installedRole,
-                ),
-                _InfoChip(
-                  label: 'Sync',
-                  value: contextData.resolvedSyncMode.name,
-                ),
-                _InfoChip(
-                  label: 'Override',
-                  value: contextData.canOverrideRole ? 'enabled' : 'disabled',
-                ),
-                _InfoChip(
-                  label: 'Host',
-                  value: contextData.hostDeviceId ?? 'none',
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _InfoLine(
-              label: 'Device ID',
-              value: contextData.deviceConfig.deviceId,
-            ),
-            const SizedBox(height: 4),
-            _InfoLine(
-              label: 'Instance',
-              value: contextData.appInstanceId,
-            ),
-            const SizedBox(height: 4),
-            _InfoLine(
-              label: 'Reason',
-              value: contextData.resolutionReason,
-            ),
-            if (contextData.takeoverSourceRole != null) ...[
-              const SizedBox(height: 4),
-              _InfoLine(
-                label: 'Takeover From',
-                value: contextData.takeoverSourceRole!.name,
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../app_session_state.dart';
 import '../device_persistence/device_config_store.dart';
 import '../device_persistence/device_record.dart';
 
@@ -70,11 +72,15 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
 
       if (!mounted) return;
 
+      context.read<AppSessionState>().updatePersistentIdentity(
+            deviceName: updated.deviceName,
+            hostDeviceId: updated.hostDeviceId,
+          );
+
       setState(() {
         _record = updated;
         _isSaving = false;
-        _message =
-            'Saved. Restart the app if you want the current bootstrap session to reload these values.';
+        _message = 'Saved and current debug session panel refreshed.';
       });
     } catch (error) {
       if (!mounted) return;
