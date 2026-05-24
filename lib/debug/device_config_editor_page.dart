@@ -20,7 +20,6 @@ class DeviceConfigEditorPage extends StatefulWidget {
 class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
   final _formKey = GlobalKey<FormState>();
   final _deviceNameController = TextEditingController();
-  final _hostDeviceIdController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -36,7 +35,6 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
   @override
   void dispose() {
     _deviceNameController.dispose();
-    _hostDeviceIdController.dispose();
     super.dispose();
   }
 
@@ -49,7 +47,6 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
       _record = record;
       _isLoading = false;
       _deviceNameController.text = record?.deviceName ?? '';
-      _hostDeviceIdController.text = record?.hostDeviceId ?? '';
     });
   }
 
@@ -65,10 +62,16 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
     });
 
     try {
-      final updated = await widget.deviceConfigStore.updateIdentityFields(
-        deviceName: _deviceNameController.text,
-        hostDeviceId: _hostDeviceIdController.text,
+      final existing = await widget.deviceConfigStore.loadExisting();
+      if (existing == null) {
+        throw StateError('No existing device config found.');
+      }
+
+      final updated = existing.copyWith(
+        deviceName: _deviceNameController.text.trim(),
       );
+
+      await widget.deviceConfigStore.save(updated);
 
       if (!mounted) return;
 
@@ -80,8 +83,7 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
       setState(() {
         _record = updated;
         _isSaving = false;
-        _message =
-            'Saved. Current debug session panel refreshed, including Host and Sync.';
+        _message = 'Saved. Current debug session panel refreshed.';
       });
     } catch (error) {
       if (!mounted) return;
@@ -151,15 +153,6 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
                                     }
                                     return null;
                                   },
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _hostDeviceIdController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Host device ID',
-                                    hintText: 'Optional',
-                                    border: OutlineInputBorder(),
-                                  ),
                                 ),
                                 const SizedBox(height: 20),
                                 FilledButton(
