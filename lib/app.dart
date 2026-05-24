@@ -39,17 +39,9 @@ class PosKdsApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: _AppRoot(role: bootstrapContext.runtimeRole),
-      builder: (context, child) {
-        return Column(
-          children: [
-            const AppSessionBanner(),
-            Expanded(
-              child: child ?? const SizedBox.shrink(),
-            ),
-          ],
-        );
-      },
+      home: _AppFrame(
+        role: bootstrapContext.runtimeRole,
+      ),
     );
   }
 
@@ -64,6 +56,26 @@ class PosKdsApp extends StatelessWidget {
       case AppRole.combined:
         return 'POS KDS App';
     }
+  }
+}
+
+class _AppFrame extends StatelessWidget {
+  const _AppFrame({
+    required this.role,
+  });
+
+  final AppRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const AppSessionBanner(),
+        Expanded(
+          child: _AppRoot(role: role),
+        ),
+      ],
+    );
   }
 }
 

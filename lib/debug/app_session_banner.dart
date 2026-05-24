@@ -18,108 +18,137 @@ class AppSessionBanner extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer<AppSessionState>(
-      builder: (context, session, child) {
-        return Material(
-          color: colorScheme.surfaceContainerHighest,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: colorScheme.outlineVariant,
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: Consumer<AppSessionState>(
+        builder: (context, session, child) {
+          return Material(
+            color: colorScheme.surfaceContainerHighest,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: colorScheme.outlineVariant,
+                  ),
                 ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Debug Session',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onSurface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Debug Session',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        final store = context.read<DeviceConfigStore>();
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => DeviceConfigEditorPage(
-                              deviceConfigStore: store,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: SizedBox(
+                          height: 40,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.padded,
                             ),
+                            onPressed: () {
+                              final store = context.read<DeviceConfigStore>();
+
+                              showModalBottomSheet<void>(
+                                context: context,
+                                useSafeArea: true,
+                                isScrollControlled: true,
+                                showDragHandle: true,
+                                builder: (sheetContext) {
+                                  return SizedBox(
+                                    height: MediaQuery.of(sheetContext)
+                                            .size
+                                            .height *
+                                        0.9,
+                                    child: DeviceConfigEditorPage(
+                                      deviceConfigStore: store,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text('Edit'),
                           ),
-                        );
-                      },
-                      child: const Text('Edit'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _InfoChip(
-                      label: 'Device',
-                      value: session.deviceName,
-                    ),
-                    _InfoChip(
-                      label: 'Installed',
-                      value: session.installedRole.name,
-                    ),
-                    _InfoChip(
-                      label: 'Runtime',
-                      value: session.runtimeRole.name,
-                      highlight: session.runtimeRole != session.installedRole,
-                    ),
-                    _InfoChip(
-                      label: 'Sync',
-                      value: session.resolvedSyncMode.name,
-                    ),
-                    _InfoChip(
-                      label: 'Override',
-                      value: session.canOverrideRole ? 'enabled' : 'disabled',
-                    ),
-                    _InfoChip(
-                      label: 'Host',
-                      value: session.hostDeviceId ?? 'none',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _InfoLine(
-                  label: 'Device ID',
-                  value: session.deviceId,
-                ),
-                const SizedBox(height: 4),
-                _InfoLine(
-                  label: 'Instance',
-                  value: session.appInstanceId,
-                ),
-                const SizedBox(height: 4),
-                _InfoLine(
-                  label: 'Reason',
-                  value: session.resolutionReason,
-                ),
-                if (session.takeoverSourceRole != null) ...[
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _InfoChip(
+                        label: 'Device',
+                        value: session.deviceName,
+                      ),
+                      _InfoChip(
+                        label: 'Installed',
+                        value: session.installedRole.name,
+                      ),
+                      _InfoChip(
+                        label: 'Runtime',
+                        value: session.runtimeRole.name,
+                        highlight: session.runtimeRole != session.installedRole,
+                      ),
+                      _InfoChip(
+                        label: 'Sync',
+                        value: session.resolvedSyncMode.name,
+                      ),
+                      _InfoChip(
+                        label: 'Override',
+                        value: session.canOverrideRole ? 'enabled' : 'disabled',
+                      ),
+                      _InfoChip(
+                        label: 'Host',
+                        value: session.hostDeviceId ?? 'none',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _InfoLine(
+                    label: 'Device ID',
+                    value: session.deviceId,
+                  ),
                   const SizedBox(height: 4),
                   _InfoLine(
-                    label: 'Takeover From',
-                    value: session.takeoverSourceRole!.name,
+                    label: 'Instance',
+                    value: session.appInstanceId,
                   ),
+                  const SizedBox(height: 4),
+                  _InfoLine(
+                    label: 'Reason',
+                    value: session.resolutionReason,
+                  ),
+                  if (session.takeoverSourceRole != null) ...[
+                    const SizedBox(height: 4),
+                    _InfoLine(
+                      label: 'Takeover From',
+                      value: session.takeoverSourceRole!.name,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
