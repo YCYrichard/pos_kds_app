@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../data/models/order.dart';
 import '../../data/models/order_item.dart';
+import '../../data/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
 
 class KitchenOrderBundle {
@@ -17,15 +20,22 @@ class KitchenOrderBundle {
 class KitchenMessage {
   static const String noPendingOrders = 'noPendingOrders';
   static const String itemCompleted = 'itemCompleted';
+  static const String loadFailed = 'loadFailed';
 }
 
 class KitchenController extends ChangeNotifier {
   KitchenController({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository;
+      : _orderRepository = orderRepository {
+    _orderEventSubscription = OrderEventBus.instance.stream.listen(
+      _handleOrderEvent,
+    );
+  }
 
   final OrderRepository _orderRepository;
+  StreamSubscription<OrderEvent>? _orderEventSubscription;
 
   bool _loading = false;
+  bool _refreshQueued = false;
   String? _messageKey;
   List<KitchenOrderBundle> _orders = <KitchenOrderBundle>[];
   KitchenSortOption _sortOption = KitchenSortOption.oldestFirst;
@@ -45,6 +55,11 @@ class KitchenController extends ChangeNotifier {
   }
 
   Future<void> loadOrders() async {
+    if (_loading) {
+      _refreshQueued = true;
+      return;
+    }
+
     _loading = true;
     notifyListeners();
 
@@ -64,12 +79,20 @@ class KitchenController extends ChangeNotifier {
 
       if (_orders.isEmpty) {
         _setMessage(KitchenMessage.noPendingOrders);
-      } else {
+      } else if (_messageKey != KitchenMessage.itemCompleted) {
         _clearMessage();
       }
+    } catch (_) {
+      _orders = <KitchenOrderBundle>[];
+      _setMessage(KitchenMessage.loadFailed);
     } finally {
       _loading = false;
       notifyListeners();
+
+      if (_refreshQueued) {
+        _refreshQueued = false;
+        unawaited(loadOrders());
+      }
     }
   }
 
@@ -83,9 +106,31 @@ class KitchenController extends ChangeNotifier {
   }
 
   Future<void> completeItem(int itemId) async {
-    await _orderRepository.completeOrderItem(itemId);
-    await loadOrders();
-    _setMessage(KitchenMessage.itemCompleted);
-    notifyListeners();
+    try {
+      await _orderRepository.completeOrderItem(itemId);
+      await loadOrders();
+      _setMessage(KitchenMessage.itemCompleted);
+      notifyListeners();
+    } catch (_) {
+      _setMessage(KitchenMessage.loadFailed);
+      notifyListeners();
+    }
+  }
+
+  void _handleOrderEvent(OrderEvent event) {
+    switch (event.type) {
+      case OrderEventType.created:
+        unawaited(loadOrders());
+        break;
+      default:
+        unawaited(loadOrders());
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    _orderEventSubscription?.cancel();
+    super.dispose();
   }
 }

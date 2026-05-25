@@ -1,7 +1,7 @@
-import '../order_event_bus.dart';
 import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
+import '../order_event_bus.dart';
 
 enum KitchenSortOption { oldestFirst, newestFirst }
 

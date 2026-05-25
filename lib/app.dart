@@ -69,7 +69,10 @@ class _AppFrame extends StatelessWidget {
         Expanded(
           child: Consumer<AppSessionState>(
             builder: (context, session, child) {
-              return _AppRoot(role: session.runtimeRole);
+              return _AppRoot(
+                role: session.runtimeRole,
+                session: session,
+              );
             },
           ),
         ),
@@ -79,21 +82,106 @@ class _AppFrame extends StatelessWidget {
 }
 
 class _AppRoot extends StatelessWidget {
-  const _AppRoot({required this.role});
+  const _AppRoot({
+    required this.role,
+    required this.session,
+  });
 
   final AppRole role;
+  final AppSessionState session;
 
   @override
   Widget build(BuildContext context) {
     switch (role) {
       case AppRole.frontdesk:
+        if (!session.canUseFrontdesk) {
+          return _FeatureBlockedPage(
+            title: 'Frontdesk blocked on client device',
+            message:
+                'This device is currently bound to host ${session.hostDeviceId ?? 'unknown'}, so frontdesk order creation is disabled in client mode.',
+          );
+        }
         return const FrontdeskAppShell();
+
       case AppRole.kitchen:
+        if (!session.canUseKitchen) {
+          return const _FeatureBlockedPage(
+            title: 'Kitchen unavailable',
+            message: 'Kitchen mode is not available on this device.',
+          );
+        }
         return const KitchenAppShell();
+
       case AppRole.backoffice:
+        if (!session.canUseBackoffice) {
+          return const _FeatureBlockedPage(
+            title: 'Backoffice unavailable',
+            message: 'Backoffice mode is not available on this device.',
+          );
+        }
         return const BackofficeAppShell();
+
       case AppRole.combined:
+        if (session.isClientMode) {
+          return _FeatureBlockedPage(
+            title: 'Combined mode blocked on client device',
+            message:
+                'This device is currently bound to host ${session.hostDeviceId ?? 'unknown'}, so combined host workflow is disabled in client mode.',
+          );
+        }
         return const CombinedAppShell();
     }
+  }
+}
+
+class _FeatureBlockedPage extends StatelessWidget {
+  const _FeatureBlockedPage({
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: DefaultTextStyle(
+                style:
+                    theme.textTheme.bodyLarge ?? const TextStyle(fontSize: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(message),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Use the debug session controls to switch to kitchen or backoffice while testing client separation.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

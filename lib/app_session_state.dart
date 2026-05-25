@@ -40,12 +40,25 @@ class AppSessionState extends ChangeNotifier {
   String? get hostDeviceId => _hostDeviceId;
   AppRole? get takeoverSourceRole => _takeoverSourceRole;
 
+  bool get isClientMode => _resolvedSyncMode == SyncMode.client;
+  bool get isHostMode => _resolvedSyncMode == SyncMode.host;
+  bool get isStandaloneMode => _resolvedSyncMode == SyncMode.standalone;
+
+  bool get canUseFrontdesk => !isClientMode;
+  bool get canUseKitchen => true;
+  bool get canUseBackoffice => true;
+
   void updatePersistentIdentity({
     required String deviceName,
     required String? hostDeviceId,
   }) {
     _deviceName = deviceName.trim();
     _hostDeviceId = _normalizeNullable(hostDeviceId);
+    _resolvedSyncMode = _resolveEffectiveSyncMode(
+      runtimeRole: _runtimeRole,
+      hostDeviceId: _hostDeviceId,
+      fallback: _resolvedSyncMode,
+    );
     notifyListeners();
   }
 

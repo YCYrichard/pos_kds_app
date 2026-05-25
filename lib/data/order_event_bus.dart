@@ -22,7 +22,7 @@ class OrderEvent {
   });
 
   factory OrderEvent.orderCreated({
-    required int orderId,
+    int? orderId,
   }) {
     return OrderEvent(
       type: OrderEventType.created,
@@ -32,7 +32,7 @@ class OrderEvent {
   }
 
   factory OrderEvent.orderUpdated({
-    required int orderId,
+    int? orderId,
     int? orderItemId,
   }) {
     return OrderEvent(
@@ -44,7 +44,7 @@ class OrderEvent {
   }
 
   factory OrderEvent.tableReleased({
-    required String tableNo,
+    String? tableNo,
   }) {
     return OrderEvent(
       type: OrderEventType.tableReleased,
@@ -65,7 +65,7 @@ class OrderEventBus {
   Stream<OrderEvent> get stream => _controller.stream;
 
   void emitOrderCreated({
-    required int orderId,
+    int? orderId,
   }) {
     if (!_controller.isClosed) {
       _controller.add(
@@ -75,7 +75,7 @@ class OrderEventBus {
   }
 
   void emitOrderUpdated({
-    required int orderId,
+    int? orderId,
     int? orderItemId,
   }) {
     if (!_controller.isClosed) {
@@ -89,7 +89,7 @@ class OrderEventBus {
   }
 
   void emitTableReleased({
-    required String tableNo,
+    String? tableNo,
   }) {
     if (!_controller.isClosed) {
       _controller.add(

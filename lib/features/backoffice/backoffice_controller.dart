@@ -1,56 +1,62 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
-import '../../data/models/order.dart';
-import '../../data/models/order_item.dart';
+import '../../data/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
 
-class BackofficeOrderBundle {
-  final OrderEntity order;
-  final List<OrderItemEntity> items;
-
-  const BackofficeOrderBundle({
-    required this.order,
-    required this.items,
-  });
+enum BackofficeMessage {
+  none,
+  noOrderRecords,
+  loadFailed,
 }
 
-class BackofficeMessage {
-  static const String noOrderRecords = 'noOrderRecords';
-  static const String loadFailed = 'backofficeLoadFailed';
+class BackofficeOrderBundle {
+  final OrderBundle bundle;
+
+  const BackofficeOrderBundle({
+    required this.bundle,
+  });
+
+  get order => bundle.order;
+  get items => bundle.items;
 }
 
 class BackofficeController extends ChangeNotifier {
-  BackofficeController({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository;
+  BackofficeController({
+    required OrderRepository orderRepository,
+  }) : _orderRepository = orderRepository {
+    _orderEventSubscription = OrderEventBus.instance.stream.listen(
+      _handleOrderEvent,
+    );
+  }
 
   final OrderRepository _orderRepository;
 
+  StreamSubscription<OrderEvent>? _orderEventSubscription;
+
   bool _loading = false;
-  String? _messageKey;
-  List<BackofficeOrderBundle> _orders = const <BackofficeOrderBundle>[];
+  bool _refreshQueued = false;
+  BackofficeMessage _messageKey = BackofficeMessage.none;
   OrderDashboardSummary _summary = const OrderDashboardSummary(
     todayOrders: 0,
     pendingOrders: 0,
     todayRevenue: 0,
   );
+  List<BackofficeOrderBundle> _orders = const [];
 
   bool get loading => _loading;
-  String? get messageKey => _messageKey;
-  List<BackofficeOrderBundle> get orders =>
-      List<BackofficeOrderBundle>.unmodifiable(_orders);
+  BackofficeMessage get messageKey => _messageKey;
   OrderDashboardSummary get summary => _summary;
-
-  void _clearMessage() {
-    _messageKey = null;
-  }
-
-  void _setMessage(String key) {
-    _messageKey = key;
-  }
+  List<BackofficeOrderBundle> get orders => _orders;
 
   Future<void> loadDashboard() async {
+    if (_loading) {
+      _refreshQueued = true;
+      return;
+    }
+
     _loading = true;
-    _clearMessage();
     notifyListeners();
 
     try {
@@ -60,21 +66,45 @@ class BackofficeController extends ChangeNotifier {
       _summary = summary;
       _orders = bundles
           .map(
-            (bundle) => BackofficeOrderBundle(
-              order: bundle.order,
-              items: bundle.items,
-            ),
+            (bundle) => BackofficeOrderBundle(bundle: bundle),
           )
           .toList();
 
-      if (_orders.isEmpty) {
-        _setMessage(BackofficeMessage.noOrderRecords);
-      }
+      _messageKey = _orders.isEmpty
+          ? BackofficeMessage.noOrderRecords
+          : BackofficeMessage.none;
     } catch (_) {
-      _setMessage(BackofficeMessage.loadFailed);
+      _summary = const OrderDashboardSummary(
+        todayOrders: 0,
+        pendingOrders: 0,
+        todayRevenue: 0,
+      );
+      _orders = const [];
+      _messageKey = BackofficeMessage.loadFailed;
     } finally {
       _loading = false;
       notifyListeners();
+
+      if (_refreshQueued) {
+        _refreshQueued = false;
+        unawaited(loadDashboard());
+      }
     }
+  }
+
+  void _handleOrderEvent(OrderEvent event) {
+    switch (event.type) {
+      case OrderEventType.created:
+      case OrderEventType.updated:
+      case OrderEventType.tableReleased:
+        unawaited(loadDashboard());
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    _orderEventSubscription?.cancel();
+    super.dispose();
   }
 }
