@@ -1,3 +1,4 @@
+import '../order_event_bus.dart';
 import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
@@ -33,14 +34,14 @@ class OrderRepository {
   }) async {
     final db = await AppDatabase.database;
 
-    return db.transaction<int>((txn) async {
-      final orderId = await txn.insert('orders', order.toMap());
+    final orderId = await db.transaction((txn) async {
+      final createdOrderId = await txn.insert('orders', order.toMap());
 
       for (final item in items) {
         await txn.insert(
           'order_items',
           OrderItemEntity(
-            orderId: orderId,
+            orderId: createdOrderId,
             itemCode: item.itemCode,
             itemName: item.itemName,
             qty: item.qty,
@@ -51,8 +52,11 @@ class OrderRepository {
         );
       }
 
-      return orderId;
+      return createdOrderId;
     });
+
+    OrderEventBus.instance.emitOrderCreated(orderId: orderId);
+    return orderId;
   }
 
   Future<List<OrderEntity>> getActiveOrders({
@@ -197,6 +201,8 @@ AND table_no = ?
 ''',
       whereArgs: ['dineIn', 'completed', tableNo],
     );
+
+    OrderEventBus.instance.emitTableReleased(tableNo: tableNo);
   }
 
   Future<void> completeOrderItem(int itemId) async {
@@ -223,6 +229,11 @@ AND table_no = ?
 
     final orderId = itemRow.first['order_id'] as int;
     await refreshOrderStatus(orderId);
+
+    OrderEventBus.instance.emitOrderUpdated(
+      orderId: orderId,
+      orderItemId: itemId,
+    );
   }
 
   Future<void> refreshOrderStatus(int orderId) async {
@@ -256,6 +267,8 @@ AND table_no = ?
         whereArgs: [orderId],
       );
     }
+
+    OrderEventBus.instance.emitOrderUpdated(orderId: orderId);
   }
 
   Future<OrderDashboardSummary> getDashboardSummary() async {
