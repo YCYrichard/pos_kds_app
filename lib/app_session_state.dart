@@ -11,9 +11,6 @@ class AppSessionState extends ChangeNotifier {
         _deviceName = bootstrapContext.deviceConfig.deviceName,
         _installedRole = bootstrapContext.deviceConfig.installedRole,
         _runtimeRole = bootstrapContext.runtimeRole,
-        _baseSyncMode = _deriveBaseSyncMode(
-          bootstrapContext: bootstrapContext,
-        ),
         _resolvedSyncMode = bootstrapContext.resolvedSyncMode,
         _appInstanceId = bootstrapContext.appInstanceId,
         _resolutionReason = bootstrapContext.resolutionReason,
@@ -25,7 +22,6 @@ class AppSessionState extends ChangeNotifier {
   String _deviceName;
   AppRole _installedRole;
   AppRole _runtimeRole;
-  SyncMode _baseSyncMode;
   SyncMode _resolvedSyncMode;
   String _appInstanceId;
   String _resolutionReason;
@@ -37,7 +33,6 @@ class AppSessionState extends ChangeNotifier {
   String get deviceName => _deviceName;
   AppRole get installedRole => _installedRole;
   AppRole get runtimeRole => _runtimeRole;
-  SyncMode get baseSyncMode => _baseSyncMode;
   SyncMode get resolvedSyncMode => _resolvedSyncMode;
   String get appInstanceId => _appInstanceId;
   String get resolutionReason => _resolutionReason;
@@ -51,46 +46,51 @@ class AppSessionState extends ChangeNotifier {
   }) {
     _deviceName = deviceName.trim();
     _hostDeviceId = _normalizeNullable(hostDeviceId);
-    _resolvedSyncMode = _resolveEffectiveSyncMode(
-      runtimeRole: _runtimeRole,
-      baseSyncMode: _baseSyncMode,
-      hostDeviceId: _hostDeviceId,
-    );
     notifyListeners();
   }
 
-  static SyncMode _deriveBaseSyncMode({
-    required AppBootstrapContext bootstrapContext,
-  }) {
-    if ((bootstrapContext.hostDeviceId ?? '').trim().isNotEmpty) {
-      return bootstrapContext.runtimeRole == AppRole.combined
-          ? SyncMode.host
-          : bootstrapContext.deviceConfig.defaultSyncMode;
-    }
-
-    if (bootstrapContext.runtimeRole == AppRole.combined &&
-        bootstrapContext.resolvedSyncMode == SyncMode.client) {
-      return SyncMode.host;
-    }
-
-    return bootstrapContext.resolvedSyncMode;
+  void updateRuntimeRole(AppRole runtimeRole) {
+    _runtimeRole = runtimeRole;
+    _resolvedSyncMode = _resolveEffectiveSyncMode(
+      runtimeRole: _runtimeRole,
+      hostDeviceId: _hostDeviceId,
+      fallback: _resolvedSyncMode,
+    );
+    _resolutionReason = 'manual override to ${runtimeRole.name}';
+    notifyListeners();
   }
 
-  static SyncMode _resolveEffectiveSyncMode({
+  void updateBootstrapContext({
+    required AppBootstrapContext bootstrapContext,
+  }) {
+    _deviceId = bootstrapContext.deviceConfig.deviceId;
+    _deviceName = bootstrapContext.deviceConfig.deviceName;
+    _installedRole = bootstrapContext.deviceConfig.installedRole;
+    _runtimeRole = bootstrapContext.runtimeRole;
+    _resolvedSyncMode = bootstrapContext.resolvedSyncMode;
+    _appInstanceId = bootstrapContext.appInstanceId;
+    _resolutionReason = bootstrapContext.resolutionReason;
+    _canOverrideRole = bootstrapContext.canOverrideRole;
+    _hostDeviceId = bootstrapContext.hostDeviceId;
+    _takeoverSourceRole = bootstrapContext.takeoverSourceRole;
+    notifyListeners();
+  }
+
+  SyncMode _resolveEffectiveSyncMode({
     required AppRole runtimeRole,
-    required SyncMode baseSyncMode,
     required String? hostDeviceId,
+    required SyncMode fallback,
   }) {
     final normalizedHost = hostDeviceId?.trim() ?? '';
     if (normalizedHost.isNotEmpty) {
       return SyncMode.client;
     }
 
-    if (runtimeRole == AppRole.combined && baseSyncMode == SyncMode.client) {
+    if (runtimeRole == AppRole.combined && fallback == SyncMode.client) {
       return SyncMode.host;
     }
 
-    return baseSyncMode;
+    return fallback;
   }
 
   String? _normalizeNullable(String? value) {

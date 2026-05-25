@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_role.dart';
 import '../app_session_state.dart';
 import '../device_persistence/device_config_store.dart';
 import 'device_config_editor_page.dart';
@@ -50,40 +51,66 @@ class AppSessionBanner extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: SizedBox(
-                          height: 40,
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
-                              ),
-                              tapTargetSize: MaterialTapTargetSize.padded,
-                            ),
-                            onPressed: () {
-                              final store = context.read<DeviceConfigStore>();
-
-                              showModalBottomSheet<void>(
-                                context: context,
-                                useSafeArea: true,
-                                isScrollControlled: true,
-                                showDragHandle: true,
-                                builder: (sheetContext) {
-                                  return SizedBox(
-                                    height: MediaQuery.of(sheetContext)
-                                            .size
-                                            .height *
+                      TextButton(
+                        onPressed: () {
+                          final store = context.read<DeviceConfigStore>();
+                          showModalBottomSheet<void>(
+                            context: context,
+                            useSafeArea: true,
+                            isScrollControlled: true,
+                            showDragHandle: true,
+                            builder: (sheetContext) {
+                              return SizedBox(
+                                height:
+                                    MediaQuery.of(sheetContext).size.height *
                                         0.9,
-                                    child: DeviceConfigEditorPage(
-                                      deviceConfigStore: store,
-                                    ),
-                                  );
-                                },
+                                child: DeviceConfigEditorPage(
+                                  deviceConfigStore: store,
+                                ),
                               );
                             },
-                            child: const Text('Edit'),
+                          );
+                        },
+                        child: const Text('Edit'),
+                      ),
+                      const SizedBox(width: 8),
+                      PopupMenuButton<AppRole>(
+                        tooltip: 'Switch runtime role',
+                        onSelected: (role) {
+                          context
+                              .read<AppSessionState>()
+                              .updateRuntimeRole(role);
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: AppRole.frontdesk,
+                            child: Text('Frontdesk'),
+                          ),
+                          PopupMenuItem(
+                            value: AppRole.kitchen,
+                            child: Text('Kitchen'),
+                          ),
+                          PopupMenuItem(
+                            value: AppRole.backoffice,
+                            child: Text('Backoffice'),
+                          ),
+                          PopupMenuItem(
+                            value: AppRole.combined,
+                            child: Text('Combined'),
+                          ),
+                        ],
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.swap_horiz, size: 18),
+                              SizedBox(width: 6),
+                              Text('Role'),
+                            ],
                           ),
                         ),
                       ),

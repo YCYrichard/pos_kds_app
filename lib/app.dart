@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'app_bootstrap_context.dart';
 import 'app_role.dart';
+import 'app_session_state.dart';
 import 'app_shells/backoffice_app_shell.dart';
 import 'app_shells/combined_app_shell.dart';
 import 'app_shells/frontdesk_app_shell.dart';
@@ -39,9 +40,7 @@ class PosKdsApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: _AppFrame(
-        role: bootstrapContext.runtimeRole,
-      ),
+      home: const _AppFrame(),
     );
   }
 
@@ -60,11 +59,7 @@ class PosKdsApp extends StatelessWidget {
 }
 
 class _AppFrame extends StatelessWidget {
-  const _AppFrame({
-    required this.role,
-  });
-
-  final AppRole role;
+  const _AppFrame();
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +67,11 @@ class _AppFrame extends StatelessWidget {
       children: [
         const AppSessionBanner(),
         Expanded(
-          child: _AppRoot(role: role),
+          child: Consumer<AppSessionState>(
+            builder: (context, session, child) {
+              return _AppRoot(role: session.runtimeRole);
+            },
+          ),
         ),
       ],
     );
