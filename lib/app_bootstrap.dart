@@ -38,12 +38,14 @@ Future<void> bootstrapApp(
   }
 
   final deviceConfig = _toDeviceConfig(deviceRecord);
+  final effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
+      _normalizeNullable(deviceRecord.hostDeviceId);
 
   final rolePolicyService = const RolePolicyService();
   final resolution = rolePolicyService.resolve(
     deviceConfig: deviceConfig,
     requestedRole: requestedRole,
-    hostDeviceId: hostDeviceId ?? deviceRecord.hostDeviceId,
+    hostDeviceId: effectiveHostDeviceId,
   );
 
   final context = await _createBootstrapContext(
@@ -62,13 +64,13 @@ Future<void> bootstrapApp(
   runApp(
     MultiProvider(
       providers: [
-        Provider<DeviceConfigStore>.value(value: deviceConfigStore),
-        Provider<DeviceConfig>.value(value: deviceConfig),
-        Provider<RolePolicyService>.value(value: rolePolicyService),
-        Provider<AppBootstrapContext>.value(value: context),
-        ChangeNotifierProvider<AppSessionState>.value(value: sessionState),
-        Provider<MenuRepository>.value(value: context.menuRepository),
-        Provider<OrderRepository>.value(value: context.orderRepository),
+        Provider.value(value: deviceConfigStore),
+        Provider.value(value: deviceConfig),
+        Provider.value(value: rolePolicyService),
+        Provider.value(value: context),
+        ChangeNotifierProvider.value(value: sessionState),
+        Provider.value(value: context.menuRepository),
+        Provider.value(value: context.orderRepository),
       ],
       child: PosKdsApp(role: context.runtimeRole),
     ),
@@ -125,4 +127,12 @@ String _buildAppInstanceId({
 }) {
   final timestamp = startedAt.millisecondsSinceEpoch;
   return '${deviceId}_${runtimeRole.name}_$timestamp';
+}
+
+String? _normalizeNullable(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) {
+    return null;
+  }
+  return trimmed;
 }

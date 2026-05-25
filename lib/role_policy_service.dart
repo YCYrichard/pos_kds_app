@@ -11,6 +11,7 @@ class RolePolicyService {
     AppRole? requestedRole,
     String? hostDeviceId,
   }) {
+    final normalizedHostDeviceId = _normalizeNullable(hostDeviceId);
     final fallbackRole = deviceConfig.installedRole;
     final targetRole = requestedRole ?? fallbackRole;
 
@@ -20,25 +21,27 @@ class RolePolicyService {
     );
 
     final runtimeRole = canUseRequestedRole ? targetRole : fallbackRole;
+
+    final resolvedSyncMode = _resolveSyncMode(
+      deviceConfig: deviceConfig,
+      runtimeRole: runtimeRole,
+      hostDeviceId: normalizedHostDeviceId,
+    );
+
     final reason = _buildReason(
       deviceConfig: deviceConfig,
       requestedRole: requestedRole,
       runtimeRole: runtimeRole,
       fallbackRole: fallbackRole,
-      hostDeviceId: hostDeviceId,
-    );
-
-    final resolvedSyncMode = _resolveSyncMode(
-      deviceConfig: deviceConfig,
-      runtimeRole: runtimeRole,
-      hostDeviceId: hostDeviceId,
+      hostDeviceId: normalizedHostDeviceId,
+      resolvedSyncMode: resolvedSyncMode,
     );
 
     return RoleResolution(
       runtimeRole: runtimeRole,
       resolvedSyncMode: resolvedSyncMode,
       reason: reason,
-      hostDeviceId: hostDeviceId,
+      hostDeviceId: normalizedHostDeviceId,
       takeoverSourceRole: runtimeRole == fallbackRole ? null : fallbackRole,
     );
   }
@@ -80,13 +83,39 @@ class RolePolicyService {
     required AppRole runtimeRole,
     required AppRole fallbackRole,
     required String? hostDeviceId,
+    required SyncMode resolvedSyncMode,
   }) {
     if (hostDeviceId != null && hostDeviceId.isNotEmpty) {
+      if (requestedRole != null && runtimeRole != requestedRole) {
+        return 'Client bootstrap due to host binding. Requested role rejected by device policy.';
+      }
+
+      if (requestedRole != null &&
+          runtimeRole == requestedRole &&
+          runtimeRole != fallbackRole) {
+        return 'Client bootstrap due to host binding. Requested role allowed by device policy.';
+      }
+
       return 'Client bootstrap due to host binding.';
     }
 
+    if (resolvedSyncMode == SyncMode.host) {
+      if (requestedRole == null) {
+        return 'Host bootstrap using installed role.';
+      }
+
+      if (runtimeRole == requestedRole) {
+        if (runtimeRole == fallbackRole) {
+          return 'Host bootstrap with requested role matching installed role.';
+        }
+        return 'Host bootstrap with requested role allowed by device policy.';
+      }
+
+      return 'Host bootstrap after requested role was rejected by device policy.';
+    }
+
     if (requestedRole == null) {
-      return 'No requested role. Using installed role.';
+      return 'Standalone bootstrap using installed role.';
     }
 
     if (runtimeRole == requestedRole) {
@@ -97,5 +126,13 @@ class RolePolicyService {
     }
 
     return 'Requested role rejected by device policy. Falling back to installed role.';
+  }
+
+  String? _normalizeNullable(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 }
