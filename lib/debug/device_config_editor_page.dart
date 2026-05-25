@@ -20,6 +20,7 @@ class DeviceConfigEditorPage extends StatefulWidget {
 class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
   final _formKey = GlobalKey<FormState>();
   final _deviceNameController = TextEditingController();
+  final _hostDeviceIdController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -35,6 +36,7 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
   @override
   void dispose() {
     _deviceNameController.dispose();
+    _hostDeviceIdController.dispose();
     super.dispose();
   }
 
@@ -47,6 +49,7 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
       _record = record;
       _isLoading = false;
       _deviceNameController.text = record?.deviceName ?? '';
+      _hostDeviceIdController.text = record?.hostDeviceId ?? '';
     });
   }
 
@@ -62,16 +65,10 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
     });
 
     try {
-      final existing = await widget.deviceConfigStore.loadExisting();
-      if (existing == null) {
-        throw StateError('No existing device config found.');
-      }
-
-      final updated = existing.copyWith(
+      final updated = await widget.deviceConfigStore.updateIdentityFields(
         deviceName: _deviceNameController.text.trim(),
+        hostDeviceId: _hostDeviceIdController.text.trim(),
       );
-
-      await widget.deviceConfigStore.save(updated);
 
       if (!mounted) return;
 
@@ -83,7 +80,8 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
       setState(() {
         _record = updated;
         _isSaving = false;
-        _message = 'Saved. Current debug session panel refreshed.';
+        _message =
+            'Saved. Restart the app instance to apply bootstrap and sync-mode changes.';
       });
     } catch (error) {
       if (!mounted) return;
@@ -133,8 +131,7 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
                                 Text('Device ID: ${_record!.deviceId}'),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Installed role: ${_record!.installedRole.name}',
-                                ),
+                                    'Installed role: ${_record!.installedRole.name}'),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Default sync mode: ${_record!.defaultSyncMode.name}',
@@ -153,6 +150,21 @@ class _DeviceConfigEditorPageState extends State<DeviceConfigEditorPage> {
                                     }
                                     return null;
                                   },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _hostDeviceIdController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Host device ID',
+                                    hintText:
+                                        'Leave empty for standalone/host device',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Set this only on a client device. Use the host device\'s Device ID from its debug session banner.',
+                                  style: theme.textTheme.bodySmall,
                                 ),
                                 const SizedBox(height: 20),
                                 FilledButton(

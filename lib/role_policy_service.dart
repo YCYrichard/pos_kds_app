@@ -25,6 +25,7 @@ class RolePolicyService {
       requestedRole: requestedRole,
       runtimeRole: runtimeRole,
       fallbackRole: fallbackRole,
+      hostDeviceId: hostDeviceId,
     );
 
     final resolvedSyncMode = _resolveSyncMode(
@@ -78,7 +79,12 @@ class RolePolicyService {
     required AppRole? requestedRole,
     required AppRole runtimeRole,
     required AppRole fallbackRole,
+    required String? hostDeviceId,
   }) {
+    if (hostDeviceId != null && hostDeviceId.isNotEmpty) {
+      return 'Client bootstrap due to host binding.';
+    }
+
     if (requestedRole == null) {
       return 'No requested role. Using installed role.';
     }
