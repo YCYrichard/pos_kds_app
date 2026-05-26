@@ -3,18 +3,33 @@ import 'package:integration_test/integration_test.dart';
 import 'package:pos_kds_app/app.dart';
 import 'package:pos_kds_app/app_bootstrap_context.dart';
 import 'package:pos_kds_app/app_role.dart';
+import 'package:pos_kds_app/data/db/database_provider.dart';
 import 'package:pos_kds_app/data/repositories/menu_repository.dart';
 import 'package:pos_kds_app/data/repositories/order_repository.dart';
 import 'package:pos_kds_app/device_config.dart';
+import 'package:pos_kds_app/data/models/menu_item.dart';
 import 'package:pos_kds_app/sync_mode.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('combined app boots with debug session metadata', (tester) async {
-    final menuRepository = MenuRepository();
-    await menuRepository.seedDefaultMenu();
+  testWidgets('combined app boots with debug session metadata', (
+    WidgetTester tester,
+  ) async {
+    final databaseGetter = DatabaseProvider.appDatabase;
+
+    final menuRepository = MenuRepository(
+      databaseGetter: databaseGetter,
+    );
+
+    await menuRepository.insertIgnore(
+      const MenuItem(itemCode: '1', itemName: '雞排', price: 80),
+    );
+
+    final orderRepository = OrderRepository(
+      databaseGetter: databaseGetter,
+    );
 
     final bootstrapContext = AppBootstrapContext(
       deviceConfig: const DeviceConfig(
@@ -35,7 +50,7 @@ void main() {
       appInstanceId: 'combined-device-01_combined_test',
       startedAt: DateTime(2026, 5, 23),
       menuRepository: menuRepository,
-      orderRepository: OrderRepository(),
+      orderRepository: orderRepository,
       resolutionReason: 'Test bootstrap context.',
     );
 
@@ -46,7 +61,8 @@ void main() {
           Provider<MenuRepository>.value(
               value: bootstrapContext.menuRepository),
           Provider<OrderRepository>.value(
-              value: bootstrapContext.orderRepository),
+            value: bootstrapContext.orderRepository,
+          ),
           Provider<AppBootstrapContext>.value(value: bootstrapContext),
         ],
         child: const PosKdsApp(role: AppRole.combined),
