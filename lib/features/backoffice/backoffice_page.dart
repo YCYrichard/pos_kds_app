@@ -5,6 +5,30 @@ import '../../data/models/order_item.dart';
 import '../../l10n/l10n.dart';
 import 'backoffice_controller.dart';
 
+String _statusText(BuildContext context, String status) {
+  final l10n = context.l10n;
+
+  switch (status) {
+    case 'completed':
+      return l10n.statusCompleted;
+    case 'preparing':
+      return l10n.statusPreparing;
+    default:
+      return l10n.statusCreated;
+  }
+}
+
+String _formatDateTime(String value) {
+  final dateTime = DateTime.tryParse(value);
+  if (dateTime == null) {
+    return value;
+  }
+
+  final hour = dateTime.hour.toString().padLeft(2, '0');
+  final minute = dateTime.minute.toString().padLeft(2, '0');
+  return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
+}
+
 class BackofficePage extends StatefulWidget {
   const BackofficePage({super.key, required this.isActive});
 
@@ -208,19 +232,6 @@ class _OrderListCard extends StatelessWidget {
 
   final BackofficeOrderBundle bundle;
 
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -262,6 +273,8 @@ class _OrderListCard extends StatelessWidget {
               Text('${l10n.createdTime}：${_formatDateTime(order.createdAt)}'),
               const SizedBox(height: 4),
               Text('${l10n.totalItems}：${order.totalItems}'),
+              const SizedBox(height: 4),
+              Text('${l10n.statusLabel}：${_statusText(context, order.status)}'),
             ],
           ),
         ),
@@ -274,19 +287,6 @@ class _OrderDetailSheet extends StatelessWidget {
   const _OrderDetailSheet({required this.bundle});
 
   final BackofficeOrderBundle bundle;
-
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
 
   String _spicyText(BuildContext context, String? spicyLevel) {
     final l10n = context.l10n;
@@ -349,7 +349,9 @@ class _OrderDetailSheet extends StatelessWidget {
                       label: l10n.tableLabel, value: order.tableNo ?? '-'),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
-                      label: l10n.pickupLabel, value: order.pickupNo ?? '-'),
+                    label: l10n.pickupLabel,
+                    value: order.pickupNo ?? '-',
+                  ),
                 _DetailRow(
                   label: l10n.statusLabel,
                   value: _statusText(context, order.status),
@@ -454,15 +456,4 @@ class _StatusChip extends StatelessWidget {
       visualDensity: VisualDensity.compact,
     );
   }
-}
-
-String _formatDateTime(String value) {
-  final dateTime = DateTime.tryParse(value);
-  if (dateTime == null) {
-    return value;
-  }
-
-  final hour = dateTime.hour.toString().padLeft(2, '0');
-  final minute = dateTime.minute.toString().padLeft(2, '0');
-  return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
 }
