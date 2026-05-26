@@ -4,6 +4,50 @@ import '../../data/models/order_item.dart';
 import '../../features/kitchen/kitchen_controller.dart';
 import '../../l10n/l10n.dart';
 
+String _statusText(BuildContext context, String status) {
+  final l10n = context.l10n;
+
+  switch (status) {
+    case 'completed':
+      return l10n.statusCompleted;
+    case 'preparing':
+      return l10n.statusPreparing;
+    default:
+      return l10n.statusCreated;
+  }
+}
+
+String _orderTypeText(BuildContext context, String orderType) {
+  final l10n = context.l10n;
+
+  switch (orderType) {
+    case 'takeaway':
+      return l10n.orderTypeTakeaway;
+    case 'dineIn':
+    default:
+      return l10n.orderTypeDineIn;
+  }
+}
+
+String _spicyLevelText(BuildContext context, String? spicyLevel) {
+  final l10n = context.l10n;
+
+  if (spicyLevel == null || spicyLevel.isEmpty) {
+    return l10n.spicyNotSelected;
+  }
+
+  switch (spicyLevel.toLowerCase()) {
+    case 'mild':
+      return l10n.spicyPrefix(l10n.spicyMild);
+    case 'medium':
+      return l10n.spicyPrefix(l10n.spicyMedium);
+    case 'hot':
+      return l10n.spicyPrefix(l10n.spicyHot);
+    default:
+      return l10n.spicyPrefix(spicyLevel);
+  }
+}
+
 class KitchenOrderCard extends StatelessWidget {
   const KitchenOrderCard({
     super.key,
@@ -13,50 +57,6 @@ class KitchenOrderCard extends StatelessWidget {
 
   final KitchenOrderBundle bundle;
   final ValueChanged<int> onCompleteItem;
-
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
-
-  String _orderTypeText(BuildContext context, String orderType) {
-    final l10n = context.l10n;
-
-    switch (orderType) {
-      case 'takeaway':
-        return l10n.orderTypeTakeaway;
-      case 'dineIn':
-      default:
-        return l10n.orderTypeDineIn;
-    }
-  }
-
-  String _spicyLevelText(BuildContext context, String? spicyLevel) {
-    final l10n = context.l10n;
-
-    if (spicyLevel == null || spicyLevel.isEmpty) {
-      return l10n.spicyNotSelected;
-    }
-
-    switch (spicyLevel.toLowerCase()) {
-      case 'mild':
-        return l10n.spicyPrefix(l10n.spicyMild);
-      case 'medium':
-        return l10n.spicyPrefix(l10n.spicyMedium);
-      case 'hot':
-        return l10n.spicyPrefix(l10n.spicyHot);
-      default:
-        return l10n.spicyPrefix(spicyLevel);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +84,7 @@ class KitchenOrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(l10n.typePrefix(_orderTypeText(context, order.orderType))),
+            Text('${l10n.statusLabel}：${_statusText(context, order.status)}'),
             if (order.tableNo != null && order.tableNo!.isNotEmpty)
               Text(l10n.tablePrefix(order.tableNo!)),
             if (order.pickupNo != null && order.pickupNo!.isNotEmpty)
@@ -111,29 +112,10 @@ class _OrderItemTile extends StatelessWidget {
   final OrderItemEntity item;
   final ValueChanged<int> onCompleteItem;
 
-  String _spicyLevelText(BuildContext context, String? spicyLevel) {
-    final l10n = context.l10n;
-
-    if (spicyLevel == null || spicyLevel.isEmpty) {
-      return l10n.spicyNotSelected;
-    }
-
-    switch (spicyLevel.toLowerCase()) {
-      case 'mild':
-        return l10n.spicyPrefix(l10n.spicyMild);
-      case 'medium':
-        return l10n.spicyPrefix(l10n.spicyMedium);
-      case 'hot':
-        return l10n.spicyPrefix(l10n.spicyHot);
-      default:
-        return l10n.spicyPrefix(spicyLevel);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final completed = item.status == 'completed';
+    final bool completed = item.status == 'completed';
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -155,22 +137,9 @@ class _StatusChip extends StatelessWidget {
 
   final String status;
 
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = switch (status) {
+    final Color color = switch (status) {
       'completed' => Colors.green,
       'preparing' => Colors.orange,
       _ => Colors.blueGrey,
