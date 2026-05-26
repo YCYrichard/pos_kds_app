@@ -6,6 +6,7 @@ import 'app_bootstrap_context.dart';
 import 'app_role.dart';
 import 'app_session_state.dart';
 import 'bootstrap_guard_mismatch.dart';
+import 'data/db/database_provider.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
@@ -21,8 +22,9 @@ Future<void> bootstrapApp(
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final deviceConfigStore = DeviceConfigStore();
-  final deviceRecord = await deviceConfigStore.loadOrCreate(installedRole);
+  final DeviceConfigStore deviceConfigStore = DeviceConfigStore();
+  final DeviceRecord deviceRecord =
+      await deviceConfigStore.loadOrCreate(installedRole);
 
   if (deviceRecord.installedRole != installedRole) {
     runApp(
@@ -37,18 +39,18 @@ Future<void> bootstrapApp(
     return;
   }
 
-  final deviceConfig = _toDeviceConfig(deviceRecord);
-  final effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
+  final DeviceConfig deviceConfig = _toDeviceConfig(deviceRecord);
+  final String? effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
       _normalizeNullable(deviceRecord.hostDeviceId);
 
-  final rolePolicyService = const RolePolicyService();
+  const RolePolicyService rolePolicyService = RolePolicyService();
   final resolution = rolePolicyService.resolve(
     deviceConfig: deviceConfig,
     requestedRole: requestedRole,
     hostDeviceId: effectiveHostDeviceId,
   );
 
-  final context = await _createBootstrapContext(
+  final AppBootstrapContext context = await _createBootstrapContext(
     deviceConfig: deviceConfig,
     runtimeRole: resolution.runtimeRole,
     resolvedSyncMode: resolution.resolvedSyncMode,
@@ -57,20 +59,20 @@ Future<void> bootstrapApp(
     takeoverSourceRole: resolution.takeoverSourceRole,
   );
 
-  final sessionState = AppSessionState(
+  final AppSessionState sessionState = AppSessionState(
     bootstrapContext: context,
   );
 
   runApp(
     MultiProvider(
       providers: [
-        Provider.value(value: deviceConfigStore),
-        Provider.value(value: deviceConfig),
-        Provider.value(value: rolePolicyService),
-        Provider.value(value: context),
-        ChangeNotifierProvider.value(value: sessionState),
-        Provider.value(value: context.menuRepository),
-        Provider.value(value: context.orderRepository),
+        Provider<DeviceConfigStore>.value(value: deviceConfigStore),
+        Provider<DeviceConfig>.value(value: deviceConfig),
+        Provider<RolePolicyService>.value(value: rolePolicyService),
+        Provider<AppBootstrapContext>.value(value: context),
+        ChangeNotifierProvider<AppSessionState>.value(value: sessionState),
+        Provider<MenuRepository>.value(value: context.menuRepository),
+        Provider<OrderRepository>.value(value: context.orderRepository),
       ],
       child: PosKdsApp(role: context.runtimeRole),
     ),
@@ -96,11 +98,22 @@ Future<AppBootstrapContext> _createBootstrapContext({
   required String? hostDeviceId,
   required AppRole? takeoverSourceRole,
 }) async {
-  final menuRepository = MenuRepository();
+  final DatabaseGetter databaseGetter = _resolveDatabaseGetter(
+    deviceConfig: deviceConfig,
+    runtimeRole: runtimeRole,
+    resolvedSyncMode: resolvedSyncMode,
+    hostDeviceId: hostDeviceId,
+  );
+
+  final MenuRepository menuRepository = MenuRepository(
+    databaseGetter: databaseGetter,
+  );
   await menuRepository.seedDefaultMenu();
 
-  final orderRepository = OrderRepository();
-  final startedAt = DateTime.now();
+  final OrderRepository orderRepository = OrderRepository(
+    databaseGetter: databaseGetter,
+  );
+  final DateTime startedAt = DateTime.now();
 
   return AppBootstrapContext(
     deviceConfig: deviceConfig,
@@ -120,17 +133,26 @@ Future<AppBootstrapContext> _createBootstrapContext({
   );
 }
 
+DatabaseGetter _resolveDatabaseGetter({
+  required DeviceConfig deviceConfig,
+  required AppRole runtimeRole,
+  required SyncMode resolvedSyncMode,
+  required String? hostDeviceId,
+}) {
+  return DatabaseProvider.appDatabase;
+}
+
 String _buildAppInstanceId({
   required String deviceId,
   required AppRole runtimeRole,
   required DateTime startedAt,
 }) {
-  final timestamp = startedAt.millisecondsSinceEpoch;
+  final int timestamp = startedAt.millisecondsSinceEpoch;
   return '${deviceId}_${runtimeRole.name}_$timestamp';
 }
 
 String? _normalizeNullable(String? value) {
-  final trimmed = value?.trim();
+  final String? trimmed = value?.trim();
   if (trimmed == null || trimmed.isEmpty) {
     return null;
   }
