@@ -1,33 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/models/menu_item.dart';
 import '../../data/models/order_item.dart';
 import '../../l10n/l10n.dart';
 import 'backoffice_controller.dart';
-
-String _statusText(BuildContext context, String status) {
-  final l10n = context.l10n;
-
-  switch (status) {
-    case 'completed':
-      return l10n.statusCompleted;
-    case 'preparing':
-      return l10n.statusPreparing;
-    default:
-      return l10n.statusCreated;
-  }
-}
-
-String _formatDateTime(String value) {
-  final dateTime = DateTime.tryParse(value);
-  if (dateTime == null) {
-    return value;
-  }
-
-  final hour = dateTime.hour.toString().padLeft(2, '0');
-  final minute = dateTime.minute.toString().padLeft(2, '0');
-  return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
-}
 
 class BackofficePage extends StatefulWidget {
   const BackofficePage({super.key, required this.isActive});
@@ -60,13 +37,20 @@ class _BackofficePageState extends State<BackofficePage> {
   }
 
   void _syncLifecycleRefresh() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     if (widget.isActive && !_didRefreshOnActivate) {
       _didRefreshOnActivate = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !widget.isActive) return;
-        context.read<BackofficeController>().loadDashboard();
+        if (!mounted || !widget.isActive) {
+          return;
+        }
+        final BackofficeController controller =
+            context.read<BackofficeController>();
+        controller.loadDashboard();
+        controller.loadMenuItems();
       });
     }
   }
@@ -82,9 +66,122 @@ class _BackofficePageState extends State<BackofficePage> {
         return l10n.noOrderRecords;
       case BackofficeMessage.loadFailed:
         return l10n.backofficeLoadFailed;
+      case BackofficeMessage.menuLoadFailed:
+        return '菜單載入失敗';
+      case BackofficeMessage.menuSaveFailed:
+        return '菜單儲存失敗';
       default:
         return null;
     }
+  }
+
+  Future<void> _showMenuItemEditor(
+    BuildContext context,
+    BackofficeController controller, {
+    MenuItem? item,
+  }) async {
+    final TextEditingController codeController = TextEditingController(
+      text: item?.itemCode ?? '',
+    );
+    final TextEditingController nameController = TextEditingController(
+      text: item?.itemName ?? '',
+    );
+    final TextEditingController priceController = TextEditingController(
+      text: item?.price.toString() ?? '',
+    );
+    bool isActive = item?.isActive ?? true;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder:
+              (BuildContext context, void Function(void Function()) setState) {
+            return AlertDialog(
+              title: Text(item == null ? '新增菜單項目' : '編輯菜單項目'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: codeController,
+                      enabled: item == null,
+                      decoration: const InputDecoration(
+                        labelText: '品項代碼',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: '品項名稱',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: '價格',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('啟用'),
+                      value: isActive,
+                      onChanged: (bool value) {
+                        setState(() {
+                          isActive = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final String code = codeController.text.trim();
+                    final String name = nameController.text.trim();
+                    final int? price =
+                        int.tryParse(priceController.text.trim());
+
+                    if (code.isEmpty || name.isEmpty || price == null) {
+                      return;
+                    }
+
+                    await controller.saveMenuItem(
+                      MenuItem(
+                        itemCode: code,
+                        itemName: name,
+                        price: price,
+                        isActive: isActive,
+                      ),
+                    );
+
+                    if (context.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                  },
+                  child: const Text('儲存'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    codeController.dispose();
+    nameController.dispose();
+    priceController.dispose();
   }
 
   @override
@@ -92,31 +189,48 @@ class _BackofficePageState extends State<BackofficePage> {
     final l10n = context.l10n;
 
     return Consumer<BackofficeController>(
-      builder: (context, controller, _) {
-        final messageText = _resolveBackofficeMessage(context, controller);
+      builder: (BuildContext context, BackofficeController controller, _) {
+        final String? messageText =
+            _resolveBackofficeMessage(context, controller);
 
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.backofficeTitle),
             actions: [
               IconButton(
-                onPressed: controller.loadDashboard,
+                onPressed: () async {
+                  await controller.loadDashboard();
+                  await controller.loadMenuItems();
+                },
                 icon: const Icon(Icons.refresh),
                 tooltip: l10n.commonRefresh,
               ),
             ],
           ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: controller.savingMenu
+                ? null
+                : () => _showMenuItemEditor(
+                      context,
+                      controller,
+                    ),
+            icon: const Icon(Icons.add),
+            label: const Text('新增菜單'),
+          ),
           body: SafeArea(
             child: controller.loading
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
-                    onRefresh: controller.loadDashboard,
+                    onRefresh: () async {
+                      await controller.loadDashboard();
+                      await controller.loadMenuItems();
+                    },
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(16),
                       children: [
                         _SummarySection(controller: controller),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                         Text(
                           l10n.orderListTitle,
                           style: Theme.of(context).textTheme.titleMedium,
@@ -124,7 +238,7 @@ class _BackofficePageState extends State<BackofficePage> {
                         const SizedBox(height: 8),
                         if (controller.orders.isEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 48),
+                            padding: const EdgeInsets.only(top: 24),
                             child: Center(
                               child: Text(
                                 messageText ?? l10n.noOrderRecords,
@@ -133,9 +247,51 @@ class _BackofficePageState extends State<BackofficePage> {
                           )
                         else
                           ...controller.orders.map(
-                            (bundle) => Padding(
+                            (BackofficeOrderBundle bundle) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: _OrderListCard(bundle: bundle),
+                            ),
+                          ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '菜單管理',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            if (controller.savingMenu)
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (controller.menuItems.isEmpty)
+                          const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('目前沒有菜單項目'),
+                            ),
+                          )
+                        else
+                          ...controller.menuItems.map(
+                            (MenuItem item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _MenuItemCard(
+                                item: item,
+                                onEdit: () => _showMenuItemEditor(
+                                  context,
+                                  controller,
+                                  item: item,
+                                ),
+                                onToggleActive: () =>
+                                    controller.toggleMenuItemActive(item),
+                              ),
                             ),
                           ),
                       ],
@@ -227,10 +383,68 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
+class _MenuItemCard extends StatelessWidget {
+  const _MenuItemCard({
+    required this.item,
+    required this.onEdit,
+    required this.onToggleActive,
+  });
+
+  final MenuItem item;
+  final VoidCallback onEdit;
+  final VoidCallback onToggleActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Text('${item.itemCode}｜${item.itemName}'),
+        subtitle: Text('NT\$ ${item.price}'),
+        leading: Icon(
+          item.isActive ? Icons.check_circle : Icons.cancel_outlined,
+          color: item.isActive ? Colors.green : Colors.grey,
+        ),
+        trailing: Wrap(
+          spacing: 8,
+          children: [
+            IconButton(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: '編輯',
+            ),
+            IconButton(
+              onPressed: onToggleActive,
+              icon: Icon(
+                item.isActive
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility,
+              ),
+              tooltip: item.isActive ? '停用' : '啟用',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _OrderListCard extends StatelessWidget {
   const _OrderListCard({required this.bundle});
 
   final BackofficeOrderBundle bundle;
+
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -244,11 +458,12 @@ class _OrderListCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          showModalBottomSheet(
+          showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
-            builder: (context) => _OrderDetailSheet(bundle: bundle),
+            builder: (BuildContext context) =>
+                _OrderDetailSheet(bundle: bundle),
           );
         },
         child: Padding(
@@ -273,8 +488,6 @@ class _OrderListCard extends StatelessWidget {
               Text('${l10n.createdTime}：${_formatDateTime(order.createdAt)}'),
               const SizedBox(height: 4),
               Text('${l10n.totalItems}：${order.totalItems}'),
-              const SizedBox(height: 4),
-              Text('${l10n.statusLabel}：${_statusText(context, order.status)}'),
             ],
           ),
         ),
@@ -287,6 +500,19 @@ class _OrderDetailSheet extends StatelessWidget {
   const _OrderDetailSheet({required this.bundle});
 
   final BackofficeOrderBundle bundle;
+
+  String _statusText(BuildContext context, String status) {
+    final l10n = context.l10n;
+
+    switch (status) {
+      case 'completed':
+        return l10n.statusCompleted;
+      case 'preparing':
+        return l10n.statusPreparing;
+      default:
+        return l10n.statusCreated;
+    }
+  }
 
   String _spicyText(BuildContext context, String? spicyLevel) {
     final l10n = context.l10n;
@@ -326,7 +552,7 @@ class _OrderDetailSheet extends StatelessWidget {
         initialChildSize: 0.75,
         minChildSize: 0.45,
         maxChildSize: 0.95,
-        builder: (context, scrollController) {
+        builder: (BuildContext context, ScrollController scrollController) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: ListView(
@@ -346,7 +572,9 @@ class _OrderDetailSheet extends StatelessWidget {
                 ),
                 if (order.orderType == 'dineIn')
                   _DetailRow(
-                      label: l10n.tableLabel, value: order.tableNo ?? '-'),
+                    label: l10n.tableLabel,
+                    value: order.tableNo ?? '-',
+                  ),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
                     label: l10n.pickupLabel,
@@ -372,7 +600,7 @@ class _OrderDetailSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 ...bundle.items.map(
-                  (item) => Card(
+                  (OrderItemEntity item) => Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       title: Text('${item.itemCode}｜${item.itemName}'),
@@ -456,4 +684,15 @@ class _StatusChip extends StatelessWidget {
       visualDensity: VisualDensity.compact,
     );
   }
+}
+
+String _formatDateTime(String value) {
+  final DateTime? dateTime = DateTime.tryParse(value);
+  if (dateTime == null) {
+    return value;
+  }
+
+  final String hour = dateTime.hour.toString().padLeft(2, '0');
+  final String minute = dateTime.minute.toString().padLeft(2, '0');
+  return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
 }

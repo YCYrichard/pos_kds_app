@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/repositories/menu_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../features/backoffice/backoffice_controller.dart';
 import '../features/backoffice/backoffice_page.dart';
@@ -19,11 +20,15 @@ class _BackofficeAppShellState extends State<BackofficeAppShell> {
   void initState() {
     super.initState();
 
-    final orderRepository = context.read<OrderRepository>();
+    final OrderRepository orderRepository = context.read<OrderRepository>();
+    final MenuRepository menuRepository = context.read<MenuRepository>();
 
     _backofficeController = BackofficeController(
       orderRepository: orderRepository,
-    )..loadDashboard();
+      menuRepository: menuRepository,
+    )
+      ..loadDashboard()
+      ..loadMenuItems();
   }
 
   @override
