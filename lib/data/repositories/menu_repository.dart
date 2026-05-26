@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_provider.dart';
@@ -49,17 +52,28 @@ class MenuRepository {
     return result.map(MenuItem.fromMap).toList();
   }
 
-  Future<void> seedDefaultMenu() async {
-    const List<MenuItem> items = <MenuItem>[
-      MenuItem(itemCode: '1', itemName: '雞排', price: 80),
-      MenuItem(itemCode: '2', itemName: '薯條', price: 50),
-      MenuItem(itemCode: '3', itemName: '甜不辣', price: 45),
-      MenuItem(itemCode: '4', itemName: '米血', price: 35),
-      MenuItem(itemCode: '5', itemName: '百頁豆腐', price: 40),
-    ];
+  Future<void> seedDefaultMenu({
+    required String assetPath,
+  }) async {
+    final String jsonString = await rootBundle.loadString(assetPath);
+    final List<dynamic> rawList = jsonDecode(jsonString) as List<dynamic>;
+
+    final List<MenuItem> items = rawList
+        .map(
+            (dynamic entry) => _menuItemFromJson(entry as Map<String, dynamic>))
+        .toList();
 
     for (final MenuItem item in items) {
       await insertIgnore(item);
     }
+  }
+
+  MenuItem _menuItemFromJson(Map<String, dynamic> json) {
+    return MenuItem(
+      itemCode: json['itemCode'] as String,
+      itemName: json['itemName'] as String,
+      price: (json['price'] as num).toInt(),
+      isActive: json['isActive'] as bool? ?? true,
+    );
   }
 }

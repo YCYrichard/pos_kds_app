@@ -108,7 +108,9 @@ Future<AppBootstrapContext> _createBootstrapContext({
   final MenuRepository menuRepository = MenuRepository(
     databaseGetter: databaseGetter,
   );
-  await menuRepository.seedDefaultMenu();
+  await menuRepository.seedDefaultMenu(
+    assetPath: 'assets/menu/default_menu.json',
+  );
 
   final OrderRepository orderRepository = OrderRepository(
     databaseGetter: databaseGetter,

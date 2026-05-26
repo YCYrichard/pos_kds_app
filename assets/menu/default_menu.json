@@ -1,0 +1,32 @@
+[
+    {
+        "itemCode": "1",
+        "itemName": "雞排",
+        "price": 80,
+        "isActive": true
+    },
+    {
+        "itemCode": "2",
+        "itemName": "薯條",
+        "price": 50,
+        "isActive": true
+    },
+    {
+        "itemCode": "3",
+        "itemName": "甜不辣",
+        "price": 45,
+        "isActive": true
+    },
+    {
+        "itemCode": "4",
+        "itemName": "米血",
+        "price": 35,
+        "isActive": true
+    },
+    {
+        "itemCode": "5",
+        "itemName": "百頁豆腐",
+        "price": 40,
+        "isActive": true
+    }
+]

@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../db/app_database.dart';
+import 'app_database.dart';
 
 typedef DatabaseGetter = Future<Database> Function();
 
