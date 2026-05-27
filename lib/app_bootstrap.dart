@@ -141,7 +141,16 @@ DatabaseGetter _resolveDatabaseGetter({
   required SyncMode resolvedSyncMode,
   required String? hostDeviceId,
 }) {
-  return DatabaseProvider.appDatabase;
+  switch (runtimeRole) {
+    case AppRole.frontdesk:
+      return DatabaseProvider.appDatabase;
+    case AppRole.kitchen:
+      return DatabaseProvider.appDatabase;
+    case AppRole.backoffice:
+      return DatabaseProvider.appDatabase;
+    case AppRole.combined:
+      return DatabaseProvider.appDatabase;
+  }
 }
 
 String _buildAppInstanceId({
