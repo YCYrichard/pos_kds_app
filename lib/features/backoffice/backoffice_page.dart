@@ -433,19 +433,6 @@ class _OrderListCard extends StatelessWidget {
 
   final BackofficeOrderBundle bundle;
 
-  String _statusText(BuildContext context, String status) {
-    final l10n = context.l10n;
-
-    switch (status) {
-      case 'completed':
-        return l10n.statusCompleted;
-      case 'preparing':
-        return l10n.statusPreparing;
-      default:
-        return l10n.statusCreated;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;

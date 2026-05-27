@@ -29,10 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
-    sdk: flutter
-    uses-material-design: true
-    assets:
-      - assets/menu/
+    sdk: flutter    
   flutter_localizations:
     sdk: flutter
   sqflite: ^2.3.3+1
@@ -67,6 +64,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/menu/
   generate: true
   # To add assets to your application, add an assets section, like this:
   # assets:

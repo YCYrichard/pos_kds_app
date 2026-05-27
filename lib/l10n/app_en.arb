@@ -1,150 +1,350 @@
 {
   "@@locale": "en",
   "appTitle": "POS KDS App",
+  "@appTitle": {
+    "description": "Application title."
+  },
   "tabFrontdesk": "Frontdesk",
+  "@tabFrontdesk": {
+    "description": "Frontdesk tab label."
+  },
   "tabKitchen": "Kitchen",
+  "@tabKitchen": {
+    "description": "Kitchen tab label."
+  },
   "tabBackoffice": "Backoffice",
+  "@tabBackoffice": {
+    "description": "Backoffice tab label."
+  },
   "frontdeskTitle": "Frontdesk",
+  "@frontdeskTitle": {
+    "description": "Frontdesk page title."
+  },
   "kitchenTitle": "Kitchen KDS",
+  "@kitchenTitle": {
+    "description": "Kitchen page title."
+  },
   "backofficeTitle": "Backoffice summary",
+  "@backofficeTitle": {
+    "description": "Backoffice summary page title."
+  },
   "orderTypeDineIn": "Dine in",
+  "@orderTypeDineIn": {
+    "description": "Label for dine-in order type."
+  },
   "orderTypeTakeaway": "Takeaway",
+  "@orderTypeTakeaway": {
+    "description": "Label for takeaway order type."
+  },
   "orderTypeLabel": "Order type",
+  "@orderTypeLabel": {
+    "description": "Generic label for order type."
+  },
   "tableNumber": "Table",
+  "@tableNumber": {
+    "description": "Short table number label."
+  },
   "tableLabel": "Table",
+  "@tableLabel": {
+    "description": "Generic label for table."
+  },
   "pickupNumber": "Pickup no.",
+  "@pickupNumber": {
+    "description": "Short pickup number label."
+  },
   "pickupLabel": "Pickup no.",
+  "@pickupLabel": {
+    "description": "Generic label for pickup number."
+  },
   "orderingTitle": "Ordering",
+  "@orderingTitle": {
+    "description": "Ordering section title."
+  },
   "pleaseEnterNumber": "Please enter number",
+  "@pleaseEnterNumber": {
+    "description": "Prompt asking the user to enter a number."
+  },
   "noSpicyLevel": "No spicy level",
+  "@noSpicyLevel": {
+    "description": "Option meaning no spicy level selected."
+  },
   "addItem": "Add item",
+  "@addItem": {
+    "description": "Button label to add an item."
+  },
   "currentOrder": "Current order",
+  "@currentOrder": {
+    "description": "Current order section title."
+  },
   "currentOrderEmpty": "No items added yet",
+  "@currentOrderEmpty": {
+    "description": "Shown when the current order is empty."
+  },
   "orderSubmitted": "Order submitted successfully",
+  "@orderSubmitted": {
+    "description": "Message shown after an order is submitted successfully."
+  },
   "submitting": "Submitting...",
+  "@submitting": {
+    "description": "Loading text shown while submitting an order."
+  },
   "submitOrder": "Submit order",
+  "@submitOrder": {
+    "description": "Button label to submit the order."
+  },
   "commonRefresh": "Refresh",
+  "@commonRefresh": {
+    "description": "Common refresh action label."
+  },
   "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Common cancel action label."
+  },
   "commonConfirm": "Confirm",
+  "@commonConfirm": {
+    "description": "Common confirm action label."
+  },
   "releaseTableTitle": "Release table",
+  "@releaseTableTitle": {
+    "description": "Dialog title for releasing a table."
+  },
   "releaseTableShort": "Release",
+  "@releaseTableShort": {
+    "description": "Short action label for releasing a table."
+  },
   "releaseTableConfirm": "Release table {tableNo}?",
   "@releaseTableConfirm": {
+    "description": "Confirmation message for releasing a table.",
     "placeholders": {
       "tableNo": {}
     }
   },
   "releaseTableDone": "Table {tableNo} released",
   "@releaseTableDone": {
+    "description": "Message shown after a table is released.",
     "placeholders": {
       "tableNo": {}
     }
   },
   "noAvailableTables": "No available tables. Release a table or wait for an order to finish.",
+  "@noAvailableTables": {
+    "description": "Message shown when there are no available tables."
+  },
   "noOccupiedTables": "No occupied tables",
+  "@noOccupiedTables": {
+    "description": "Message shown when there are no occupied tables."
+  },
   "sortLabel": "Sort",
+  "@sortLabel": {
+    "description": "Generic sort label."
+  },
   "sortOldestFirst": "Oldest first",
+  "@sortOldestFirst": {
+    "description": "Sorting option for oldest orders first."
+  },
   "sortNewestFirst": "Newest first",
+  "@sortNewestFirst": {
+    "description": "Sorting option for newest orders first."
+  },
   "noPendingOrders": "No pending orders",
+  "@noPendingOrders": {
+    "description": "Message shown when there are no pending kitchen orders."
+  },
   "itemCompleted": "Item completed",
+  "@itemCompleted": {
+    "description": "Message shown when an order item is completed."
+  },
   "orderListTitle": "Order list",
+  "@orderListTitle": {
+    "description": "Order list section title."
+  },
   "noOrderRecords": "No order records",
+  "@noOrderRecords": {
+    "description": "Message shown when there are no order records."
+  },
   "backofficeLoadFailed": "Failed to load backoffice data",
+  "@backofficeLoadFailed": {
+    "description": "Message shown when backoffice data fails to load."
+  },
   "todayOrders": "Today's orders",
+  "@todayOrders": {
+    "description": "Dashboard label for today's order count."
+  },
   "pendingOrders": "Pending",
+  "@pendingOrders": {
+    "description": "Dashboard label for pending orders."
+  },
   "todayRevenue": "Today's revenue",
+  "@todayRevenue": {
+    "description": "Dashboard label for today's revenue."
+  },
   "dineInWithTable": "Dine in | Table {tableNo}",
   "@dineInWithTable": {
+    "description": "Order summary text for dine-in orders with table number.",
     "placeholders": {
       "tableNo": {}
     }
   },
   "takeawayWithPickup": "Takeaway | Pickup no. {pickupNo}",
   "@takeawayWithPickup": {
+    "description": "Order summary text for takeaway orders with pickup number.",
     "placeholders": {
       "pickupNo": {}
     }
   },
   "createdTime": "Created time",
+  "@createdTime": {
+    "description": "Label for order created time."
+  },
   "completedTime": "Completed time",
+  "@completedTime": {
+    "description": "Label for order completed time."
+  },
   "totalItems": "Total items",
+  "@totalItems": {
+    "description": "Label for total item count in an order."
+  },
   "orderDetailTitle": "Order details",
+  "@orderDetailTitle": {
+    "description": "Order detail page or sheet title."
+  },
   "orderNumber": "Order no.",
+  "@orderNumber": {
+    "description": "Label for order number."
+  },
   "statusLabel": "Status",
+  "@statusLabel": {
+    "description": "Generic status label."
+  },
   "itemsTitle": "Items",
+  "@itemsTitle": {
+    "description": "Items section title."
+  },
   "statusCreated": "Created",
+  "@statusCreated": {
+    "description": "Order status label for created."
+  },
   "statusPreparing": "Preparing",
+  "@statusPreparing": {
+    "description": "Order status label for preparing."
+  },
   "statusCompleted": "Completed",
+  "@statusCompleted": {
+    "description": "Order status label for completed."
+  },
   "noSpicyConfigured": "No spicy setting",
+  "@noSpicyConfigured": {
+    "description": "Message shown when no spicy setting is configured."
+  },
   "spicyLevelValue": "Spicy level {level}",
   "@spicyLevelValue": {
+    "description": "Message displaying a spicy level value.",
     "placeholders": {
       "level": {}
     }
   },
   "quantityWithSpicy": "Qty {qty} | {spicy}",
   "@quantityWithSpicy": {
+    "description": "Message displaying quantity and spicy level together.",
     "placeholders": {
       "qty": {},
       "spicy": {}
     }
   },
   "spicyNotSelected": "Spicy: not selected",
+  "@spicyNotSelected": {
+    "description": "Message shown when spicy level is not selected."
+  },
   "spicyPrefix": "Spicy: {value}",
   "@spicyPrefix": {
+    "description": "Prefix label for spicy level value.",
     "placeholders": {
       "value": {}
     }
   },
   "orderPrefix": "Order {orderNo}",
   "@orderPrefix": {
+    "description": "Prefix label for order number.",
     "placeholders": {
       "orderNo": {}
     }
   },
   "typePrefix": "Type: {value}",
   "@typePrefix": {
+    "description": "Prefix label for order type value.",
     "placeholders": {
       "value": {}
     }
   },
   "tablePrefix": "Table: {value}",
   "@tablePrefix": {
+    "description": "Prefix label for table value.",
     "placeholders": {
       "value": {}
     }
   },
   "pickupPrefix": "Pickup no.: {value}",
   "@pickupPrefix": {
+    "description": "Prefix label for pickup number value.",
     "placeholders": {
       "value": {}
     }
   },
   "completeAction": "Complete",
+  "@completeAction": {
+    "description": "Action label to complete an item or order."
+  },
   "orderDetailPageStub": "Order detail page scaffold created",
+  "@orderDetailPageStub": {
+    "description": "Temporary stub text for order detail page."
+  },
   "enterItemCodeFirst": "Please enter item code first",
+  "@enterItemCodeFirst": {
+    "description": "Validation message asking the user to enter an item code first."
+  },
   "itemCodeNotFound": "Item code {itemCode} not found",
   "@itemCodeNotFound": {
+    "description": "Message shown when an entered item code is not found.",
     "placeholders": {
       "itemCode": {}
     }
   },
   "itemAdded": "Added {itemName}",
   "@itemAdded": {
+    "description": "Message shown after an item is added to the order.",
     "placeholders": {
       "itemName": {}
     }
   },
   "itemRemoved": "Removed {itemName}",
   "@itemRemoved": {
+    "description": "Message shown after an item is removed from the order.",
     "placeholders": {
       "itemName": {}
     }
   },
   "orderNeedsAtLeastOneItem": "An order must contain at least one item",
+  "@orderNeedsAtLeastOneItem": {
+    "description": "Validation message shown when trying to submit an empty order."
+  },
   "dineInSelectTable": "Please select a table for dine-in",
+  "@dineInSelectTable": {
+    "description": "Validation message shown when a dine-in order has no table selected."
+  },
   "takeawaySerialNotReady": "Takeaway serial number is not ready yet",
+  "@takeawaySerialNotReady": {
+    "description": "Message shown when takeaway serial number is not ready."
+  },
   "spicyMild": "Mild",
+  "@spicyMild": {
+    "description": "Spicy level label for mild."
+  },
   "spicyMedium": "Medium",
-  "spicyHot": "Hot"
+  "@spicyMedium": {
+    "description": "Spicy level label for medium."
+  },
+  "spicyHot": "Hot",
+  "@spicyHot": {
+    "description": "Spicy level label for hot."
+  }
 }

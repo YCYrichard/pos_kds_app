@@ -43,7 +43,10 @@ class _CombinedAppShellState extends State<CombinedAppShell> {
 
     _backofficeController = BackofficeController(
       orderRepository: orderRepository,
-    )..loadDashboard();
+      menuRepository: menuRepository,
+    )
+      ..loadDashboard()
+      ..loadMenuItems();
   }
 
   @override
