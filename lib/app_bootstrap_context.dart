@@ -14,6 +14,8 @@ class AppBootstrapContext {
     required this.menuRepository,
     required this.orderRepository,
     required this.resolutionReason,
+    required this.databaseStrategyName,
+    this.databaseStrategyNotes,
     this.hostDeviceId,
     this.takeoverSourceRole,
   });
@@ -26,6 +28,8 @@ class AppBootstrapContext {
   final MenuRepository menuRepository;
   final OrderRepository orderRepository;
   final String resolutionReason;
+  final String databaseStrategyName;
+  final String? databaseStrategyNotes;
   final String? hostDeviceId;
   final AppRole? takeoverSourceRole;
 

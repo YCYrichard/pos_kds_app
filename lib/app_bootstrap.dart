@@ -6,7 +6,7 @@ import 'app_bootstrap_context.dart';
 import 'app_role.dart';
 import 'app_session_state.dart';
 import 'bootstrap_guard_mismatch.dart';
-import 'data/db/database_provider.dart';
+import 'data/db/database_strategy.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
@@ -98,7 +98,11 @@ Future<AppBootstrapContext> _createBootstrapContext({
   required String? hostDeviceId,
   required AppRole? takeoverSourceRole,
 }) async {
-  final DatabaseGetter databaseGetter = _resolveDatabaseGetter(
+  const DatabaseStrategyResolver databaseStrategyResolver =
+      DatabaseStrategyResolver();
+
+  final DatabaseResolution databaseResolution =
+      databaseStrategyResolver.resolve(
     deviceConfig: deviceConfig,
     runtimeRole: runtimeRole,
     resolvedSyncMode: resolvedSyncMode,
@@ -106,14 +110,14 @@ Future<AppBootstrapContext> _createBootstrapContext({
   );
 
   final MenuRepository menuRepository = MenuRepository(
-    databaseGetter: databaseGetter,
+    databaseGetter: databaseResolution.databaseGetter,
   );
   await menuRepository.seedDefaultMenu(
     assetPath: 'assets/menu/default_menu.json',
   );
 
   final OrderRepository orderRepository = OrderRepository(
-    databaseGetter: databaseGetter,
+    databaseGetter: databaseResolution.databaseGetter,
   );
   final DateTime startedAt = DateTime.now();
 
@@ -130,27 +134,11 @@ Future<AppBootstrapContext> _createBootstrapContext({
     menuRepository: menuRepository,
     orderRepository: orderRepository,
     resolutionReason: resolutionReason,
+    databaseStrategyName: databaseResolution.strategyName,
+    databaseStrategyNotes: databaseResolution.notes,
     hostDeviceId: hostDeviceId,
     takeoverSourceRole: takeoverSourceRole,
   );
-}
-
-DatabaseGetter _resolveDatabaseGetter({
-  required DeviceConfig deviceConfig,
-  required AppRole runtimeRole,
-  required SyncMode resolvedSyncMode,
-  required String? hostDeviceId,
-}) {
-  switch (runtimeRole) {
-    case AppRole.frontdesk:
-      return DatabaseProvider.appDatabase;
-    case AppRole.kitchen:
-      return DatabaseProvider.appDatabase;
-    case AppRole.backoffice:
-      return DatabaseProvider.appDatabase;
-    case AppRole.combined:
-      return DatabaseProvider.appDatabase;
-  }
 }
 
 String _buildAppInstanceId({
