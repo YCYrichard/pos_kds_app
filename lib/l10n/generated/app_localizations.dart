@@ -98,457 +98,457 @@ abstract class AppLocalizations {
     Locale('zh')
   ];
 
-  /// No description provided for @appTitle.
+  /// Application title.
   ///
   /// In en, this message translates to:
   /// **'POS KDS App'**
   String get appTitle;
 
-  /// No description provided for @tabFrontdesk.
+  /// Frontdesk tab label.
   ///
   /// In en, this message translates to:
   /// **'Frontdesk'**
   String get tabFrontdesk;
 
-  /// No description provided for @tabKitchen.
+  /// Kitchen tab label.
   ///
   /// In en, this message translates to:
   /// **'Kitchen'**
   String get tabKitchen;
 
-  /// No description provided for @tabBackoffice.
+  /// Backoffice tab label.
   ///
   /// In en, this message translates to:
   /// **'Backoffice'**
   String get tabBackoffice;
 
-  /// No description provided for @frontdeskTitle.
+  /// Frontdesk page title.
   ///
   /// In en, this message translates to:
   /// **'Frontdesk'**
   String get frontdeskTitle;
 
-  /// No description provided for @kitchenTitle.
+  /// Kitchen page title.
   ///
   /// In en, this message translates to:
   /// **'Kitchen KDS'**
   String get kitchenTitle;
 
-  /// No description provided for @backofficeTitle.
+  /// Backoffice summary page title.
   ///
   /// In en, this message translates to:
   /// **'Backoffice summary'**
   String get backofficeTitle;
 
-  /// No description provided for @orderTypeDineIn.
+  /// Label for dine-in order type.
   ///
   /// In en, this message translates to:
   /// **'Dine in'**
   String get orderTypeDineIn;
 
-  /// No description provided for @orderTypeTakeaway.
+  /// Label for takeaway order type.
   ///
   /// In en, this message translates to:
   /// **'Takeaway'**
   String get orderTypeTakeaway;
 
-  /// No description provided for @orderTypeLabel.
+  /// Generic label for order type.
   ///
   /// In en, this message translates to:
   /// **'Order type'**
   String get orderTypeLabel;
 
-  /// No description provided for @tableNumber.
+  /// Short table number label.
   ///
   /// In en, this message translates to:
   /// **'Table'**
   String get tableNumber;
 
-  /// No description provided for @tableLabel.
+  /// Generic label for table.
   ///
   /// In en, this message translates to:
   /// **'Table'**
   String get tableLabel;
 
-  /// No description provided for @pickupNumber.
+  /// Short pickup number label.
   ///
   /// In en, this message translates to:
   /// **'Pickup no.'**
   String get pickupNumber;
 
-  /// No description provided for @pickupLabel.
+  /// Generic label for pickup number.
   ///
   /// In en, this message translates to:
   /// **'Pickup no.'**
   String get pickupLabel;
 
-  /// No description provided for @orderingTitle.
+  /// Ordering section title.
   ///
   /// In en, this message translates to:
   /// **'Ordering'**
   String get orderingTitle;
 
-  /// No description provided for @pleaseEnterNumber.
+  /// Prompt asking the user to enter a number.
   ///
   /// In en, this message translates to:
   /// **'Please enter number'**
   String get pleaseEnterNumber;
 
-  /// No description provided for @noSpicyLevel.
+  /// Option meaning no spicy level selected.
   ///
   /// In en, this message translates to:
   /// **'No spicy level'**
   String get noSpicyLevel;
 
-  /// No description provided for @addItem.
+  /// Button label to add an item.
   ///
   /// In en, this message translates to:
   /// **'Add item'**
   String get addItem;
 
-  /// No description provided for @currentOrder.
+  /// Current order section title.
   ///
   /// In en, this message translates to:
   /// **'Current order'**
   String get currentOrder;
 
-  /// No description provided for @currentOrderEmpty.
+  /// Shown when the current order is empty.
   ///
   /// In en, this message translates to:
   /// **'No items added yet'**
   String get currentOrderEmpty;
 
-  /// No description provided for @orderSubmitted.
+  /// Message shown after an order is submitted successfully.
   ///
   /// In en, this message translates to:
   /// **'Order submitted successfully'**
   String get orderSubmitted;
 
-  /// No description provided for @submitting.
+  /// Loading text shown while submitting an order.
   ///
   /// In en, this message translates to:
   /// **'Submitting...'**
   String get submitting;
 
-  /// No description provided for @submitOrder.
+  /// Button label to submit the order.
   ///
   /// In en, this message translates to:
   /// **'Submit order'**
   String get submitOrder;
 
-  /// No description provided for @commonRefresh.
+  /// Common refresh action label.
   ///
   /// In en, this message translates to:
   /// **'Refresh'**
   String get commonRefresh;
 
-  /// No description provided for @commonCancel.
+  /// Common cancel action label.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get commonCancel;
 
-  /// No description provided for @commonConfirm.
+  /// Common confirm action label.
   ///
   /// In en, this message translates to:
   /// **'Confirm'**
   String get commonConfirm;
 
-  /// No description provided for @releaseTableTitle.
+  /// Dialog title for releasing a table.
   ///
   /// In en, this message translates to:
   /// **'Release table'**
   String get releaseTableTitle;
 
-  /// No description provided for @releaseTableShort.
+  /// Short action label for releasing a table.
   ///
   /// In en, this message translates to:
   /// **'Release'**
   String get releaseTableShort;
 
-  /// No description provided for @releaseTableConfirm.
+  /// Confirmation message for releasing a table.
   ///
   /// In en, this message translates to:
   /// **'Release table {tableNo}?'**
   String releaseTableConfirm(Object tableNo);
 
-  /// No description provided for @releaseTableDone.
+  /// Message shown after a table is released.
   ///
   /// In en, this message translates to:
   /// **'Table {tableNo} released'**
   String releaseTableDone(Object tableNo);
 
-  /// No description provided for @noAvailableTables.
+  /// Message shown when there are no available tables.
   ///
   /// In en, this message translates to:
   /// **'No available tables. Release a table or wait for an order to finish.'**
   String get noAvailableTables;
 
-  /// No description provided for @noOccupiedTables.
+  /// Message shown when there are no occupied tables.
   ///
   /// In en, this message translates to:
   /// **'No occupied tables'**
   String get noOccupiedTables;
 
-  /// No description provided for @sortLabel.
+  /// Generic sort label.
   ///
   /// In en, this message translates to:
   /// **'Sort'**
   String get sortLabel;
 
-  /// No description provided for @sortOldestFirst.
+  /// Sorting option for oldest orders first.
   ///
   /// In en, this message translates to:
   /// **'Oldest first'**
   String get sortOldestFirst;
 
-  /// No description provided for @sortNewestFirst.
+  /// Sorting option for newest orders first.
   ///
   /// In en, this message translates to:
   /// **'Newest first'**
   String get sortNewestFirst;
 
-  /// No description provided for @noPendingOrders.
+  /// Message shown when there are no pending kitchen orders.
   ///
   /// In en, this message translates to:
   /// **'No pending orders'**
   String get noPendingOrders;
 
-  /// No description provided for @itemCompleted.
+  /// Message shown when an order item is completed.
   ///
   /// In en, this message translates to:
   /// **'Item completed'**
   String get itemCompleted;
 
-  /// No description provided for @orderListTitle.
+  /// Order list section title.
   ///
   /// In en, this message translates to:
   /// **'Order list'**
   String get orderListTitle;
 
-  /// No description provided for @noOrderRecords.
+  /// Message shown when there are no order records.
   ///
   /// In en, this message translates to:
   /// **'No order records'**
   String get noOrderRecords;
 
-  /// No description provided for @backofficeLoadFailed.
+  /// Message shown when backoffice data fails to load.
   ///
   /// In en, this message translates to:
   /// **'Failed to load backoffice data'**
   String get backofficeLoadFailed;
 
-  /// No description provided for @todayOrders.
+  /// Dashboard label for today's order count.
   ///
   /// In en, this message translates to:
   /// **'Today\'s orders'**
   String get todayOrders;
 
-  /// No description provided for @pendingOrders.
+  /// Dashboard label for pending orders.
   ///
   /// In en, this message translates to:
   /// **'Pending'**
   String get pendingOrders;
 
-  /// No description provided for @todayRevenue.
+  /// Dashboard label for today's revenue.
   ///
   /// In en, this message translates to:
   /// **'Today\'s revenue'**
   String get todayRevenue;
 
-  /// No description provided for @dineInWithTable.
+  /// Order summary text for dine-in orders with table number.
   ///
   /// In en, this message translates to:
   /// **'Dine in | Table {tableNo}'**
   String dineInWithTable(Object tableNo);
 
-  /// No description provided for @takeawayWithPickup.
+  /// Order summary text for takeaway orders with pickup number.
   ///
   /// In en, this message translates to:
   /// **'Takeaway | Pickup no. {pickupNo}'**
   String takeawayWithPickup(Object pickupNo);
 
-  /// No description provided for @createdTime.
+  /// Label for order created time.
   ///
   /// In en, this message translates to:
   /// **'Created time'**
   String get createdTime;
 
-  /// No description provided for @completedTime.
+  /// Label for order completed time.
   ///
   /// In en, this message translates to:
   /// **'Completed time'**
   String get completedTime;
 
-  /// No description provided for @totalItems.
+  /// Label for total item count in an order.
   ///
   /// In en, this message translates to:
   /// **'Total items'**
   String get totalItems;
 
-  /// No description provided for @orderDetailTitle.
+  /// Order detail page or sheet title.
   ///
   /// In en, this message translates to:
   /// **'Order details'**
   String get orderDetailTitle;
 
-  /// No description provided for @orderNumber.
+  /// Label for order number.
   ///
   /// In en, this message translates to:
   /// **'Order no.'**
   String get orderNumber;
 
-  /// No description provided for @statusLabel.
+  /// Generic status label.
   ///
   /// In en, this message translates to:
   /// **'Status'**
   String get statusLabel;
 
-  /// No description provided for @itemsTitle.
+  /// Items section title.
   ///
   /// In en, this message translates to:
   /// **'Items'**
   String get itemsTitle;
 
-  /// No description provided for @statusCreated.
+  /// Order status label for created.
   ///
   /// In en, this message translates to:
   /// **'Created'**
   String get statusCreated;
 
-  /// No description provided for @statusPreparing.
+  /// Order status label for preparing.
   ///
   /// In en, this message translates to:
   /// **'Preparing'**
   String get statusPreparing;
 
-  /// No description provided for @statusCompleted.
+  /// Order status label for completed.
   ///
   /// In en, this message translates to:
   /// **'Completed'**
   String get statusCompleted;
 
-  /// No description provided for @noSpicyConfigured.
+  /// Message shown when no spicy setting is configured.
   ///
   /// In en, this message translates to:
   /// **'No spicy setting'**
   String get noSpicyConfigured;
 
-  /// No description provided for @spicyLevelValue.
+  /// Message displaying a spicy level value.
   ///
   /// In en, this message translates to:
   /// **'Spicy level {level}'**
   String spicyLevelValue(Object level);
 
-  /// No description provided for @quantityWithSpicy.
+  /// Message displaying quantity and spicy level together.
   ///
   /// In en, this message translates to:
   /// **'Qty {qty} | {spicy}'**
   String quantityWithSpicy(Object qty, Object spicy);
 
-  /// No description provided for @spicyNotSelected.
+  /// Message shown when spicy level is not selected.
   ///
   /// In en, this message translates to:
   /// **'Spicy: not selected'**
   String get spicyNotSelected;
 
-  /// No description provided for @spicyPrefix.
+  /// Prefix label for spicy level value.
   ///
   /// In en, this message translates to:
   /// **'Spicy: {value}'**
   String spicyPrefix(Object value);
 
-  /// No description provided for @orderPrefix.
+  /// Prefix label for order number.
   ///
   /// In en, this message translates to:
   /// **'Order {orderNo}'**
   String orderPrefix(Object orderNo);
 
-  /// No description provided for @typePrefix.
+  /// Prefix label for order type value.
   ///
   /// In en, this message translates to:
   /// **'Type: {value}'**
   String typePrefix(Object value);
 
-  /// No description provided for @tablePrefix.
+  /// Prefix label for table value.
   ///
   /// In en, this message translates to:
   /// **'Table: {value}'**
   String tablePrefix(Object value);
 
-  /// No description provided for @pickupPrefix.
+  /// Prefix label for pickup number value.
   ///
   /// In en, this message translates to:
   /// **'Pickup no.: {value}'**
   String pickupPrefix(Object value);
 
-  /// No description provided for @completeAction.
+  /// Action label to complete an item or order.
   ///
   /// In en, this message translates to:
   /// **'Complete'**
   String get completeAction;
 
-  /// No description provided for @orderDetailPageStub.
+  /// Temporary stub text for order detail page.
   ///
   /// In en, this message translates to:
   /// **'Order detail page scaffold created'**
   String get orderDetailPageStub;
 
-  /// No description provided for @enterItemCodeFirst.
+  /// Validation message asking the user to enter an item code first.
   ///
   /// In en, this message translates to:
   /// **'Please enter item code first'**
   String get enterItemCodeFirst;
 
-  /// No description provided for @itemCodeNotFound.
+  /// Message shown when an entered item code is not found.
   ///
   /// In en, this message translates to:
   /// **'Item code {itemCode} not found'**
   String itemCodeNotFound(Object itemCode);
 
-  /// No description provided for @itemAdded.
+  /// Message shown after an item is added to the order.
   ///
   /// In en, this message translates to:
   /// **'Added {itemName}'**
   String itemAdded(Object itemName);
 
-  /// No description provided for @itemRemoved.
+  /// Message shown after an item is removed from the order.
   ///
   /// In en, this message translates to:
   /// **'Removed {itemName}'**
   String itemRemoved(Object itemName);
 
-  /// No description provided for @orderNeedsAtLeastOneItem.
+  /// Validation message shown when trying to submit an empty order.
   ///
   /// In en, this message translates to:
   /// **'An order must contain at least one item'**
   String get orderNeedsAtLeastOneItem;
 
-  /// No description provided for @dineInSelectTable.
+  /// Validation message shown when a dine-in order has no table selected.
   ///
   /// In en, this message translates to:
   /// **'Please select a table for dine-in'**
   String get dineInSelectTable;
 
-  /// No description provided for @takeawaySerialNotReady.
+  /// Message shown when takeaway serial number is not ready.
   ///
   /// In en, this message translates to:
   /// **'Takeaway serial number is not ready yet'**
   String get takeawaySerialNotReady;
 
-  /// No description provided for @spicyMild.
+  /// Spicy level label for mild.
   ///
   /// In en, this message translates to:
   /// **'Mild'**
   String get spicyMild;
 
-  /// No description provided for @spicyMedium.
+  /// Spicy level label for medium.
   ///
   /// In en, this message translates to:
   /// **'Medium'**
   String get spicyMedium;
 
-  /// No description provided for @spicyHot.
+  /// Spicy level label for hot.
   ///
   /// In en, this message translates to:
   /// **'Hot'**
