@@ -1,4 +1,5 @@
 import 'package:pos_kds_app/app_role.dart';
+import 'package:pos_kds_app/data/db/data_access_profile.dart';
 import 'package:pos_kds_app/data/db/database_provider.dart';
 import 'package:pos_kds_app/device_config.dart';
 import 'package:pos_kds_app/sync_mode.dart';
@@ -7,11 +8,13 @@ class DatabaseResolution {
   const DatabaseResolution({
     required this.databaseGetter,
     required this.strategyName,
+    required this.accessProfile,
     this.notes,
   });
 
   final DatabaseGetter databaseGetter;
   final String strategyName;
+  final DataAccessProfile accessProfile;
   final String? notes;
 }
 
@@ -60,7 +63,15 @@ class DatabaseStrategyResolver {
     return const DatabaseResolution(
       databaseGetter: DatabaseProvider.appDatabase,
       strategyName: 'local-frontdesk',
-      notes: 'Frontdesk currently uses the local application database.',
+      accessProfile: DataAccessProfile(
+        canReadMenu: true,
+        canWriteMenu: false,
+        canReadOrders: true,
+        canWriteOrders: true,
+        canCompleteKitchenItems: false,
+        canViewBackofficeSummary: false,
+      ),
+      notes: 'Frontdesk uses local database and can create orders.',
     );
   }
 
@@ -73,6 +84,14 @@ class DatabaseStrategyResolver {
       return const DatabaseResolution(
         databaseGetter: DatabaseProvider.appDatabase,
         strategyName: 'host-linked-kitchen-local-fallback',
+        accessProfile: DataAccessProfile(
+          canReadMenu: true,
+          canWriteMenu: false,
+          canReadOrders: true,
+          canWriteOrders: false,
+          canCompleteKitchenItems: true,
+          canViewBackofficeSummary: false,
+        ),
         notes:
             'Kitchen host-linked mode currently falls back to local database.',
       );
@@ -81,7 +100,15 @@ class DatabaseStrategyResolver {
     return const DatabaseResolution(
       databaseGetter: DatabaseProvider.appDatabase,
       strategyName: 'local-kitchen',
-      notes: 'Kitchen currently uses the local application database.',
+      accessProfile: DataAccessProfile(
+        canReadMenu: true,
+        canWriteMenu: false,
+        canReadOrders: true,
+        canWriteOrders: false,
+        canCompleteKitchenItems: true,
+        canViewBackofficeSummary: false,
+      ),
+      notes: 'Kitchen uses local database and can complete kitchen items.',
     );
   }
 
@@ -93,7 +120,15 @@ class DatabaseStrategyResolver {
     return const DatabaseResolution(
       databaseGetter: DatabaseProvider.appDatabase,
       strategyName: 'local-backoffice',
-      notes: 'Backoffice currently uses the local application database.',
+      accessProfile: DataAccessProfile(
+        canReadMenu: true,
+        canWriteMenu: true,
+        canReadOrders: true,
+        canWriteOrders: false,
+        canCompleteKitchenItems: false,
+        canViewBackofficeSummary: true,
+      ),
+      notes: 'Backoffice uses local database and can manage menu data.',
     );
   }
 
@@ -105,7 +140,15 @@ class DatabaseStrategyResolver {
     return const DatabaseResolution(
       databaseGetter: DatabaseProvider.appDatabase,
       strategyName: 'local-combined',
-      notes: 'Combined mode currently uses the local application database.',
+      accessProfile: DataAccessProfile(
+        canReadMenu: true,
+        canWriteMenu: true,
+        canReadOrders: true,
+        canWriteOrders: true,
+        canCompleteKitchenItems: true,
+        canViewBackofficeSummary: true,
+      ),
+      notes: 'Combined mode has full local access.',
     );
   }
 }

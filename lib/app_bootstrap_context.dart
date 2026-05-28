@@ -1,4 +1,5 @@
 import 'app_role.dart';
+import 'data/db/data_access_profile.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
@@ -15,6 +16,7 @@ class AppBootstrapContext {
     required this.orderRepository,
     required this.resolutionReason,
     required this.databaseStrategyName,
+    required this.dataAccessProfile,
     this.databaseStrategyNotes,
     this.hostDeviceId,
     this.takeoverSourceRole,
@@ -30,6 +32,7 @@ class AppBootstrapContext {
   final String resolutionReason;
   final String databaseStrategyName;
   final String? databaseStrategyNotes;
+  final DataAccessProfile dataAccessProfile;
   final String? hostDeviceId;
   final AppRole? takeoverSourceRole;
 

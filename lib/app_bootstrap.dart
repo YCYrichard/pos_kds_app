@@ -136,6 +136,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
     resolutionReason: resolutionReason,
     databaseStrategyName: databaseResolution.strategyName,
     databaseStrategyNotes: databaseResolution.notes,
+    dataAccessProfile: databaseResolution.accessProfile,
     hostDeviceId: hostDeviceId,
     takeoverSourceRole: takeoverSourceRole,
   );
