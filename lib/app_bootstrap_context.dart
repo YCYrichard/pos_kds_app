@@ -3,6 +3,7 @@ import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
 import 'sync_mode.dart';
+import 'network/network_session.dart';
 
 class AppBootstrapContext {
   const AppBootstrapContext({
@@ -15,6 +16,7 @@ class AppBootstrapContext {
     required this.orderRepository,
     required this.resolutionReason,
     required this.databaseStrategyName,
+    required this.networkSession,
     this.databaseStrategyNotes,
     this.hostDeviceId,
     this.takeoverSourceRole,
@@ -32,6 +34,7 @@ class AppBootstrapContext {
   final String? databaseStrategyNotes;
   final String? hostDeviceId;
   final AppRole? takeoverSourceRole;
+  final NetworkSession networkSession;
 
   bool get isSingleRole => runtimeRole != AppRole.combined;
   bool get canOverrideRole => deviceConfig.allowRoleOverride;

@@ -12,6 +12,10 @@ import 'data/repositories/order_repository.dart';
 import 'device_config.dart';
 import 'device_persistence/device_config_store.dart';
 import 'device_persistence/device_record.dart';
+import 'network/host_api_server.dart';
+import 'network/host_client.dart';
+import 'network/manual_host_config.dart';
+import 'network/network_session.dart';
 import 'role_policy_service.dart';
 import 'sync_mode.dart';
 
@@ -40,8 +44,9 @@ Future<void> bootstrapApp(
   }
 
   final DeviceConfig deviceConfig = _toDeviceConfig(deviceRecord);
-  final String? effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
-      _normalizeNullable(deviceRecord.hostDeviceId);
+  final String? effectiveHostDeviceId =
+      _normalizeNullable(hostDeviceId) ??
+          _normalizeNullable(deviceRecord.hostDeviceId);
 
   const RolePolicyService rolePolicyService = RolePolicyService();
   final resolution = rolePolicyService.resolve(
@@ -101,8 +106,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
   const DatabaseStrategyResolver databaseStrategyResolver =
       DatabaseStrategyResolver();
 
-  final DatabaseResolution databaseResolution =
-      databaseStrategyResolver.resolve(
+  final DatabaseResolution databaseResolution = databaseStrategyResolver.resolve(
     deviceConfig: deviceConfig,
     runtimeRole: runtimeRole,
     resolvedSyncMode: resolvedSyncMode,
@@ -119,6 +123,34 @@ Future<AppBootstrapContext> _createBootstrapContext({
   final OrderRepository orderRepository = OrderRepository(
     databaseGetter: databaseResolution.databaseGetter,
   );
+
+  NetworkSession networkSession = const NetworkSession(mode: 'local');
+
+  if (runtimeRole == AppRole.combined || runtimeRole == AppRole.frontdesk) {
+    final HostApiServer hostApiServer = HostApiServer(
+      menuRepository: menuRepository,
+      orderRepository: orderRepository,
+    );
+    await hostApiServer.start(port: 8787);
+
+    networkSession = NetworkSession(
+      mode: 'host',
+      server: hostApiServer,
+    );
+  } else if (runtimeRole == AppRole.kitchen && hostDeviceId != null) {
+    final ManualHostConfig hostConfig = ManualHostConfig(
+      host: hostDeviceId,
+      port: 8787,
+    );
+    final HostClient hostClient = HostClient(config: hostConfig);
+    await hostClient.healthCheck();
+
+    networkSession = NetworkSession(
+      mode: 'client',
+      hostConfig: hostConfig,
+    );
+  }
+
   final DateTime startedAt = DateTime.now();
 
   return AppBootstrapContext(
@@ -136,6 +168,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
     resolutionReason: resolutionReason,
     databaseStrategyName: databaseResolution.strategyName,
     databaseStrategyNotes: databaseResolution.notes,
+    networkSession: networkSession,
     hostDeviceId: hostDeviceId,
     takeoverSourceRole: takeoverSourceRole,
   );
