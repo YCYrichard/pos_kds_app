@@ -133,4 +133,34 @@ class MenuRepository {
       isActive: json['isActive'] as bool? ?? true,
     );
   }
+
+  // Compatibility wrappers
+
+  Future<void> saveMenuItem(MenuItem item) {
+    return upsertMenuItem(item);
+  }
+
+  Future<MenuItem?> getMenuItemByCode(String itemCode) {
+    return getByCode(itemCode);
+  }
+
+  Future<List<MenuItem>> getMenuItems() {
+    return getAll();
+  }
+
+  Future<List<MenuItem>> getActiveMenuItems() {
+    return getAllActive();
+  }
+
+  Future<void> toggleMenuItemActive(String itemCode, bool isActive) {
+    return setMenuItemActive(itemCode, isActive);
+  }
+
+  Future<void> replaceAll(List<MenuItem> items) {
+    return replaceAllMenuItems(items);
+  }
+
+  Future<void> seedFromAsset(String assetPath) {
+    return seedDefaultMenu(assetPath: assetPath);
+  }
 }
