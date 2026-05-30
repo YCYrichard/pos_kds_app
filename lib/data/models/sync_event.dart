@@ -59,7 +59,8 @@ class SyncEvent {
     final String timestamp = now.toIso8601String();
 
     return SyncEvent(
-      eventId: '${deviceId}_$timestamp\_$action',
+      // 注意：這裡不再用 '\_'，直接用 '_' 即可
+      eventId: '${deviceId}_${timestamp}_$action',
       deviceId: deviceId,
       entityType: entityType,
       entityId: entityId,

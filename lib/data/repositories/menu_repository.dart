@@ -72,7 +72,7 @@ class MenuRepository {
     return result.map(MenuItem.fromMap).toList();
   }
 
-  /// 只從 JSON asset seed 菜單，沒有任何硬編碼 fallback。
+  /// 只從 JSON asset seed 菜單，沒有硬編碼 fallback。
   Future<void> seedDefaultMenu({required String assetPath}) async {
     final List<MenuItem> items = <MenuItem>[];
 
@@ -89,7 +89,7 @@ class MenuRepository {
         }
       }
     } catch (_) {
-      // 讀不到檔或 JSON 壞掉，就不 seed，後面靠 sync 或手動維護。
+      // 讀不到檔或 JSON 壞掉，就不 seed，後續靠 sync 或手動維護。
       return;
     }
 
@@ -140,7 +140,6 @@ class MenuRepository {
       whereArgs: <Object>[itemCode],
     );
 
-    // 讀出最新的 item 狀態（for event payload）
     final updatedRows = await db.query(
       'menu_items',
       where: 'item_code = ?',
@@ -194,6 +193,7 @@ class MenuRepository {
         'isActive': item.isActive,
       },
     );
-    await _syncEventRepository!.append(event);
+    // 這裡把原本的 `!` 拿掉即可，if 已經保證非 null
+    await _syncEventRepository.append(event);
   }
 }
