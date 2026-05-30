@@ -1,24 +1,36 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:pos_kds_app/data/db/database_provider.dart';
-import 'package:pos_kds_app/data/models/menu_item.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../models/menu_item.dart';
+import '../models/sync_event.dart';
+import 'sync_event_repository.dart';
+
+typedef DbGetter = Future<Database> Function();
 
 class MenuRepository {
   MenuRepository({
-    required DatabaseGetter databaseGetter,
-  }) : _databaseGetter = databaseGetter;
+    required DbGetter databaseGetter,
+    required String deviceId,
+    SyncEventRepository? syncEventRepository,
+  })  : _databaseGetter = databaseGetter,
+        _deviceId = deviceId,
+        _syncEventRepository = syncEventRepository;
 
-  final DatabaseGetter _databaseGetter;
+  final DbGetter _databaseGetter;
+  final String _deviceId;
+  final SyncEventRepository? _syncEventRepository;
+
+  Future<Database> get _db async => _databaseGetter();
 
   Future<int> insertMenuItem(MenuItem item) async {
-    final Database db = await _databaseGetter();
+    final db = await _db;
     return db.insert('menu_items', item.toMap());
   }
 
   Future<void> insertIgnore(MenuItem item) async {
-    final Database db = await _databaseGetter();
+    final db = await _db;
     await db.insert(
       'menu_items',
       item.toMap(),
@@ -26,44 +38,9 @@ class MenuRepository {
     );
   }
 
-  Future<void> upsertMenuItem(MenuItem item) async {
-    final Database db = await _databaseGetter();
-    await db.insert(
-      'menu_items',
-      item.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<void> updateMenuItem(MenuItem item) async {
-    final Database db = await _databaseGetter();
-    await db.update(
-      'menu_items',
-      <String, Object?>{
-        'item_name': item.itemName,
-        'price': item.price,
-        'is_active': item.isActive ? 1 : 0,
-      },
-      where: 'item_code = ?',
-      whereArgs: <Object>[item.itemCode],
-    );
-  }
-
-  Future<void> setMenuItemActive(String itemCode, bool isActive) async {
-    final Database db = await _databaseGetter();
-    await db.update(
-      'menu_items',
-      <String, Object?>{
-        'is_active': isActive ? 1 : 0,
-      },
-      where: 'item_code = ?',
-      whereArgs: <Object>[itemCode],
-    );
-  }
-
   Future<MenuItem?> getByCode(String itemCode) async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await _db;
+    final result = await db.query(
       'menu_items',
       where: 'item_code = ? AND is_active = 1',
       whereArgs: <Object>[itemCode],
@@ -73,13 +50,12 @@ class MenuRepository {
     if (result.isEmpty) {
       return null;
     }
-
     return MenuItem.fromMap(result.first);
   }
 
   Future<List<MenuItem>> getAll() async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await _db;
+    final result = await db.query(
       'menu_items',
       orderBy: 'item_code ASC',
     );
@@ -87,8 +63,8 @@ class MenuRepository {
   }
 
   Future<List<MenuItem>> getAllActive() async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await _db;
+    final result = await db.query(
       'menu_items',
       where: 'is_active = 1',
       orderBy: 'item_code ASC',
@@ -96,71 +72,128 @@ class MenuRepository {
     return result.map(MenuItem.fromMap).toList();
   }
 
-  Future<void> replaceAllMenuItems(List<MenuItem> items) async {
-    final Database db = await _databaseGetter();
+  /// 只從 JSON asset seed 菜單，沒有任何硬編碼 fallback。
+  Future<void> seedDefaultMenu({required String assetPath}) async {
+    final List<MenuItem> items = <MenuItem>[];
 
-    await db.transaction((Transaction txn) async {
-      await txn.delete('menu_items');
+    try {
+      final String jsonString = await rootBundle.loadString(assetPath);
+      final dynamic decoded = jsonDecode(jsonString);
 
-      for (final MenuItem item in items) {
-        await txn.insert('menu_items', item.toMap());
+      if (decoded is List) {
+        for (final dynamic raw in decoded) {
+          if (raw is! Map<String, dynamic>) {
+            continue;
+          }
+          items.add(_fromJson(raw));
+        }
       }
-    });
-  }
+    } catch (_) {
+      // 讀不到檔或 JSON 壞掉，就不 seed，後面靠 sync 或手動維護。
+      return;
+    }
 
-  Future<void> seedDefaultMenu({
-    required String assetPath,
-  }) async {
-    final String jsonString = await rootBundle.loadString(assetPath);
-    final List<dynamic> rawList = jsonDecode(jsonString) as List<dynamic>;
-
-    final List<MenuItem> items = rawList
-        .map(
-          (dynamic entry) => _menuItemFromJson(entry as Map<String, dynamic>),
-        )
-        .toList();
+    if (items.isEmpty) {
+      return;
+    }
 
     for (final MenuItem item in items) {
       await insertIgnore(item);
+      await _emitMenuUpsertEvent(item);
     }
   }
 
-  MenuItem _menuItemFromJson(Map<String, dynamic> json) {
+  /// 建立或更新一筆菜單資料（依 itemCode 判斷是否存在）
+  Future<void> upsertMenuItem(MenuItem item) async {
+    final db = await _db;
+
+    final existing = await db.query(
+      'menu_items',
+      where: 'item_code = ?',
+      whereArgs: <Object>[item.itemCode],
+      limit: 1,
+    );
+
+    if (existing.isEmpty) {
+      await db.insert('menu_items', item.toMap());
+    } else {
+      await db.update(
+        'menu_items',
+        item.toMap(),
+        where: 'item_code = ?',
+        whereArgs: <Object>[item.itemCode],
+      );
+    }
+
+    await _emitMenuUpsertEvent(item);
+  }
+
+  Future<void> setMenuItemActive(String itemCode, bool isActive) async {
+    final db = await _db;
+
+    await db.update(
+      'menu_items',
+      <String, Object?>{
+        'is_active': isActive ? 1 : 0,
+      },
+      where: 'item_code = ?',
+      whereArgs: <Object>[itemCode],
+    );
+
+    // 讀出最新的 item 狀態（for event payload）
+    final updatedRows = await db.query(
+      'menu_items',
+      where: 'item_code = ?',
+      whereArgs: <Object>[itemCode],
+      limit: 1,
+    );
+    if (updatedRows.isEmpty) {
+      return;
+    }
+    final updatedItem = MenuItem.fromMap(updatedRows.first);
+    await _emitMenuUpsertEvent(updatedItem);
+  }
+
+  MenuItem _fromJson(Map<String, dynamic> map) {
+    final String code = (map['item_code'] ?? map['itemCode']) as String? ?? '';
+    final String name = (map['item_name'] ?? map['itemName']) as String? ?? '';
+    final int price = (map['price'] as num?)?.toInt() ?? 0;
+
+    final dynamic activeRaw = map['is_active'] ?? map['isActive'];
+    bool isActive;
+    if (activeRaw is bool) {
+      isActive = activeRaw;
+    } else if (activeRaw is num) {
+      isActive = activeRaw.toInt() != 0;
+    } else {
+      isActive = true;
+    }
+
     return MenuItem(
-      itemCode: json['itemCode'] as String,
-      itemName: json['itemName'] as String,
-      price: (json['price'] as num).toInt(),
-      isActive: json['isActive'] as bool? ?? true,
+      itemCode: code,
+      itemName: name,
+      price: price,
+      isActive: isActive,
     );
   }
 
-  // Compatibility wrappers
+  Future<void> _emitMenuUpsertEvent(MenuItem item) async {
+    if (_syncEventRepository == null) {
+      return;
+    }
 
-  Future<void> saveMenuItem(MenuItem item) {
-    return upsertMenuItem(item);
-  }
-
-  Future<MenuItem?> getMenuItemByCode(String itemCode) {
-    return getByCode(itemCode);
-  }
-
-  Future<List<MenuItem>> getMenuItems() {
-    return getAll();
-  }
-
-  Future<List<MenuItem>> getActiveMenuItems() {
-    return getAllActive();
-  }
-
-  Future<void> toggleMenuItemActive(String itemCode, bool isActive) {
-    return setMenuItemActive(itemCode, isActive);
-  }
-
-  Future<void> replaceAll(List<MenuItem> items) {
-    return replaceAllMenuItems(items);
-  }
-
-  Future<void> seedFromAsset(String assetPath) {
-    return seedDefaultMenu(assetPath: assetPath);
+    final SyncEvent event = SyncEvent.create(
+      deviceId: _deviceId,
+      entityType: 'menuItem',
+      entityId: item.itemCode,
+      action: 'menuUpsert',
+      payload: <String, Object?>{
+        'itemCode': item.itemCode,
+        'itemName': item.itemName,
+        'price': item.price,
+        'isActive': item.isActive,
+      },
+    );
+    await _syncEventRepository!.append(event);
   }
 }

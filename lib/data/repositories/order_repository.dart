@@ -1,6 +1,4 @@
-import 'package:sqflite/sqflite.dart';
-
-import '../db/database_provider.dart';
+import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 import '../order_event_bus.dart';
@@ -30,22 +28,16 @@ class OrderDashboardSummary {
 }
 
 class OrderRepository {
-  OrderRepository({
-    required DatabaseGetter databaseGetter,
-  }) : _databaseGetter = databaseGetter;
-
-  final DatabaseGetter _databaseGetter;
-
   Future<int> createOrder({
     required OrderEntity order,
     required List<OrderItemEntity> items,
   }) async {
-    final Database db = await _databaseGetter();
+    final db = await AppDatabase.database;
 
-    final int orderId = await db.transaction<int>((Transaction txn) async {
-      final int createdOrderId = await txn.insert('orders', order.toMap());
+    final orderId = await db.transaction((txn) async {
+      final createdOrderId = await txn.insert('orders', order.toMap());
 
-      for (final OrderItemEntity item in items) {
+      for (final item in items) {
         await txn.insert(
           'order_items',
           OrderItemEntity(
@@ -70,32 +62,29 @@ class OrderRepository {
   Future<List<OrderEntity>> getActiveOrders({
     KitchenSortOption sortOption = KitchenSortOption.oldestFirst,
   }) async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await AppDatabase.database;
+    final result = await db.query(
       'orders',
       where: 'status != ?',
-      whereArgs: <Object>['completed'],
+      whereArgs: ['completed'],
       orderBy: sortOption == KitchenSortOption.newestFirst
           ? 'created_at DESC'
           : 'created_at ASC',
     );
 
-    return result.map(OrderEntity.fromMap).toList();
+    return result.map((row) => OrderEntity.fromMap(row)).toList();
   }
 
   Future<List<OrderBundle>> getActiveOrderBundles({
     KitchenSortOption sortOption = KitchenSortOption.oldestFirst,
   }) async {
-    final List<OrderEntity> orders =
-        await getActiveOrders(sortOption: sortOption);
-    final List<OrderBundle> bundles = <OrderBundle>[];
+    final orders = await getActiveOrders(sortOption: sortOption);
+    final bundles = <OrderBundle>[];
 
-    for (final OrderEntity order in orders) {
-      if (order.id == null) {
-        continue;
-      }
+    for (final order in orders) {
+      if (order.id == null) continue;
 
-      final List<OrderItemEntity> items = await getOrderItems(order.id!);
+      final items = await getOrderItems(order.id!);
       bundles.add(
         OrderBundle(
           order: order,
@@ -108,25 +97,23 @@ class OrderRepository {
   }
 
   Future<List<OrderEntity>> getAllOrders() async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await AppDatabase.database;
+    final result = await db.query(
       'orders',
       orderBy: 'created_at DESC',
     );
 
-    return result.map(OrderEntity.fromMap).toList();
+    return result.map((row) => OrderEntity.fromMap(row)).toList();
   }
 
   Future<List<OrderBundle>> getAllOrderBundles() async {
-    final List<OrderEntity> orders = await getAllOrders();
-    final List<OrderBundle> bundles = <OrderBundle>[];
+    final orders = await getAllOrders();
+    final bundles = <OrderBundle>[];
 
-    for (final OrderEntity order in orders) {
-      if (order.id == null) {
-        continue;
-      }
+    for (final order in orders) {
+      if (order.id == null) continue;
 
-      final List<OrderItemEntity> items = await getOrderItems(order.id!);
+      final items = await getOrderItems(order.id!);
       bundles.add(
         OrderBundle(
           order: order,
@@ -139,22 +126,22 @@ class OrderRepository {
   }
 
   Future<List<OrderItemEntity>> getOrderItems(int orderId) async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await AppDatabase.database;
+    final result = await db.query(
       'order_items',
       where: 'order_id = ?',
-      whereArgs: <Object>[orderId],
+      whereArgs: [orderId],
       orderBy: 'id ASC',
     );
 
-    return result.map(OrderItemEntity.fromMap).toList();
+    return result.map((row) => OrderItemEntity.fromMap(row)).toList();
   }
 
   Future<List<String>> getOccupiedTableNumbers() async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await AppDatabase.database;
+    final result = await db.query(
       'orders',
-      columns: <String>['table_no'],
+      columns: ['table_no'],
       where: '''
 order_type = ?
 AND status != ?
@@ -162,37 +149,37 @@ AND released_at IS NULL
 AND table_no IS NOT NULL
 AND table_no != ?
 ''',
-      whereArgs: <Object>['dineIn', 'completed', ''],
+      whereArgs: ['dineIn', 'completed', ''],
     );
 
-    final Set<String> tableSet = <String>{};
+    final tableSet = <String>{};
 
-    for (final Map<String, Object?> row in result) {
-      final String value = (row['table_no'] as String?)?.trim() ?? '';
+    for (final row in result) {
+      final value = (row['table_no'] as String?)?.trim() ?? '';
       if (value.isNotEmpty) {
         tableSet.add(value);
       }
     }
 
-    final List<String> tables = tableSet.toList()..sort();
+    final tables = tableSet.toList()..sort();
     return tables;
   }
 
   Future<int> getNextTakeawaySerial() async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> result = await db.query(
+    final db = await AppDatabase.database;
+    final result = await db.query(
       'orders',
-      columns: <String>['pickup_no'],
+      columns: ['pickup_no'],
       where: 'order_type = ? AND pickup_no IS NOT NULL AND pickup_no != ?',
-      whereArgs: <Object>['takeaway', ''],
+      whereArgs: ['takeaway', ''],
       orderBy: 'id DESC',
     );
 
-    int maxSerial = 100;
+    var maxSerial = 100;
 
-    for (final Map<String, Object?> row in result) {
-      final String raw = (row['pickup_no'] as String?)?.trim() ?? '';
-      final int? parsed = int.tryParse(raw);
+    for (final row in result) {
+      final raw = (row['pickup_no'] as String?)?.trim() ?? '';
+      final parsed = int.tryParse(raw);
       if (parsed != null && parsed > maxSerial) {
         maxSerial = parsed;
       }
@@ -202,49 +189,45 @@ AND table_no != ?
   }
 
   Future<void> releaseTable(String tableNo) async {
-    final Database db = await _databaseGetter();
+    final db = await AppDatabase.database;
     await db.update(
       'orders',
-      <String, Object?>{
-        'released_at': DateTime.now().toIso8601String(),
-      },
+      {'released_at': DateTime.now().toIso8601String()},
       where: '''
 order_type = ?
 AND status != ?
 AND released_at IS NULL
 AND table_no = ?
 ''',
-      whereArgs: <Object>['dineIn', 'completed', tableNo],
+      whereArgs: ['dineIn', 'completed', tableNo],
     );
 
     OrderEventBus.instance.emitTableReleased(tableNo: tableNo);
   }
 
   Future<void> completeOrderItem(int itemId) async {
-    final Database db = await _databaseGetter();
+    final db = await AppDatabase.database;
 
     await db.update(
       'order_items',
-      <String, Object?>{
+      {
         'status': 'completed',
         'completed_at': DateTime.now().toIso8601String(),
       },
       where: 'id = ?',
-      whereArgs: <Object>[itemId],
+      whereArgs: [itemId],
     );
 
-    final List<Map<String, Object?>> itemRow = await db.query(
+    final itemRow = await db.query(
       'order_items',
       where: 'id = ?',
-      whereArgs: <Object>[itemId],
+      whereArgs: [itemId],
       limit: 1,
     );
 
-    if (itemRow.isEmpty) {
-      return;
-    }
+    if (itemRow.isEmpty) return;
 
-    final int orderId = itemRow.first['order_id'] as int;
+    final orderId = itemRow.first['order_id'] as int;
     await refreshOrderStatus(orderId);
 
     OrderEventBus.instance.emitOrderUpdated(
@@ -254,40 +237,34 @@ AND table_no = ?
   }
 
   Future<void> refreshOrderStatus(int orderId) async {
-    final Database db = await _databaseGetter();
-    final List<Map<String, Object?>> items = await db.query(
+    final db = await AppDatabase.database;
+    final items = await db.query(
       'order_items',
       where: 'order_id = ?',
-      whereArgs: <Object>[orderId],
+      whereArgs: [orderId],
     );
 
-    if (items.isEmpty) {
-      return;
-    }
+    if (items.isEmpty) return;
 
-    final bool allCompleted =
-        items.every((Map<String, Object?> e) => e['status'] == 'completed');
-    final bool anyCompleted =
-        items.any((Map<String, Object?> e) => e['status'] == 'completed');
+    final allCompleted = items.every((e) => e['status'] == 'completed');
+    final anyCompleted = items.any((e) => e['status'] == 'completed');
 
     if (allCompleted) {
       await db.update(
         'orders',
-        <String, Object?>{
+        {
           'status': 'completed',
           'completed_at': DateTime.now().toIso8601String(),
         },
         where: 'id = ?',
-        whereArgs: <Object>[orderId],
+        whereArgs: [orderId],
       );
     } else if (anyCompleted) {
       await db.update(
         'orders',
-        <String, Object?>{
-          'status': 'preparing',
-        },
+        {'status': 'preparing'},
         where: 'id = ?',
-        whereArgs: <Object>[orderId],
+        whereArgs: [orderId],
       );
     }
 
@@ -295,30 +272,30 @@ AND table_no = ?
   }
 
   Future<OrderDashboardSummary> getDashboardSummary() async {
-    final Database db = await _databaseGetter();
+    final db = await AppDatabase.database;
 
-    final DateTime now = DateTime.now();
-    final String todayStart = DateTime(
+    final now = DateTime.now();
+    final todayStart = DateTime(
       now.year,
       now.month,
       now.day,
     ).toIso8601String();
-    final String tomorrowStart = DateTime(
+    final tomorrowStart = DateTime(
       now.year,
       now.month,
       now.day + 1,
     ).toIso8601String();
 
-    final List<Map<String, Object?>> totalOrdersResult = await db.rawQuery(
+    final totalOrdersResult = await db.rawQuery(
       '''
 SELECT COUNT(*) AS count
 FROM orders
 WHERE created_at >= ? AND created_at < ?
 ''',
-      <Object>[todayStart, tomorrowStart],
+      [todayStart, tomorrowStart],
     );
 
-    final List<Map<String, Object?>> pendingOrdersResult = await db.rawQuery(
+    final pendingOrdersResult = await db.rawQuery(
       '''
 SELECT COUNT(*) AS count
 FROM orders
@@ -326,7 +303,7 @@ WHERE status != 'completed'
 ''',
     );
 
-    final List<Map<String, Object?>> revenueResult = await db.rawQuery(
+    final revenueResult = await db.rawQuery(
       '''
 SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
 FROM orders o
@@ -334,7 +311,7 @@ JOIN order_items oi ON oi.order_id = o.id
 JOIN menu_items mi ON mi.item_code = oi.item_code
 WHERE o.created_at >= ? AND o.created_at < ?
 ''',
-      <Object>[todayStart, tomorrowStart],
+      [todayStart, tomorrowStart],
     );
 
     return OrderDashboardSummary(

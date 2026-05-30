@@ -9,6 +9,7 @@ import 'bootstrap_guard_mismatch.dart';
 import 'data/db/database_strategy.dart';
 import 'data/repositories/menu_repository.dart';
 import 'data/repositories/order_repository.dart';
+import 'data/repositories/sync_event_repository.dart';
 import 'device_config.dart';
 import 'device_persistence/device_config_store.dart';
 import 'device_persistence/device_record.dart';
@@ -44,9 +45,8 @@ Future<void> bootstrapApp(
   }
 
   final DeviceConfig deviceConfig = _toDeviceConfig(deviceRecord);
-  final String? effectiveHostDeviceId =
-      _normalizeNullable(hostDeviceId) ??
-          _normalizeNullable(deviceRecord.hostDeviceId);
+  final String? effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
+      _normalizeNullable(deviceRecord.hostDeviceId);
 
   const RolePolicyService rolePolicyService = RolePolicyService();
   final resolution = rolePolicyService.resolve(
@@ -106,23 +106,29 @@ Future<AppBootstrapContext> _createBootstrapContext({
   const DatabaseStrategyResolver databaseStrategyResolver =
       DatabaseStrategyResolver();
 
-  final DatabaseResolution databaseResolution = databaseStrategyResolver.resolve(
+  final DatabaseResolution databaseResolution =
+      databaseStrategyResolver.resolve(
     deviceConfig: deviceConfig,
     runtimeRole: runtimeRole,
     resolvedSyncMode: resolvedSyncMode,
     hostDeviceId: hostDeviceId,
   );
 
-  final MenuRepository menuRepository = MenuRepository(
+  final SyncEventRepository syncEventRepository = SyncEventRepository(
     databaseGetter: databaseResolution.databaseGetter,
   );
+
+  final MenuRepository menuRepository = MenuRepository(
+    databaseGetter: databaseResolution.databaseGetter,
+    deviceId: deviceConfig.deviceId,
+    syncEventRepository: syncEventRepository,
+  );
+
   await menuRepository.seedDefaultMenu(
     assetPath: 'assets/menu/default_menu.json',
   );
 
-  final OrderRepository orderRepository = OrderRepository(
-    databaseGetter: databaseResolution.databaseGetter,
-  );
+  final OrderRepository orderRepository = OrderRepository();
 
   NetworkSession networkSession = const NetworkSession(mode: 'local');
 
