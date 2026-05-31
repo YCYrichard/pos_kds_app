@@ -1,3 +1,5 @@
+// lib/data/db/schema.dart
+
 const String createMenuItemsTable = '''
 CREATE TABLE menu_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,5 +36,19 @@ CREATE TABLE order_items (
   status TEXT NOT NULL,
   completed_at TEXT,
   FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+''';
+
+const String createSyncEventsTable = '''
+CREATE TABLE sync_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL UNIQUE,
+  device_id TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  hlc TEXT NOT NULL,
+  created_at TEXT NOT NULL
 );
 ''';
