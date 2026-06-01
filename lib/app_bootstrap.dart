@@ -1,3 +1,5 @@
+// lib/app_bootstrap.dart
+
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +21,7 @@ import 'network/manual_host_config.dart';
 import 'network/network_session.dart';
 import 'role_policy_service.dart';
 import 'sync_mode.dart';
+import 'sync/menu_sync_service.dart';
 
 Future<void> bootstrapApp(
   AppRole installedRole, {
@@ -124,6 +127,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
     syncEventRepository: syncEventRepository,
   );
 
+  // Host 端 seed 時會同步 emit menuUpsert 事件
   await menuRepository.seedDefaultMenu(
     assetPath: 'assets/menu/default_menu.json',
   );
@@ -133,9 +137,11 @@ Future<AppBootstrapContext> _createBootstrapContext({
   NetworkSession networkSession = const NetworkSession(mode: 'local');
 
   if (runtimeRole == AppRole.combined || runtimeRole == AppRole.frontdesk) {
+    // Host 模式：啟動 HostApiServer
     final HostApiServer hostApiServer = HostApiServer(
       menuRepository: menuRepository,
       orderRepository: orderRepository,
+      syncEventRepository: syncEventRepository,
     );
     await hostApiServer.start(port: 8787);
 
@@ -144,12 +150,23 @@ Future<AppBootstrapContext> _createBootstrapContext({
       server: hostApiServer,
     );
   } else if (runtimeRole == AppRole.kitchen && hostDeviceId != null) {
+    // Client 模式（目前針對 kitchen）：建立 HostClient，啟動時先做一次 menu sync
     final ManualHostConfig hostConfig = ManualHostConfig(
       host: hostDeviceId,
       port: 8787,
     );
     final HostClient hostClient = HostClient(config: hostConfig);
+
+    // 確認 host 還活著
     await hostClient.healthCheck();
+
+    // 啟動時先做一次 menu sync（之後可以再加定期 sync）
+    final MenuSyncService menuSyncService = MenuSyncService(
+      localMenuRepository: menuRepository,
+      hostClient: hostClient,
+      syncStateStore: InMemorySyncStateStore(),
+    );
+    await menuSyncService.syncOnce();
 
     networkSession = NetworkSession(
       mode: 'client',
