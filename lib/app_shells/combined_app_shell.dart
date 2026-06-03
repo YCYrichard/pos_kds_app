@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_bootstrap_context.dart';
 import '../data/repositories/menu_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../features/backoffice/backoffice_controller.dart';
@@ -31,6 +32,7 @@ class _CombinedAppShellState extends State<CombinedAppShell> {
 
     final menuRepository = context.read<MenuRepository>();
     final orderRepository = context.read<OrderRepository>();
+    final bootstrapContext = context.read<AppBootstrapContext>();
 
     _frontdeskController = FrontdeskController(
       menuRepository: menuRepository,
@@ -39,6 +41,7 @@ class _CombinedAppShellState extends State<CombinedAppShell> {
 
     _kitchenController = KitchenController(
       orderRepository: orderRepository,
+      networkSession: bootstrapContext.networkSession,
     )..loadOrders();
 
     _backofficeController = BackofficeController(

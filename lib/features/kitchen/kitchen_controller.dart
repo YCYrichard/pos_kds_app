@@ -6,6 +6,7 @@ import '../../data/models/order.dart';
 import '../../data/models/order_item.dart';
 import '../../data/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
+import '../../network/network_session.dart';
 
 class KitchenOrderBundle {
   final OrderEntity order;
@@ -24,14 +25,18 @@ class KitchenMessage {
 }
 
 class KitchenController extends ChangeNotifier {
-  KitchenController({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository {
+  KitchenController({
+    required OrderRepository orderRepository,
+    NetworkSession? networkSession,
+  })  : _orderRepository = orderRepository,
+        _networkSession = networkSession {
     _orderEventSubscription = OrderEventBus.instance.stream.listen(
       _handleOrderEvent,
     );
   }
 
   final OrderRepository _orderRepository;
+  final NetworkSession? _networkSession;
   StreamSubscription<OrderEvent>? _orderEventSubscription;
 
   bool _loading = false;
@@ -45,6 +50,10 @@ class KitchenController extends ChangeNotifier {
   List<KitchenOrderBundle> get orders =>
       List<KitchenOrderBundle>.unmodifiable(_orders);
   KitchenSortOption get sortOption => _sortOption;
+
+  bool get _shouldUseRemoteOrderMirror =>
+      _networkSession?.isClient == true &&
+      _networkSession?.orderMirrorSyncService != null;
 
   void _clearMessage() {
     _messageKey = null;
@@ -64,6 +73,10 @@ class KitchenController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (_shouldUseRemoteOrderMirror) {
+        await _networkSession!.orderMirrorSyncService!.syncActiveOrdersOnce();
+      }
+
       final bundles = await _orderRepository.getActiveOrderBundles(
         sortOption: _sortOption,
       );
@@ -107,7 +120,13 @@ class KitchenController extends ChangeNotifier {
 
   Future<void> completeItem(int itemId) async {
     try {
-      await _orderRepository.completeOrderItem(itemId);
+      if (_shouldUseRemoteOrderMirror) {
+        await _networkSession!.orderMirrorSyncService!
+            .completeOrderItemAndRefresh(itemId);
+      } else {
+        await _orderRepository.completeOrderItem(itemId);
+      }
+
       await loadOrders();
       _setMessage(KitchenMessage.itemCompleted);
       notifyListeners();

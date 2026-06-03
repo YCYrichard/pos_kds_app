@@ -66,6 +66,8 @@ class _KitchenViewState extends State<_KitchenView> {
             controller.loadOrders();
           }
           break;
+        default:
+          break;
       }
     });
   }
@@ -120,6 +122,8 @@ class _KitchenViewState extends State<_KitchenView> {
         return l10n.noPendingOrders;
       case KitchenMessage.itemCompleted:
         return l10n.itemCompleted;
+      case KitchenMessage.loadFailed:
+        return l10n.commonLoadFailed;
       default:
         return null;
     }

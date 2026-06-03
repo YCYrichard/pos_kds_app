@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_bootstrap_context.dart';
 import '../data/repositories/order_repository.dart';
 import '../features/kitchen/kitchen_controller.dart';
 import '../features/kitchen/kitchen_page.dart';
@@ -20,9 +21,11 @@ class _KitchenAppShellState extends State<KitchenAppShell> {
     super.initState();
 
     final orderRepository = context.read<OrderRepository>();
+    final bootstrapContext = context.read<AppBootstrapContext>();
 
     _kitchenController = KitchenController(
       orderRepository: orderRepository,
+      networkSession: bootstrapContext.networkSession,
     )..loadOrders();
   }
 
