@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../db/app_database.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
@@ -319,5 +321,90 @@ WHERE o.created_at >= ? AND o.created_at < ?
       pendingOrders: (pendingOrdersResult.first['count'] as int?) ?? 0,
       todayRevenue: (revenueResult.first['total'] as int?) ?? 0,
     );
+  }
+
+  Future<void> replaceActiveOrderBundles(List<OrderBundle> bundles) async {
+    final db = await AppDatabase.database;
+
+    await db.transaction((txn) async {
+      await txn.delete(
+        'order_items',
+        where: '''
+order_id IN (
+  SELECT id FROM orders WHERE status != ?
+)
+''',
+        whereArgs: ['completed'],
+      );
+
+      await txn.delete(
+        'orders',
+        where: 'status != ?',
+        whereArgs: ['completed'],
+      );
+
+      for (final OrderBundle bundle in bundles) {
+        final int localOrderId = await _upsertMirroredOrder(
+          txn: txn,
+          order: bundle.order,
+        );
+        await _replaceMirroredOrderItems(
+          txn: txn,
+          orderId: localOrderId,
+          items: bundle.items,
+        );
+      }
+    });
+
+    OrderEventBus.instance.emitOrderUpdated();
+  }
+
+  Future<int> _upsertMirroredOrder({
+    required Transaction txn,
+    required OrderEntity order,
+  }) async {
+    final existing = await txn.query(
+      'orders',
+      where: 'order_no = ?',
+      whereArgs: [order.orderNo],
+      limit: 1,
+    );
+
+    final Map<String, Object?> values = Map<String, Object?>.from(order.toMap())
+      ..remove('id');
+
+    if (existing.isEmpty) {
+      return txn.insert('orders', values);
+    }
+
+    final int existingId = existing.first['id'] as int;
+    await txn.update(
+      'orders',
+      values,
+      where: 'id = ?',
+      whereArgs: [existingId],
+    );
+    return existingId;
+  }
+
+  Future<void> _replaceMirroredOrderItems({
+    required Transaction txn,
+    required int orderId,
+    required List<OrderItemEntity> items,
+  }) async {
+    await txn.delete(
+      'order_items',
+      where: 'order_id = ?',
+      whereArgs: [orderId],
+    );
+
+    for (final item in items) {
+      final Map<String, Object?> values =
+          Map<String, Object?>.from(item.toMap())
+            ..remove('id')
+            ..['order_id'] = orderId;
+
+      await txn.insert('order_items', values);
+    }
   }
 }
