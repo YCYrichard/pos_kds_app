@@ -29,9 +29,9 @@ class MenuRepository {
     return db.insert('menu_items', item.toMap());
   }
 
-  Future<void> insertIgnore(MenuItem item) async {
+  Future<int> insertIgnore(MenuItem item) async {
     final db = await _db;
-    await db.insert(
+    return db.insert(
       'menu_items',
       item.toMap(),
       conflictAlgorithm: ConflictAlgorithm.ignore,
@@ -96,8 +96,10 @@ class MenuRepository {
     }
 
     for (final MenuItem item in items) {
-      await insertIgnore(item);
-      await _emitMenuUpsertEvent(item);
+      final int insertedId = await insertIgnore(item);
+      if (insertedId > 0) {
+        await _emitMenuUpsertEvent(item);
+      }
     }
   }
 
@@ -126,6 +128,31 @@ class MenuRepository {
     }
 
     await _emitMenuUpsertEvent(item);
+  }
+
+  Future<void> applyRemoteUpsertMenuItem(MenuItem item) async {
+    final db = await _db;
+
+    final existing = await db.query(
+      'menu_items',
+      where: 'item_code = ?',
+      whereArgs: <Object>[item.itemCode],
+      limit: 1,
+    );
+
+    final Map<String, Object?> values = Map<String, Object?>.from(item.toMap())
+      ..remove('id');
+
+    if (existing.isEmpty) {
+      await db.insert('menu_items', values);
+    } else {
+      await db.update(
+        'menu_items',
+        values,
+        where: 'item_code = ?',
+        whereArgs: <Object>[item.itemCode],
+      );
+    }
   }
 
   Future<void> setMenuItemActive(String itemCode, bool isActive) async {

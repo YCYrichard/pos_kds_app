@@ -69,7 +69,7 @@ class MenuSyncService {
         continue;
       }
 
-      await localMenuRepository.upsertMenuItem(item);
+      await localMenuRepository.applyRemoteUpsertMenuItem(item);
 
       if (maxHlc == null || hlc.compareTo(maxHlc) > 0) {
         maxHlc = hlc;
