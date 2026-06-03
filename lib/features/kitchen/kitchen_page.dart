@@ -66,8 +66,6 @@ class _KitchenViewState extends State<_KitchenView> {
             controller.loadOrders();
           }
           break;
-        default:
-          break;
       }
     });
   }
