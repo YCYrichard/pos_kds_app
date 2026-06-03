@@ -1,18 +1,15 @@
-// lib/sync/menu_sync_service.dart
-
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:pos_kds_app/data/models/menu_item.dart';
 import 'package:pos_kds_app/data/repositories/menu_repository.dart';
 import 'package:pos_kds_app/network/host_client.dart';
 
-/// 抽象化同步狀態存取，之後可以換成 DB 實作
 abstract class SyncStateStore {
   Future<String?> getLastAppliedMenuHlc();
   Future<void> setLastAppliedMenuHlc(String hlc);
 }
 
-/// 目前先用記憶體實作，App 重啟就會重置
 class InMemorySyncStateStore implements SyncStateStore {
   String? _lastMenuHlc;
 
@@ -25,7 +22,6 @@ class InMemorySyncStateStore implements SyncStateStore {
   }
 }
 
-/// Client 端菜單同步：從 host 拉 menuItem 相關 sync events，套用到本地 menu_items
 class MenuSyncService {
   MenuSyncService({
     required this.localMenuRepository,
@@ -37,13 +33,10 @@ class MenuSyncService {
   final HostClient hostClient;
   final SyncStateStore syncStateStore;
 
-  /// 單次同步流程：pull → filter → apply → update last HLC
   Future<void> syncOnce() async {
-    // 1. 讀取目前已套用的最後 HLC（exclusive）
     final String? lastHlc = await syncStateStore.getLastAppliedMenuHlc();
-
-    // 2. 從 host 拉事件
-    final events = await hostClient.getSyncEventsSince(lastHlc);
+    final List<Map<String, dynamic>> events =
+        await hostClient.getSyncEventsSince(lastHlc);
 
     if (events.isEmpty) {
       return;
@@ -51,33 +44,33 @@ class MenuSyncService {
 
     String? maxHlc;
 
-    for (final event in events) {
-      final String? entityType =
-          (event['entity_type'] ?? event['entityType']) as String?;
-      final String? action = event['action'] as String?;
-      final String? payloadJson =
-          (event['payload_json'] ?? event['payloadJson']) as String?;
-      final String? hlc = event['hlc'] as String?;
+    for (final Map<String, dynamic> event in events) {
+      final String? entityType = _asString(event['entity_type']);
+      final String? action = _asString(event['action']);
+      final String? payloadJson = _asString(event['payload_json']);
+      final String? hlc = _asString(event['hlc']);
 
       if (entityType != 'menuItem' || action != 'menuUpsert') {
         continue;
       }
-      if (payloadJson == null || hlc == null) {
+
+      if (payloadJson == null || payloadJson.isEmpty || hlc == null) {
+        debugPrint(
+          'MenuSyncService: skip invalid event, missing payload_json or hlc: $event',
+        );
         continue;
       }
 
-      // 3. decode payload 建立 MenuItem
-      final decoded = jsonDecode(payloadJson);
-      if (decoded is! Map<String, dynamic>) {
+      final MenuItem? item = _tryParseMenuItemPayload(payloadJson);
+      if (item == null) {
+        debugPrint(
+          'MenuSyncService: skip invalid menu payload_json: $payloadJson',
+        );
         continue;
       }
 
-      final MenuItem item = _menuItemFromPayload(decoded);
-
-      // 4. 套用到本地 menu_items（upsert）
       await localMenuRepository.upsertMenuItem(item);
 
-      // 5. 更新本輪最大 HLC
       if (maxHlc == null || hlc.compareTo(maxHlc) > 0) {
         maxHlc = hlc;
       }
@@ -88,27 +81,62 @@ class MenuSyncService {
     }
   }
 
-  /// 這裡的 mapping 盡量跟 MenuRepository._fromJson 保持一致
-  MenuItem _menuItemFromPayload(Map<String, dynamic> map) {
-    final String code = (map['item_code'] ?? map['itemCode']) as String? ?? '';
-    final String name = (map['item_name'] ?? map['itemName']) as String? ?? '';
-    final int price = (map['price'] as num?)?.toInt() ?? 0;
+  MenuItem? _tryParseMenuItemPayload(String payloadJson) {
+    final dynamic decoded = jsonDecode(payloadJson);
 
-    final dynamic activeRaw = map['is_active'] ?? map['isActive'];
-    bool isActive;
-    if (activeRaw is bool) {
-      isActive = activeRaw;
-    } else if (activeRaw is num) {
-      isActive = activeRaw.toInt() != 0;
-    } else {
-      isActive = true;
+    if (decoded is! Map) {
+      return null;
+    }
+
+    final Map<String, dynamic> map = Map<String, dynamic>.from(decoded);
+
+    final String? itemCode = _asString(map['itemCode'] ?? map['item_code']);
+    final String? itemName = _asString(map['itemName'] ?? map['item_name']);
+    final int? price = _asInt(map['price']);
+    final bool isActive = _asBool(map['isActive'] ?? map['is_active']) ?? true;
+
+    if (itemCode == null || itemCode.isEmpty) {
+      return null;
+    }
+    if (itemName == null || itemName.isEmpty) {
+      return null;
+    }
+    if (price == null) {
+      return null;
     }
 
     return MenuItem(
-      itemCode: code,
-      itemName: name,
+      itemCode: itemCode,
+      itemName: itemName,
       price: price,
       isActive: isActive,
     );
+  }
+
+  String? _asString(Object? value) {
+    if (value is String) {
+      return value;
+    }
+    return null;
+  }
+
+  int? _asInt(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
+  }
+
+  bool? _asBool(Object? value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is int) {
+      return value != 0;
+    }
+    return null;
   }
 }

@@ -46,11 +46,38 @@ class HostClient {
     _ensureOk(response);
   }
 
+  /// NEW: fetch sync events from host since given HLC (exclusive).
+  Future<List<Map<String, dynamic>>> getSyncEventsSince(
+    String? minHlcExclusive,
+  ) async {
+    final Uri baseUri = Uri.parse('${config.baseUrl}/sync/events');
+    final Uri uri = minHlcExclusive == null
+        ? baseUri
+        : baseUri.replace(
+            queryParameters: <String, String>{
+              'since': minHlcExclusive,
+            },
+          ); // [web:71]
+
+    final http.Response response = await _httpClient.get(uri);
+    _ensureOk(response);
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
+    }
+
+    throw Exception(
+      'Unexpected sync events payload: ${response.body}',
+    );
+  }
+
   void _ensureOk(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     }
     throw Exception(
-        'Host request failed: ${response.statusCode} ${response.body}');
+      'Host request failed: ${response.statusCode} ${response.body}',
+    );
   }
 }

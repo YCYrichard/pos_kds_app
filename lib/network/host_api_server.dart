@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:pos_kds_app/data/repositories/menu_repository.dart';
 import 'package:pos_kds_app/data/repositories/order_repository.dart';
+import 'package:pos_kds_app/data/repositories/sync_event_repository.dart';
 
 import 'host_api_models.dart';
 
@@ -10,10 +11,12 @@ class HostApiServer {
   HostApiServer({
     required this.menuRepository,
     required this.orderRepository,
+    required this.syncEventRepository,
   });
 
   final MenuRepository menuRepository;
   final OrderRepository orderRepository;
+  final SyncEventRepository syncEventRepository;
 
   HttpServer? _server;
 
@@ -69,6 +72,25 @@ class HostApiServer {
         return;
       }
 
+      // NEW: sync events API
+      if (method == 'GET' && path == '/sync/events') {
+        final String? since = request.uri.queryParameters['since']; // [web:79]
+
+        final events = await syncEventRepository.listSince(
+          minHlcExclusive: since,
+          limit: 500,
+        );
+
+        final body = events.map((e) => e.toMap()).toList();
+
+        _writeRawJson(
+          request.response,
+          HttpStatus.ok,
+          jsonEncode(body),
+        );
+        return;
+      }
+
       final RegExp completePattern = RegExp(r'^/order-items/(\d+)/complete$');
       final RegExpMatch? match = completePattern.firstMatch(path);
 
@@ -88,10 +110,13 @@ class HostApiServer {
       });
     } catch (error) {
       _writeJson(
-          request.response, HttpStatus.internalServerError, <String, Object?>{
-        'ok': false,
-        'message': error.toString(),
-      });
+        request.response,
+        HttpStatus.internalServerError,
+        <String, Object?>{
+          'ok': false,
+          'message': error.toString(),
+        },
+      );
     }
   }
 
