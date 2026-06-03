@@ -123,7 +123,7 @@ class _KitchenViewState extends State<_KitchenView> {
       case KitchenMessage.itemCompleted:
         return l10n.itemCompleted;
       case KitchenMessage.loadFailed:
-        return l10n.commonLoadFailed;
+        return l10n.kitchenLoadFailed;
       default:
         return null;
     }

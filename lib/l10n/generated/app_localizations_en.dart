@@ -266,4 +266,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spicyHot => 'Hot';
+
+  @override
+  String get kitchenLoadFailed => 'Failed to load kitchen data';
 }

@@ -346,5 +346,9 @@
   "spicyHot": "Hot",
   "@spicyHot": {
     "description": "Spicy level label for hot."
+  },
+  "kitchenLoadFailed": "Failed to load kitchen data",
+  "@kitchenLoadFailed": {
+    "description": "Message shown when kitchen data fails to load."
   }
 }

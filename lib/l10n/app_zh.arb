@@ -146,5 +146,6 @@
   "takeawaySerialNotReady": "外帶流水號尚未準備完成",
   "spicyMild": "小辣",
   "spicyMedium": "中辣",
-  "spicyHot": "大辣"
+  "spicyHot": "大辣",
+  "kitchenLoadFailed": "後廚資料載入失敗"
 }

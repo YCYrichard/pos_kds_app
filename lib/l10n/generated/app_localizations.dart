@@ -553,6 +553,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hot'**
   String get spicyHot;
+
+  /// Message shown when kitchen data fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load kitchen data'**
+  String get kitchenLoadFailed;
 }
 
 class _AppLocalizationsDelegate

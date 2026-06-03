@@ -263,4 +263,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get spicyHot => '大辣';
+
+  @override
+  String get kitchenLoadFailed => '後廚資料載入失敗';
 }
