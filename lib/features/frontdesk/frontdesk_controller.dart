@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../core/events/order_event_bus.dart';
@@ -55,6 +57,9 @@ class FrontdeskController extends ChangeNotifier {
     required OrderRepository orderRepository,
   })  : _menuRepository = menuRepository,
         _orderRepository = orderRepository {
+    _orderEventSubscription = OrderEventBus.instance.stream.listen(
+      _handleOrderEvent,
+    );
     loadServiceOptions();
   }
 
@@ -71,6 +76,7 @@ class FrontdeskController extends ChangeNotifier {
 
   final MenuRepository _menuRepository;
   final OrderRepository _orderRepository;
+  StreamSubscription<OrderEvent>? _orderEventSubscription;
 
   OrderType _orderType = OrderType.dineIn;
   String _tableNo = '';
@@ -80,6 +86,7 @@ class FrontdeskController extends ChangeNotifier {
   bool _isSubmitting = false;
   bool _isLoadingOptions = false;
   bool _isReleasingTable = false;
+  bool _refreshQueued = false;
 
   String? _messageKey;
   Map<String, String> _messageArgs = <String, String>{};
@@ -120,6 +127,11 @@ class FrontdeskController extends ChangeNotifier {
   }
 
   Future<void> loadServiceOptions() async {
+    if (_isLoadingOptions) {
+      _refreshQueued = true;
+      return;
+    }
+
     _isLoadingOptions = true;
     notifyListeners();
 
@@ -146,6 +158,11 @@ class FrontdeskController extends ChangeNotifier {
     } finally {
       _isLoadingOptions = false;
       notifyListeners();
+
+      if (_refreshQueued) {
+        _refreshQueued = false;
+        unawaited(loadServiceOptions());
+      }
     }
   }
 
@@ -344,8 +361,6 @@ class FrontdeskController extends ChangeNotifier {
             .toList(),
       );
 
-      OrderEventBus.instance.emitOrderCreated();
-
       _items.clear();
       _itemCodeInput = '';
       _selectedSpicyLevel = null;
@@ -357,5 +372,15 @@ class FrontdeskController extends ChangeNotifier {
       _isSubmitting = false;
       notifyListeners();
     }
+  }
+
+  void _handleOrderEvent(OrderEvent event) {
+    unawaited(loadServiceOptions());
+  }
+
+  @override
+  void dispose() {
+    _orderEventSubscription?.cancel();
+    super.dispose();
   }
 }
