@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../app_role.dart';
 import '../app_session_state.dart';
 import '../device_persistence/device_config_store.dart';
+import 'debug_tools_sheet.dart';
 import 'device_config_editor_page.dart';
 
 class AppSessionBanner extends StatelessWidget {
@@ -28,7 +29,7 @@ class AppSessionBanner extends StatelessWidget {
             color: colorScheme.surfaceContainerHighest,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
@@ -36,140 +37,105 @@ class AppSessionBanner extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Debug Session',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _MiniChip(
+                            label: 'Device',
+                            value: session.deviceName,
                           ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          final store = context.read<DeviceConfigStore>();
-                          showModalBottomSheet<void>(
-                            context: context,
-                            useSafeArea: true,
-                            isScrollControlled: true,
-                            showDragHandle: true,
-                            builder: (sheetContext) {
-                              return SizedBox(
-                                height:
-                                    MediaQuery.of(sheetContext).size.height *
-                                        0.9,
-                                child: DeviceConfigEditorPage(
-                                  deviceConfigStore: store,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: const Text('Edit'),
-                      ),
-                      const SizedBox(width: 8),
-                      PopupMenuButton<AppRole>(
-                        tooltip: 'Switch runtime role',
-                        onSelected: (role) {
-                          context
-                              .read<AppSessionState>()
-                              .updateRuntimeRole(role);
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: AppRole.frontdesk,
-                            child: Text('Frontdesk'),
+                          const SizedBox(width: 8),
+                          _MiniChip(
+                            label: 'Runtime',
+                            value: session.runtimeRole.name,
+                            highlight:
+                                session.runtimeRole != session.installedRole,
                           ),
-                          PopupMenuItem(
-                            value: AppRole.kitchen,
-                            child: Text('Kitchen'),
+                          const SizedBox(width: 8),
+                          _MiniChip(
+                            label: 'Sync',
+                            value: session.resolvedSyncMode.name,
                           ),
-                          PopupMenuItem(
-                            value: AppRole.backoffice,
-                            child: Text('Backoffice'),
-                          ),
-                          PopupMenuItem(
-                            value: AppRole.combined,
-                            child: Text('Combined'),
+                          const SizedBox(width: 8),
+                          _MiniChip(
+                            label: 'Host',
+                            value: session.hostDeviceId ?? 'none',
                           ),
                         ],
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.swap_horiz, size: 18),
-                              SizedBox(width: 6),
-                              Text('Role'),
-                            ],
-                          ),
-                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _InfoChip(
-                        label: 'Device',
-                        value: session.deviceName,
-                      ),
-                      _InfoChip(
-                        label: 'Installed',
-                        value: session.installedRole.name,
-                      ),
-                      _InfoChip(
-                        label: 'Runtime',
-                        value: session.runtimeRole.name,
-                        highlight: session.runtimeRole != session.installedRole,
-                      ),
-                      _InfoChip(
-                        label: 'Sync',
-                        value: session.resolvedSyncMode.name,
-                      ),
-                      _InfoChip(
-                        label: 'Override',
-                        value: session.canOverrideRole ? 'enabled' : 'disabled',
-                      ),
-                      _InfoChip(
-                        label: 'Host',
-                        value: session.hostDeviceId ?? 'none',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _InfoLine(
-                    label: 'Device ID',
-                    value: session.deviceId,
-                  ),
-                  const SizedBox(height: 4),
-                  _InfoLine(
-                    label: 'Instance',
-                    value: session.appInstanceId,
-                  ),
-                  const SizedBox(height: 4),
-                  _InfoLine(
-                    label: 'Reason',
-                    value: session.resolutionReason,
-                  ),
-                  if (session.takeoverSourceRole != null) ...[
-                    const SizedBox(height: 4),
-                    _InfoLine(
-                      label: 'Takeover From',
-                      value: session.takeoverSourceRole!.name,
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 8),
+                  _BannerActionButton(
+                    label: 'Edit',
+                    onPressed: () {
+                      final store = context.read<DeviceConfigStore>();
+                      showModalBottomSheet<void>(
+                        context: context,
+                        useSafeArea: true,
+                        isScrollControlled: true,
+                        showDragHandle: true,
+                        builder: (sheetContext) {
+                          return SizedBox(
+                            height:
+                                MediaQuery.of(sheetContext).size.height * 0.9,
+                            child: DeviceConfigEditorPage(
+                              deviceConfigStore: store,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  PopupMenuButton<AppRole>(
+                    tooltip: 'Switch runtime role',
+                    onSelected: (role) {
+                      context.read<AppSessionState>().updateRuntimeRole(role);
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: AppRole.frontdesk,
+                        child: Text('Frontdesk'),
+                      ),
+                      PopupMenuItem(
+                        value: AppRole.kitchen,
+                        child: Text('Kitchen'),
+                      ),
+                      PopupMenuItem(
+                        value: AppRole.backoffice,
+                        child: Text('Backoffice'),
+                      ),
+                      PopupMenuItem(
+                        value: AppRole.combined,
+                        child: Text('Combined'),
+                      ),
+                    ],
+                    child: const _BannerActionButton(
+                      label: 'Role',
+                      icon: Icons.swap_horiz,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  _BannerActionButton(
+                    label: 'Tools',
+                    icon: Icons.bug_report_outlined,
+                    onPressed: () {
+                      showModalBottomSheet<void>(
+                        context: context,
+                        useSafeArea: true,
+                        isScrollControlled: true,
+                        showDragHandle: true,
+                        builder: (sheetContext) {
+                          return const DebugToolsSheet();
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -180,8 +146,8 @@ class AppSessionBanner extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({
+class _MiniChip extends StatelessWidget {
+  const _MiniChip({
     required this.label,
     required this.value,
     this.highlight = false,
@@ -199,81 +165,93 @@ class _InfoChip extends StatelessWidget {
     final backgroundColor = highlight
         ? colorScheme.primaryContainer
         : colorScheme.surfaceContainerLow;
-
     final foregroundColor = highlight
         ? colorScheme.onPrimaryContainer
         : colorScheme.onSurfaceVariant;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: highlight
               ? colorScheme.primary.withValues(alpha: 0.35)
               : colorScheme.outlineVariant,
         ),
       ),
-      child: DefaultTextStyle(
-        style: theme.textTheme.bodySmall!.copyWith(
-          color: foregroundColor,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Text.rich(
+        TextSpan(
           children: [
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: foregroundColor.withValues(alpha: 0.8),
+            TextSpan(
+              text: '$label: ',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: foregroundColor.withValues(alpha: 0.82),
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
+            TextSpan(
+              text: value,
+              style: theme.textTheme.labelMedium?.copyWith(
                 color: foregroundColor,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
       ),
     );
   }
 }
 
-class _InfoLine extends StatelessWidget {
-  const _InfoLine({
+class _BannerActionButton extends StatelessWidget {
+  const _BannerActionButton({
     required this.label,
-    required this.value,
+    this.onPressed,
+    this.icon,
   });
 
   final String label;
-  final String value;
+  final VoidCallback? onPressed;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return RichText(
-      text: TextSpan(
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          TextSpan(
-            text: value,
-          ),
-        ],
       ),
     );
   }
