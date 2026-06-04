@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:pos_kds_app/core/events/order_event_bus.dart';
 import 'package:pos_kds_app/data/models/menu_item.dart';
 import 'package:pos_kds_app/data/models/order.dart';
 import 'package:pos_kds_app/data/models/order_item.dart';
@@ -27,13 +30,19 @@ class BackofficeController extends ChangeNotifier {
     required OrderRepository orderRepository,
     required MenuRepository menuRepository,
   })  : _orderRepository = orderRepository,
-        _menuRepository = menuRepository;
+        _menuRepository = menuRepository {
+    _orderEventSubscription = OrderEventBus.instance.stream.listen(
+      _handleOrderEvent,
+    );
+  }
 
   final OrderRepository _orderRepository;
   final MenuRepository _menuRepository;
+  StreamSubscription<OrderEvent>? _orderEventSubscription;
 
   bool _loading = false;
   bool _savingMenu = false;
+  bool _refreshQueued = false;
   String? _messageKey;
   List<BackofficeOrderBundle> _orders = const <BackofficeOrderBundle>[];
   List<MenuItem> _menuItems = const <MenuItem>[];
@@ -60,6 +69,11 @@ class BackofficeController extends ChangeNotifier {
   }
 
   Future<void> loadDashboard() async {
+    if (_loading) {
+      _refreshQueued = true;
+      return;
+    }
+
     _loading = true;
     _clearMessage();
     notifyListeners();
@@ -88,6 +102,11 @@ class BackofficeController extends ChangeNotifier {
     } finally {
       _loading = false;
       notifyListeners();
+
+      if (_refreshQueued) {
+        _refreshQueued = false;
+        unawaited(loadDashboard());
+      }
     }
   }
 
@@ -136,5 +155,15 @@ class BackofficeController extends ChangeNotifier {
       _savingMenu = false;
       notifyListeners();
     }
+  }
+
+  void _handleOrderEvent(OrderEvent event) {
+    unawaited(loadDashboard());
+  }
+
+  @override
+  void dispose() {
+    _orderEventSubscription?.cancel();
+    super.dispose();
   }
 }

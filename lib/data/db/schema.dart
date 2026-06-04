@@ -1,5 +1,3 @@
-// lib/data/db/schema.dart
-
 const String createMenuItemsTable = '''
 CREATE TABLE menu_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +33,7 @@ CREATE TABLE order_items (
   spicy_level TEXT,
   status TEXT NOT NULL,
   completed_at TEXT,
+  unit_price INTEGER,
   FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 ''';

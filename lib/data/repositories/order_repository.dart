@@ -40,6 +40,17 @@ class OrderRepository {
       final createdOrderId = await txn.insert('orders', order.toMap());
 
       for (final item in items) {
+        final List<Map<String, Object?>> menuRows = await txn.query(
+          'menu_items',
+          columns: ['price'],
+          where: 'item_code = ?',
+          whereArgs: [item.itemCode],
+          limit: 1,
+        );
+
+        final int? unitPrice =
+            menuRows.isEmpty ? item.unitPrice : menuRows.first['price'] as int?;
+
         await txn.insert(
           'order_items',
           OrderItemEntity(
@@ -50,6 +61,7 @@ class OrderRepository {
             spicyLevel: item.spicyLevel,
             status: item.status,
             completedAt: item.completedAt,
+            unitPrice: unitPrice,
           ).toMap(),
         );
       }
@@ -252,15 +264,48 @@ AND table_no = ?
     final anyCompleted = items.any((e) => e['status'] == 'completed');
 
     if (allCompleted) {
+      final String now = DateTime.now().toIso8601String();
+
       await db.update(
         'orders',
         {
           'status': 'completed',
-          'completed_at': DateTime.now().toIso8601String(),
+          'completed_at': now,
         },
         where: 'id = ?',
         whereArgs: [orderId],
       );
+
+      final orderRows = await db.query(
+        'orders',
+        columns: ['order_type', 'table_no', 'released_at'],
+        where: 'id = ?',
+        whereArgs: [orderId],
+        limit: 1,
+      );
+
+      if (orderRows.isNotEmpty) {
+        final row = orderRows.first;
+        final String? orderType = row['order_type'] as String?;
+        final String? tableNo = row['table_no'] as String?;
+        final String? releasedAt = row['released_at'] as String?;
+
+        if (orderType == 'dineIn' &&
+            tableNo != null &&
+            tableNo.trim().isNotEmpty &&
+            releasedAt == null) {
+          await db.update(
+            'orders',
+            {
+              'released_at': now,
+            },
+            where: 'id = ?',
+            whereArgs: [orderId],
+          );
+
+          OrderEventBus.instance.emitTableReleased(tableNo: tableNo);
+        }
+      }
     } else if (anyCompleted) {
       await db.update(
         'orders',
@@ -307,10 +352,10 @@ WHERE status != 'completed'
 
     final revenueResult = await db.rawQuery(
       '''
-SELECT COALESCE(SUM(mi.price * oi.qty), 0) AS total
+SELECT COALESCE(SUM(COALESCE(oi.unit_price, mi.price) * oi.qty), 0) AS total
 FROM orders o
 JOIN order_items oi ON oi.order_id = o.id
-JOIN menu_items mi ON mi.item_code = oi.item_code
+LEFT JOIN menu_items mi ON mi.item_code = oi.item_code
 WHERE o.created_at >= ? AND o.created_at < ?
 ''',
       [todayStart, tomorrowStart],

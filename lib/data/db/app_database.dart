@@ -1,5 +1,3 @@
-// lib/data/db/app_database.dart
-
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -22,7 +20,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 3, // bump to 3: add sync_events table
+      version: 4,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON;');
       },
@@ -40,6 +38,11 @@ class AppDatabase {
         }
         if (oldVersion < 3) {
           await db.execute(createSyncEventsTable);
+        }
+        if (oldVersion < 4) {
+          await db.execute(
+            'ALTER TABLE order_items ADD COLUMN unit_price INTEGER',
+          );
         }
       },
     );

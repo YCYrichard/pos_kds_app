@@ -7,6 +7,7 @@ class OrderItemEntity {
   final String? spicyLevel;
   final String status;
   final String? completedAt;
+  final int? unitPrice;
 
   const OrderItemEntity({
     this.id,
@@ -17,6 +18,7 @@ class OrderItemEntity {
     this.spicyLevel,
     required this.status,
     this.completedAt,
+    this.unitPrice,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +31,7 @@ class OrderItemEntity {
       'spicy_level': spicyLevel,
       'status': status,
       'completed_at': completedAt,
+      'unit_price': unitPrice,
     };
   }
 
@@ -42,6 +45,7 @@ class OrderItemEntity {
       spicyLevel: map['spicy_level'] as String?,
       status: map['status'] as String,
       completedAt: map['completed_at'] as String?,
+      unitPrice: map['unit_price'] as int?,
     );
   }
 }
