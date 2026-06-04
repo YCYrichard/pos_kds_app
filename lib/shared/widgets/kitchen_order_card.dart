@@ -4,6 +4,8 @@ import '../../data/models/order_item.dart';
 import '../../features/kitchen/kitchen_controller.dart';
 import '../../l10n/l10n.dart';
 
+typedef CompleteOrderItemCallback = Future<void> Function(int itemId);
+
 String _statusText(BuildContext context, String status) {
   final l10n = context.l10n;
 
@@ -56,7 +58,7 @@ class KitchenOrderCard extends StatelessWidget {
   });
 
   final KitchenOrderBundle bundle;
-  final ValueChanged<int> onCompleteItem;
+  final CompleteOrderItemCallback onCompleteItem;
 
   @override
   Widget build(BuildContext context) {
@@ -103,18 +105,44 @@ class KitchenOrderCard extends StatelessWidget {
   }
 }
 
-class _OrderItemTile extends StatelessWidget {
+class _OrderItemTile extends StatefulWidget {
   const _OrderItemTile({
     required this.item,
     required this.onCompleteItem,
   });
 
   final OrderItemEntity item;
-  final ValueChanged<int> onCompleteItem;
+  final CompleteOrderItemCallback onCompleteItem;
+
+  @override
+  State<_OrderItemTile> createState() => _OrderItemTileState();
+}
+
+class _OrderItemTileState extends State<_OrderItemTile> {
+  bool _submitting = false;
+
+  Future<void> _handleComplete() async {
+    final itemId = widget.item.id;
+    if (itemId == null || _submitting) return;
+
+    setState(() {
+      _submitting = true;
+    });
+
+    try {
+      await widget.onCompleteItem(itemId);
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final item = widget.item;
     final bool completed = item.status == 'completed';
 
     return ListTile(
@@ -125,8 +153,14 @@ class _OrderItemTile extends StatelessWidget {
           ? const Icon(Icons.check_circle, color: Colors.green)
           : FilledButton.tonal(
               onPressed:
-                  item.id == null ? null : () => onCompleteItem(item.id!),
-              child: Text(l10n.completeAction),
+                  item.id == null || _submitting ? null : _handleComplete,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.completeAction),
             ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/models/order.dart';
 import '../../data/models/order_item.dart';
-import '../../data/order_event_bus.dart';
+import 'package:pos_kds_app/core/events/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../network/network_session.dart';
 
