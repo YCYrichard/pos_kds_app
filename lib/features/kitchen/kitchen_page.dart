@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/events/order_event_bus.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../shared/widgets/kitchen_order_card.dart';
@@ -31,13 +31,11 @@ class _KitchenView extends StatefulWidget {
 
 class _KitchenViewState extends State<_KitchenView> {
   Timer? _refreshTimer;
-  StreamSubscription? _orderEventSubscription;
   bool _didRefreshOnActivate = false;
 
   @override
   void initState() {
     super.initState();
-    _subscribeToOrderEvents();
     _syncRefreshLifecycle();
   }
 
@@ -51,23 +49,6 @@ class _KitchenViewState extends State<_KitchenView> {
       }
       _syncRefreshLifecycle();
     }
-  }
-
-  void _subscribeToOrderEvents() {
-    _orderEventSubscription?.cancel();
-    _orderEventSubscription = OrderEventBus.instance.stream.listen((event) {
-      if (!mounted) return;
-      if (!widget.isActive) return;
-
-      switch (event.type) {
-        case OrderEventType.created:
-          final controller = context.read<KitchenController>();
-          if (!controller.loading) {
-            controller.loadOrders();
-          }
-          break;
-      }
-    });
   }
 
   void _syncRefreshLifecycle() {
@@ -130,7 +111,6 @@ class _KitchenViewState extends State<_KitchenView> {
   @override
   void dispose() {
     _stopPolling();
-    _orderEventSubscription?.cancel();
     super.dispose();
   }
 
@@ -174,11 +154,11 @@ class _KitchenViewState extends State<_KitchenView> {
                             controller.setSortOption(value);
                           },
                           items: [
-                            DropdownMenuItem(
+                            DropdownMenuItem<KitchenSortOption>(
                               value: KitchenSortOption.oldestFirst,
                               child: Text(l10n.sortOldestFirst),
                             ),
-                            DropdownMenuItem(
+                            DropdownMenuItem<KitchenSortOption>(
                               value: KitchenSortOption.newestFirst,
                               child: Text(l10n.sortNewestFirst),
                             ),
@@ -221,6 +201,33 @@ class _KitchenViewState extends State<_KitchenView> {
                               },
                             ),
                 ),
+                if (kDebugMode)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Debug: calls=${controller.debugLoadCallCount} '
+                          'bundles=${controller.debugBundleCount} '
+                          'orders=${controller.debugOrderCount}',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                        ),
+                        if (controller.debugLastError != null)
+                          Text(
+                            'error: ${controller.debugLastError}',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.red[700],
+                                    ),
+                          ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

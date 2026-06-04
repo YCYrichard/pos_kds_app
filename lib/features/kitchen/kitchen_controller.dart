@@ -30,9 +30,11 @@ class KitchenController extends ChangeNotifier {
     NetworkSession? networkSession,
   })  : _orderRepository = orderRepository,
         _networkSession = networkSession {
-    _orderEventSubscription = OrderEventBus.instance.stream.listen(
-      _handleOrderEvent,
-    );
+    if (!_shouldUseRemoteOrderMirror) {
+      _orderEventSubscription = OrderEventBus.instance.stream.listen(
+        _handleOrderEvent,
+      );
+    }
   }
 
   final OrderRepository _orderRepository;
@@ -45,11 +47,23 @@ class KitchenController extends ChangeNotifier {
   List<KitchenOrderBundle> _orders = <KitchenOrderBundle>[];
   KitchenSortOption _sortOption = KitchenSortOption.oldestFirst;
 
+  int _debugLoadCallCount = 0;
+  int _debugBundleCount = 0;
+  int _debugOrderCount = 0;
+  String? _debugLastError;
+  DateTime? _debugLastLoadAt;
+
   bool get loading => _loading;
   String? get messageKey => _messageKey;
   List<KitchenOrderBundle> get orders =>
       List<KitchenOrderBundle>.unmodifiable(_orders);
   KitchenSortOption get sortOption => _sortOption;
+
+  int get debugLoadCallCount => _debugLoadCallCount;
+  int get debugBundleCount => _debugBundleCount;
+  int get debugOrderCount => _debugOrderCount;
+  String? get debugLastError => _debugLastError;
+  DateTime? get debugLastLoadAt => _debugLastLoadAt;
 
   bool get _shouldUseRemoteOrderMirror =>
       _networkSession?.isClient == true &&
@@ -64,8 +78,16 @@ class KitchenController extends ChangeNotifier {
   }
 
   Future<void> loadOrders() async {
+    _debugLoadCallCount++;
+    debugPrint(
+      'KitchenController.loadOrders call=$_debugLoadCallCount loading=$_loading remoteMirror=$_shouldUseRemoteOrderMirror',
+    );
+
     if (_loading) {
       _refreshQueued = true;
+      debugPrint(
+        'KitchenController.loadOrders already loading, queued=true',
+      );
       return;
     }
 
@@ -81,6 +103,8 @@ class KitchenController extends ChangeNotifier {
         sortOption: _sortOption,
       );
 
+      _debugBundleCount = bundles.length;
+
       _orders = bundles
           .map(
             (e) => KitchenOrderBundle(
@@ -90,15 +114,26 @@ class KitchenController extends ChangeNotifier {
           )
           .toList();
 
+      _debugOrderCount = _orders.length;
+      _debugLastError = null;
+
+      debugPrint(
+        'KitchenController.loadOrders bundles=$_debugBundleCount orders=$_debugOrderCount',
+      );
+
       if (_orders.isEmpty) {
         _setMessage(KitchenMessage.noPendingOrders);
       } else if (_messageKey != KitchenMessage.itemCompleted) {
         _clearMessage();
       }
-    } catch (_) {
+    } catch (e, st) {
+      _debugLastError = e.toString();
+      debugPrint('KitchenController.loadOrders error: $e');
+      debugPrint('$st');
       _orders = <KitchenOrderBundle>[];
       _setMessage(KitchenMessage.loadFailed);
     } finally {
+      _debugLastLoadAt = DateTime.now();
       _loading = false;
       notifyListeners();
 
@@ -130,21 +165,18 @@ class KitchenController extends ChangeNotifier {
       await loadOrders();
       _setMessage(KitchenMessage.itemCompleted);
       notifyListeners();
-    } catch (_) {
+    } catch (e, st) {
+      _debugLastError = e.toString();
+      debugPrint('KitchenController.completeItem error: $e');
+      debugPrint('$st');
       _setMessage(KitchenMessage.loadFailed);
       notifyListeners();
     }
   }
 
   void _handleOrderEvent(OrderEvent event) {
-    switch (event.type) {
-      case OrderEventType.created:
-        unawaited(loadOrders());
-        break;
-      default:
-        unawaited(loadOrders());
-        break;
-    }
+    debugPrint('KitchenController._handleOrderEvent type=${event.type}');
+    unawaited(loadOrders());
   }
 
   @override
