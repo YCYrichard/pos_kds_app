@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:pos_kds_app/data/repositories/order_repository.dart';
 
@@ -15,29 +17,74 @@ class HostClient {
   final ManualHostConfig config;
   final http.Client _httpClient;
 
+  Uri _buildUri(
+    String path, {
+    Map<String, String>? queryParameters,
+  }) {
+    return Uri(
+      scheme: 'http',
+      host: config.host,
+      port: config.port,
+      path: path,
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<bool> healthCheck() async {
-    final Uri uri = Uri.parse('${config.baseUrl}/health');
-    final http.Response response = await _httpClient.get(uri);
+    final Uri uri = _buildUri('/health');
+    debugPrint('HostClient.healthCheck GET $uri');
+
+    final http.Response response =
+        await _httpClient.get(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.healthCheck status=${response.statusCode} body=${response.body}',
+    );
+
     return response.statusCode == 200;
   }
 
   Future<List<dynamic>> getRawMenuJson() async {
-    final Uri uri = Uri.parse('${config.baseUrl}/menu');
-    final http.Response response = await _httpClient.get(uri);
+    final Uri uri = _buildUri('/menu');
+    debugPrint('HostClient.getRawMenuJson GET $uri');
+
+    final http.Response response =
+        await _httpClient.get(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.getRawMenuJson status=${response.statusCode} body=${response.body}',
+    );
+
     _ensureOk(response);
     return jsonDecode(response.body) as List<dynamic>;
   }
 
   Future<String> getMenuRaw() async {
-    final Uri uri = Uri.parse('${config.baseUrl}/menu');
-    final http.Response response = await _httpClient.get(uri);
+    final Uri uri = _buildUri('/menu');
+    debugPrint('HostClient.getMenuRaw GET $uri');
+
+    final http.Response response =
+        await _httpClient.get(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.getMenuRaw status=${response.statusCode} body=${response.body}',
+    );
+
     _ensureOk(response);
     return response.body;
   }
 
   Future<String> getActiveOrdersRaw() async {
-    final Uri uri = Uri.parse('${config.baseUrl}/orders/active');
-    final http.Response response = await _httpClient.get(uri);
+    final Uri uri = _buildUri('/orders/active');
+    debugPrint('HostClient.getActiveOrdersRaw GET $uri');
+
+    final http.Response response =
+        await _httpClient.get(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.getActiveOrdersRaw status=${response.statusCode} body=${response.body}',
+    );
+
     _ensureOk(response);
     return response.body;
   }
@@ -48,24 +95,40 @@ class HostClient {
   }
 
   Future<void> completeOrderItem(int itemId) async {
-    final Uri uri = Uri.parse('${config.baseUrl}/order-items/$itemId/complete');
-    final http.Response response = await _httpClient.post(uri);
+    final Uri uri = _buildUri('/order-items/$itemId/complete');
+    debugPrint('HostClient.completeOrderItem POST $uri');
+
+    final http.Response response =
+        await _httpClient.post(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.completeOrderItem status=${response.statusCode} body=${response.body}',
+    );
+
     _ensureOk(response);
   }
 
   Future<List<Map<String, dynamic>>> getSyncEventsSince(
     String? minHlcExclusive,
   ) async {
-    final Uri baseUri = Uri.parse('${config.baseUrl}/sync/events');
-    final Uri uri = minHlcExclusive == null
-        ? baseUri
-        : baseUri.replace(
-            queryParameters: <String, String>{
+    final Uri uri = _buildUri(
+      '/sync/events',
+      queryParameters: minHlcExclusive == null
+          ? null
+          : <String, String>{
               'since': minHlcExclusive,
             },
-          );
+    );
 
-    final http.Response response = await _httpClient.get(uri);
+    debugPrint('HostClient.getSyncEventsSince GET $uri');
+
+    final http.Response response =
+        await _httpClient.get(uri).timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.getSyncEventsSince status=${response.statusCode} body=${response.body}',
+    );
+
     _ensureOk(response);
 
     final decoded = jsonDecode(response.body);
@@ -86,6 +149,7 @@ class HostClient {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     }
+
     throw Exception(
       'Host request failed: ${response.statusCode} ${response.body}',
     );

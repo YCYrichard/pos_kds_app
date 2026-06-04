@@ -7,5 +7,11 @@ class ManualHostConfig {
   final String host;
   final int port;
 
-  String get baseUrl => 'http://$host:$port';
+  Uri get baseUri => Uri(
+        scheme: 'http',
+        host: host,
+        port: port,
+      );
+
+  String get baseUrl => baseUri.toString();
 }

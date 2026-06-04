@@ -400,11 +400,13 @@ order_id IN (
 
     for (final item in items) {
       final Map<String, Object?> values =
-          Map<String, Object?>.from(item.toMap())
-            ..remove('id')
-            ..['order_id'] = orderId;
+          Map<String, Object?>.from(item.toMap())..['order_id'] = orderId;
 
-      await txn.insert('order_items', values);
+      await txn.insert(
+        'order_items',
+        values,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     }
   }
 }
