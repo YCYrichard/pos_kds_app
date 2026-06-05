@@ -76,6 +76,44 @@ class HostApiServer {
         return;
       }
 
+      if (method == 'POST' && path == '/bootstrap/join') {
+        final String rawBody = await utf8.decoder.bind(request).join();
+        final dynamic decoded =
+            rawBody.trim().isEmpty ? <String, dynamic>{} : jsonDecode(rawBody);
+
+        if (decoded is! Map<String, dynamic>) {
+          _writeJson(request.response, HttpStatus.badRequest, <String, Object?>{
+            'ok': false,
+            'message': 'Invalid JSON body',
+          });
+          return;
+        }
+
+        final String? joiningDeviceId =
+            (decoded['device_id'] as String?)?.trim();
+        final String? displayName =
+            (decoded['display_name'] as String?)?.trim();
+
+        if (joiningDeviceId == null || joiningDeviceId.isEmpty) {
+          _writeJson(request.response, HttpStatus.badRequest, <String, Object?>{
+            'ok': false,
+            'message': 'device_id is required',
+          });
+          return;
+        }
+
+        _writeJson(request.response, HttpStatus.ok, <String, Object?>{
+          'store_id': storeBootstrapRecord.storeId,
+          'store_name': storeBootstrapRecord.storeName,
+          'device_id': storeBootstrapRecord.hostDeviceId ??
+              storeBootstrapRecord.deviceId,
+          'host_url': _buildHostUrl(request),
+          'joined_device_id': joiningDeviceId,
+          'joined_display_name': displayName,
+        });
+        return;
+      }
+
       if (method == 'GET' && path == '/menu') {
         final menu = await menuRepository.getAllActive();
         _writeRawJson(request.response, HttpStatus.ok, encodeMenuList(menu));
