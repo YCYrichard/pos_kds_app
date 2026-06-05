@@ -132,10 +132,11 @@ class _OrderItemTileState extends State<_OrderItemTile> {
     try {
       await widget.onCompleteItem(itemId);
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _submitting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
     }
   }
 

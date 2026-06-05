@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +47,9 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
 
     try {
       await action(bootstrapContext);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _lastCheckedAt = DateTime.now();
         _lastAction = '$label done';
@@ -56,17 +57,20 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
     } catch (e, st) {
       debugPrint('DebugToolsSheet action error: $e');
       debugPrint('$st');
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _lastCheckedAt = DateTime.now();
         _lastError = e.toString();
         _lastAction = '$label failed';
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-      });
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
     }
   }
 
