@@ -1,3 +1,5 @@
+// lib/data/models/order.dart
+
 class OrderEntity {
   final int? id;
   final String orderNo;
@@ -9,6 +11,10 @@ class OrderEntity {
   final String createdAt;
   final String? completedAt;
   final String? releasedAt;
+  final String? storeId;
+  final String? deviceId;
+  final String? updatedAt;
+  final String? syncStatus;
 
   const OrderEntity({
     this.id,
@@ -21,7 +27,53 @@ class OrderEntity {
     required this.createdAt,
     this.completedAt,
     this.releasedAt,
+    this.storeId,
+    this.deviceId,
+    this.updatedAt,
+    this.syncStatus,
   });
+
+  OrderEntity copyWith({
+    int? id,
+    String? orderNo,
+    String? orderType,
+    String? tableNo,
+    bool clearTableNo = false,
+    String? pickupNo,
+    bool clearPickupNo = false,
+    String? status,
+    int? totalItems,
+    String? createdAt,
+    String? completedAt,
+    bool clearCompletedAt = false,
+    String? releasedAt,
+    bool clearReleasedAt = false,
+    String? storeId,
+    bool clearStoreId = false,
+    String? deviceId,
+    bool clearDeviceId = false,
+    String? updatedAt,
+    bool clearUpdatedAt = false,
+    String? syncStatus,
+    bool clearSyncStatus = false,
+  }) {
+    return OrderEntity(
+      id: id ?? this.id,
+      orderNo: orderNo ?? this.orderNo,
+      orderType: orderType ?? this.orderType,
+      tableNo: clearTableNo ? null : (tableNo ?? this.tableNo),
+      pickupNo: clearPickupNo ? null : (pickupNo ?? this.pickupNo),
+      status: status ?? this.status,
+      totalItems: totalItems ?? this.totalItems,
+      createdAt: createdAt ?? this.createdAt,
+      completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
+      releasedAt: clearReleasedAt ? null : (releasedAt ?? this.releasedAt),
+      storeId: clearStoreId ? null : (storeId ?? this.storeId),
+      deviceId: clearDeviceId ? null : (deviceId ?? this.deviceId),
+      updatedAt: clearUpdatedAt ? null : (updatedAt ?? this.updatedAt),
+      syncStatus: clearSyncStatus ? null : (syncStatus ?? this.syncStatus),
+    );
+  }
 
   Map<String, Object?> toMap() {
     return {
@@ -35,6 +87,10 @@ class OrderEntity {
       'created_at': createdAt,
       'completed_at': completedAt,
       'released_at': releasedAt,
+      'store_id': storeId,
+      'device_id': deviceId,
+      'updated_at': updatedAt,
+      'sync_status': syncStatus,
     };
   }
 
@@ -50,6 +106,10 @@ class OrderEntity {
       createdAt: map['created_at'] as String,
       completedAt: map['completed_at'] as String?,
       releasedAt: map['released_at'] as String?,
+      storeId: map['store_id'] as String?,
+      deviceId: map['device_id'] as String?,
+      updatedAt: map['updated_at'] as String?,
+      syncStatus: map['sync_status'] as String?,
     );
   }
 }

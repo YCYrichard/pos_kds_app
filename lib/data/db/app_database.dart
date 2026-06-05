@@ -1,3 +1,5 @@
+// lib/data/db/app_database.dart
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -20,12 +22,14 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON;');
       },
       onCreate: (db, version) async {
         await db.execute(createMenuItemsTable);
+        await db.execute(createStoresTable);
+        await db.execute(createDeviceConfigTable);
         await db.execute(createOrdersTable);
         await db.execute(createOrderItemsTable);
         await db.execute(createSyncEventsTable);
@@ -36,12 +40,45 @@ class AppDatabase {
             'ALTER TABLE orders ADD COLUMN released_at TEXT',
           );
         }
+
         if (oldVersion < 3) {
           await db.execute(createSyncEventsTable);
         }
+
         if (oldVersion < 4) {
           await db.execute(
             'ALTER TABLE order_items ADD COLUMN unit_price INTEGER',
+          );
+        }
+
+        if (oldVersion < 5) {
+          await db.execute(createStoresTable);
+          await db.execute(createDeviceConfigTable);
+
+          await db.execute(
+            'ALTER TABLE orders ADD COLUMN store_id TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE orders ADD COLUMN device_id TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE orders ADD COLUMN updated_at TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE orders ADD COLUMN sync_status TEXT',
+          );
+
+          await db.execute(
+            'ALTER TABLE order_items ADD COLUMN store_id TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE order_items ADD COLUMN device_id TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE order_items ADD COLUMN updated_at TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE order_items ADD COLUMN sync_status TEXT',
           );
         }
       },

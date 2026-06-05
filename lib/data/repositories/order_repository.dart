@@ -1,8 +1,12 @@
+// lib/data/repositories/order_repository.dart
+
 import 'package:sqflite/sqflite.dart';
 
 import '../db/app_database.dart';
+import '../models/device_config.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
+import 'device_config_repository.dart';
 import 'package:pos_kds_app/core/events/order_event_bus.dart';
 
 enum KitchenSortOption { oldestFirst, newestFirst }
@@ -30,14 +34,35 @@ class OrderDashboardSummary {
 }
 
 class OrderRepository {
+  OrderRepository({
+    DeviceConfigRepository? deviceConfigRepository,
+  }) : _deviceConfigRepository =
+            deviceConfigRepository ?? DeviceConfigRepository();
+
+  final DeviceConfigRepository _deviceConfigRepository;
+
   Future<int> createOrder({
     required OrderEntity order,
     required List<OrderItemEntity> items,
   }) async {
     final db = await AppDatabase.database;
+    final deviceConfig = await _deviceConfigRepository.getDeviceConfig();
+
+    final now = DateTime.now().toIso8601String();
+    final String? storeId = deviceConfig?.storeId;
+    final String? deviceId = deviceConfig?.deviceId;
+    final String syncStatus = _resolveSyncStatus(deviceConfig);
+
+    final normalizedOrder = order.copyWith(
+      storeId: storeId,
+      deviceId: deviceId,
+      updatedAt: now,
+      syncStatus: syncStatus,
+    );
 
     final orderId = await db.transaction((txn) async {
-      final createdOrderId = await txn.insert('orders', order.toMap());
+      final createdOrderId =
+          await txn.insert('orders', normalizedOrder.toMap());
 
       for (final item in items) {
         final List<Map<String, Object?>> menuRows = await txn.query(
@@ -51,18 +76,18 @@ class OrderRepository {
         final int? unitPrice =
             menuRows.isEmpty ? item.unitPrice : menuRows.first['price'] as int?;
 
+        final normalizedItem = item.copyWith(
+          orderId: createdOrderId,
+          unitPrice: unitPrice,
+          storeId: storeId,
+          deviceId: deviceId,
+          updatedAt: now,
+          syncStatus: syncStatus,
+        );
+
         await txn.insert(
           'order_items',
-          OrderItemEntity(
-            orderId: createdOrderId,
-            itemCode: item.itemCode,
-            itemName: item.itemName,
-            qty: item.qty,
-            spicyLevel: item.spicyLevel,
-            status: item.status,
-            completedAt: item.completedAt,
-            unitPrice: unitPrice,
-          ).toMap(),
+          normalizedItem.toMap(),
         );
       }
 
@@ -204,9 +229,16 @@ AND table_no != ?
 
   Future<void> releaseTable(String tableNo) async {
     final db = await AppDatabase.database;
+    final deviceConfig = await _deviceConfigRepository.getDeviceConfig();
+    final now = DateTime.now().toIso8601String();
+
     await db.update(
       'orders',
-      {'released_at': DateTime.now().toIso8601String()},
+      {
+        'released_at': now,
+        'updated_at': now,
+        'sync_status': _resolveSyncStatus(deviceConfig),
+      },
       where: '''
 order_type = ?
 AND status != ?
@@ -221,12 +253,16 @@ AND table_no = ?
 
   Future<void> completeOrderItem(int itemId) async {
     final db = await AppDatabase.database;
+    final deviceConfig = await _deviceConfigRepository.getDeviceConfig();
+    final now = DateTime.now().toIso8601String();
 
     await db.update(
       'order_items',
       {
         'status': 'completed',
-        'completed_at': DateTime.now().toIso8601String(),
+        'completed_at': now,
+        'updated_at': now,
+        'sync_status': _resolveSyncStatus(deviceConfig),
       },
       where: 'id = ?',
       whereArgs: [itemId],
@@ -252,6 +288,10 @@ AND table_no = ?
 
   Future<void> refreshOrderStatus(int orderId) async {
     final db = await AppDatabase.database;
+    final deviceConfig = await _deviceConfigRepository.getDeviceConfig();
+    final now = DateTime.now().toIso8601String();
+    final syncStatus = _resolveSyncStatus(deviceConfig);
+
     final items = await db.query(
       'order_items',
       where: 'order_id = ?',
@@ -264,13 +304,13 @@ AND table_no = ?
     final anyCompleted = items.any((e) => e['status'] == 'completed');
 
     if (allCompleted) {
-      final String now = DateTime.now().toIso8601String();
-
       await db.update(
         'orders',
         {
           'status': 'completed',
           'completed_at': now,
+          'updated_at': now,
+          'sync_status': syncStatus,
         },
         where: 'id = ?',
         whereArgs: [orderId],
@@ -298,6 +338,8 @@ AND table_no = ?
             'orders',
             {
               'released_at': now,
+              'updated_at': now,
+              'sync_status': syncStatus,
             },
             where: 'id = ?',
             whereArgs: [orderId],
@@ -309,7 +351,11 @@ AND table_no = ?
     } else if (anyCompleted) {
       await db.update(
         'orders',
-        {'status': 'preparing'},
+        {
+          'status': 'preparing',
+          'updated_at': now,
+          'sync_status': syncStatus,
+        },
         where: 'id = ?',
         whereArgs: [orderId],
       );
@@ -452,6 +498,21 @@ order_id IN (
         values,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+    }
+  }
+
+  String _resolveSyncStatus(DeviceConfig? config) {
+    if (config == null) {
+      return 'local_only';
+    }
+
+    switch (config.role) {
+      case DeviceRole.storeHost:
+        return 'synced';
+      case DeviceRole.storePeer:
+        return 'pending_sync';
+      case DeviceRole.standalone:
+        return 'local_only';
     }
   }
 }
