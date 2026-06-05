@@ -6,6 +6,8 @@ import 'package:sqflite/sqflite.dart';
 import '../app_bootstrap_context.dart';
 import '../app_session_state.dart';
 import '../data/db/app_database.dart';
+import '../network/host_discovery_service.dart';
+import '../network/local_network_info.dart';
 
 class DebugToolsSheet extends StatefulWidget {
   const DebugToolsSheet({super.key});
@@ -25,10 +27,14 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
   String? _lastAction;
   String? _lastError;
 
+  String? _localSubnetPrefix;
+  HostDiscoveryScanReport? _lastDiscoveryReport;
+
   @override
   void initState() {
     super.initState();
     _refreshLocalCounts();
+    _loadLocalNetworkInfo();
   }
 
   Future<void> _runAction(
@@ -71,6 +77,50 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
           _busy = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadLocalNetworkInfo() async {
+    try {
+      final localNetworkInfo = LocalNetworkInfo();
+      final subnet = await localNetworkInfo.getSubnetPrefix();
+      if (!mounted) return;
+      setState(() {
+        _localSubnetPrefix = subnet;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _lastError = 'Load local subnet failed: $e';
+      });
+    }
+  }
+
+  Future<void> _runDiscoveryScan(AppBootstrapContext bootstrapContext) async {
+    final HostDiscoveryService discoveryService =
+        HostDiscoveryService(port: 8787);
+
+    try {
+      final String? subnetPrefix =
+          _localSubnetPrefix ?? await LocalNetworkInfo().getSubnetPrefix();
+
+      if (subnetPrefix == null || subnetPrefix.isEmpty) {
+        setState(() {
+          _lastDiscoveryReport = null;
+          _lastAction = 'No subnet prefix available';
+        });
+        return;
+      }
+
+      final report = await discoveryService.scanSubnetDetailed(subnetPrefix);
+
+      if (!mounted) return;
+      setState(() {
+        _localSubnetPrefix = subnetPrefix;
+        _lastDiscoveryReport = report;
+      });
+    } finally {
+      discoveryService.dispose();
     }
   }
 
@@ -194,6 +244,8 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
     required String baseUrl,
     required String mode,
   }) {
+    final report = _lastDiscoveryReport;
+
     final lines = <String>[
       'Debug Tools Diagnostics',
       'Device: ${session.deviceName}',
@@ -213,6 +265,13 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
       'Remote active items: ${_remoteActiveOrderItemsCount?.toString() ?? 'unknown'}',
       'Local active orders: ${_localActiveOrdersCount?.toString() ?? 'unknown'}',
       'Local order items: ${_localOrderItemsCount?.toString() ?? 'unknown'}',
+      'Discovery subnet: ${_localSubnetPrefix ?? 'unknown'}',
+      'Discovery scan subnet: ${report?.subnetPrefix ?? 'unknown'}',
+      'Discovery port: ${report?.port.toString() ?? '8787'}',
+      'Discovery scanned hosts: ${report?.scannedHosts.toString() ?? 'unknown'}',
+      'Discovery responded hosts: ${report?.respondedHosts.length.toString() ?? 'unknown'}',
+      'Discovery found stores: ${report?.discoveredHosts.length.toString() ?? 'unknown'}',
+      'Discovery duration ms: ${report?.duration.inMilliseconds.toString() ?? 'unknown'}',
       'Menu sync service: ${bootstrapContext.networkSession.menuSyncService == null ? 'unavailable' : 'available'}',
       'Order mirror sync: ${bootstrapContext.networkSession.orderMirrorSyncService == null ? 'unavailable' : 'available'}',
       'Host client: ${bootstrapContext.networkSession.hostClient == null ? 'unavailable' : 'available'}',
@@ -220,6 +279,15 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
       'Last action: ${_lastAction ?? 'none'}',
       'Last error: ${_lastError ?? 'none'}',
     ];
+
+    if (report != null && report.discoveredHosts.isNotEmpty) {
+      lines.add('Discovered hosts:');
+      for (final host in report.discoveredHosts) {
+        lines.add(
+          '- ${host.baseUrl} | store=${host.storeName ?? host.storeId ?? 'unknown'} | device=${host.deviceId ?? 'unknown'} | role=${host.role ?? 'unknown'}',
+        );
+      }
+    }
 
     return lines.join('\n');
   }
@@ -232,6 +300,7 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
     final bootstrapContext = context.read<AppBootstrapContext>();
     final networkSession = bootstrapContext.networkSession;
     final hostConfig = networkSession.hostConfig;
+    final discoveryReport = _lastDiscoveryReport;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.88,
@@ -347,6 +416,72 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
             ),
             const SizedBox(height: 12),
             _SectionCard(
+              title: 'Discovery',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InfoLine(
+                    label: 'Local subnet',
+                    value: _localSubnetPrefix ?? 'unknown',
+                  ),
+                  _InfoLine(
+                    label: 'Scan subnet',
+                    value: discoveryReport?.subnetPrefix ?? 'not scanned',
+                  ),
+                  _InfoLine(
+                    label: 'Scan port',
+                    value: discoveryReport?.port.toString() ?? '8787',
+                  ),
+                  _InfoLine(
+                    label: 'Scanned hosts',
+                    value: discoveryReport?.scannedHosts.toString() ?? '0',
+                  ),
+                  _InfoLine(
+                    label: 'Responded hosts',
+                    value: discoveryReport?.respondedHosts.length.toString() ??
+                        '0',
+                  ),
+                  _InfoLine(
+                    label: 'Found stores',
+                    value: discoveryReport?.discoveredHosts.length.toString() ??
+                        '0',
+                  ),
+                  _InfoLine(
+                    label: 'Duration',
+                    value: discoveryReport == null
+                        ? 'not scanned'
+                        : '${discoveryReport.duration.inMilliseconds} ms',
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: _busy
+                        ? null
+                        : () => _runAction(
+                              _runDiscoveryScan,
+                              label: 'Run discovery scan',
+                            ),
+                    icon: const Icon(Icons.wifi_find_outlined),
+                    label: const Text('Run discovery scan'),
+                  ),
+                  if (discoveryReport != null &&
+                      discoveryReport.discoveredHosts.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    for (final host in discoveryReport.discoveredHosts)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${host.baseUrl}\n'
+                          'store=${host.storeName ?? host.storeId ?? 'unknown'}, '
+                          'device=${host.deviceId ?? 'unknown'}, '
+                          'role=${host.role ?? 'unknown'}',
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            _SectionCard(
               title: 'Sync Tools',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +586,7 @@ class _DebugToolsSheetState extends State<DebugToolsSheet> {
               title: 'Notes',
               child: Text(
                 'Use this panel to verify host connectivity, compare remote and local order counts, '
-                'trigger manual sync, and copy diagnostics without opening Logcat.',
+                'trigger manual sync, and inspect LAN discovery results.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

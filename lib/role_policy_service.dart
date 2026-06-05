@@ -66,11 +66,15 @@ class RolePolicyService {
     required AppRole runtimeRole,
     required String? hostDeviceId,
   }) {
-    if (hostDeviceId != null && hostDeviceId.isNotEmpty) {
+    final bool boundToRemoteHost = hostDeviceId != null &&
+        hostDeviceId.isNotEmpty &&
+        hostDeviceId != deviceConfig.deviceId;
+
+    if (boundToRemoteHost) {
       return SyncMode.client;
     }
 
-    if (runtimeRole == AppRole.combined) {
+    if (runtimeRole == AppRole.combined || runtimeRole == AppRole.frontdesk) {
       return SyncMode.host;
     }
 
@@ -85,21 +89,33 @@ class RolePolicyService {
     required String? hostDeviceId,
     required SyncMode resolvedSyncMode,
   }) {
-    if (hostDeviceId != null && hostDeviceId.isNotEmpty) {
+    final bool boundToRemoteHost = hostDeviceId != null &&
+        hostDeviceId.isNotEmpty &&
+        hostDeviceId != deviceConfig.deviceId;
+
+    final bool boundToSelf = hostDeviceId != null &&
+        hostDeviceId.isNotEmpty &&
+        hostDeviceId == deviceConfig.deviceId;
+
+    if (boundToRemoteHost) {
       if (requestedRole != null && runtimeRole != requestedRole) {
-        return 'Client bootstrap due to host binding. Requested role rejected by device policy.';
+        return 'Client bootstrap due to remote host binding. Requested role rejected by device policy.';
       }
 
       if (requestedRole != null &&
           runtimeRole == requestedRole &&
           runtimeRole != fallbackRole) {
-        return 'Client bootstrap due to host binding. Requested role allowed by device policy.';
+        return 'Client bootstrap due to remote host binding. Requested role allowed by device policy.';
       }
 
-      return 'Client bootstrap due to host binding.';
+      return 'Client bootstrap due to remote host binding.';
     }
 
     if (resolvedSyncMode == SyncMode.host) {
+      if (boundToSelf) {
+        return 'Host bootstrap using self host binding.';
+      }
+
       if (requestedRole == null) {
         return 'Host bootstrap using installed role.';
       }

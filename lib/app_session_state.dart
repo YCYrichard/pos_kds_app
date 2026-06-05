@@ -40,13 +40,30 @@ class AppSessionState extends ChangeNotifier {
   String? get hostDeviceId => _hostDeviceId;
   AppRole? get takeoverSourceRole => _takeoverSourceRole;
 
+  bool get isBoundToRemoteHost {
+    final normalizedHost = _hostDeviceId?.trim();
+    if (normalizedHost == null || normalizedHost.isEmpty) {
+      return false;
+    }
+    return normalizedHost != _deviceId;
+  }
+
+  bool get isBoundToSelf {
+    final normalizedHost = _hostDeviceId?.trim();
+    if (normalizedHost == null || normalizedHost.isEmpty) {
+      return false;
+    }
+    return normalizedHost == _deviceId;
+  }
+
   bool get isClientMode => _resolvedSyncMode == SyncMode.client;
   bool get isHostMode => _resolvedSyncMode == SyncMode.host;
   bool get isStandaloneMode => _resolvedSyncMode == SyncMode.standalone;
 
-  bool get canUseFrontdesk => !isClientMode;
+  bool get canUseFrontdesk => !isBoundToRemoteHost;
   bool get canUseKitchen => true;
   bool get canUseBackoffice => true;
+  bool get canUseCombined => !isBoundToRemoteHost;
 
   void updatePersistentIdentity({
     required String deviceName,
@@ -55,6 +72,7 @@ class AppSessionState extends ChangeNotifier {
     _deviceName = deviceName.trim();
     _hostDeviceId = _normalizeNullable(hostDeviceId);
     _resolvedSyncMode = _resolveEffectiveSyncMode(
+      deviceId: _deviceId,
       runtimeRole: _runtimeRole,
       hostDeviceId: _hostDeviceId,
       fallback: _resolvedSyncMode,
@@ -65,6 +83,7 @@ class AppSessionState extends ChangeNotifier {
   void updateRuntimeRole(AppRole runtimeRole) {
     _runtimeRole = runtimeRole;
     _resolvedSyncMode = _resolveEffectiveSyncMode(
+      deviceId: _deviceId,
       runtimeRole: _runtimeRole,
       hostDeviceId: _hostDeviceId,
       fallback: _resolvedSyncMode,
@@ -90,17 +109,25 @@ class AppSessionState extends ChangeNotifier {
   }
 
   SyncMode _resolveEffectiveSyncMode({
+    required String deviceId,
     required AppRole runtimeRole,
     required String? hostDeviceId,
     required SyncMode fallback,
   }) {
-    final normalizedHost = hostDeviceId?.trim() ?? '';
-    if (normalizedHost.isNotEmpty) {
+    final String normalizedHost = hostDeviceId?.trim() ?? '';
+    final bool hasHostBinding = normalizedHost.isNotEmpty;
+    final bool boundToRemoteHost = hasHostBinding && normalizedHost != deviceId;
+
+    if (boundToRemoteHost) {
       return SyncMode.client;
     }
 
-    if (runtimeRole == AppRole.combined && fallback == SyncMode.client) {
+    if (runtimeRole == AppRole.combined || runtimeRole == AppRole.frontdesk) {
       return SyncMode.host;
+    }
+
+    if (fallback == SyncMode.client && !boundToRemoteHost) {
+      return SyncMode.standalone;
     }
 
     return fallback;

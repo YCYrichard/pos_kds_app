@@ -90,17 +90,43 @@ class _AppRoot extends StatelessWidget {
   final AppRole role;
   final AppSessionState session;
 
+  bool _isBoundToRemoteHost(AppSessionState session) {
+    final hostDeviceId = session.hostDeviceId?.trim();
+    if (hostDeviceId == null || hostDeviceId.isEmpty) {
+      return false;
+    }
+    return hostDeviceId != session.deviceId;
+  }
+
+  String _boundHostLabel(AppSessionState session) {
+    final hostDeviceId = session.hostDeviceId?.trim();
+    if (hostDeviceId == null || hostDeviceId.isEmpty) {
+      return 'unknown';
+    }
+    return hostDeviceId;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool boundToRemoteHost = _isBoundToRemoteHost(session);
+
     switch (role) {
       case AppRole.frontdesk:
         if (!session.canUseFrontdesk) {
+          return const _FeatureBlockedPage(
+            title: 'Frontdesk unavailable',
+            message: 'Frontdesk mode is not available on this device.',
+          );
+        }
+
+        if (boundToRemoteHost) {
           return _FeatureBlockedPage(
             title: 'Frontdesk blocked on client device',
             message:
-                'This device is currently bound to host ${session.hostDeviceId ?? 'unknown'}, so frontdesk order creation is disabled in client mode.',
+                'This device is currently bound to remote host ${_boundHostLabel(session)}, so frontdesk order creation is disabled in client mode.',
           );
         }
+
         return const FrontdeskAppShell();
 
       case AppRole.kitchen:
@@ -122,11 +148,11 @@ class _AppRoot extends StatelessWidget {
         return const BackofficeAppShell();
 
       case AppRole.combined:
-        if (session.isClientMode) {
+        if (boundToRemoteHost) {
           return _FeatureBlockedPage(
             title: 'Combined mode blocked on client device',
             message:
-                'This device is currently bound to host ${session.hostDeviceId ?? 'unknown'}, so combined host workflow is disabled in client mode.',
+                'This device is currently bound to remote host ${_boundHostLabel(session)}, so combined host workflow is disabled in client mode.',
           );
         }
         return const CombinedAppShell();

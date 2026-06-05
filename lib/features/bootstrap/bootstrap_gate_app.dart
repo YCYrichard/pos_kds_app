@@ -3,13 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../app_bootstrap.dart';
 import '../../app_role.dart';
-import '../../data/repositories/device_config_repository.dart';
 import '../../device_persistence/device_config_store.dart';
 import '../../device_persistence/device_record.dart';
 import '../../device_persistence/store_bootstrap_store.dart';
 import '../../network/bootstrap_service.dart';
 import '../../network/host_discovery_service.dart';
-import '../../network/host_server.dart';
 import '../../network/local_network_info.dart';
 import 'bootstrap_controller.dart';
 import 'bootstrap_page.dart';
@@ -34,9 +32,6 @@ class BootstrapGateApp extends StatelessWidget {
       providers: [
         Provider<DeviceConfigStore>.value(value: deviceConfigStore),
         Provider<StoreBootstrapStore>.value(value: storeBootstrapStore),
-        Provider<DeviceConfigRepository>(
-          create: (_) => DeviceConfigRepository(),
-        ),
         Provider<BootstrapService>(
           create: (_) => BootstrapService(),
           dispose: (_, service) => service.dispose(),
@@ -48,15 +43,6 @@ class BootstrapGateApp extends StatelessWidget {
         Provider<LocalNetworkInfo>(
           create: (_) => LocalNetworkInfo(),
         ),
-        Provider<HostServer>(
-          create: (context) => HostServer(
-            deviceConfigRepository: context.read<DeviceConfigRepository>(),
-            port: 8787,
-          ),
-          dispose: (_, server) async {
-            await server.stop();
-          },
-        ),
         ChangeNotifierProvider<BootstrapController>(
           create: (context) => BootstrapController(
             installedRole: installedRole,
@@ -66,7 +52,6 @@ class BootstrapGateApp extends StatelessWidget {
             bootstrapService: context.read<BootstrapService>(),
             hostDiscoveryService: context.read<HostDiscoveryService>(),
             localNetworkInfo: context.read<LocalNetworkInfo>(),
-            hostServer: context.read<HostServer>(),
             onCompleted: () async {
               await bootstrapApp(installedRole);
             },

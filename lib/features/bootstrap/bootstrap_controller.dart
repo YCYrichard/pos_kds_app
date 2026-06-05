@@ -8,7 +8,6 @@ import '../../device_persistence/store_bootstrap_record.dart';
 import '../../device_persistence/store_bootstrap_store.dart';
 import '../../network/bootstrap_service.dart';
 import '../../network/host_discovery_service.dart';
-import '../../network/host_server.dart';
 import '../../network/local_network_info.dart';
 
 class BootstrapController extends ChangeNotifier {
@@ -20,8 +19,8 @@ class BootstrapController extends ChangeNotifier {
     required this.bootstrapService,
     required this.hostDiscoveryService,
     required this.localNetworkInfo,
-    required this.hostServer,
     required this.onCompleted,
+    this.hostPort = 8787,
   });
 
   final AppRole installedRole;
@@ -31,8 +30,8 @@ class BootstrapController extends ChangeNotifier {
   final BootstrapService bootstrapService;
   final HostDiscoveryService hostDiscoveryService;
   final LocalNetworkInfo localNetworkInfo;
-  final HostServer hostServer;
   final Future<void> Function() onCompleted;
+  final int hostPort;
 
   static const Uuid _uuid = Uuid();
 
@@ -43,6 +42,9 @@ class BootstrapController extends ChangeNotifier {
   bool _joining = false;
   String? _message;
   String? _subnetPrefix;
+  String? _localIpv4;
+  DateTime? _lastDiscoveryAt;
+  String? _lastDiscoveryError;
   List<DiscoveredHost> _discoveredHosts = const <DiscoveredHost>[];
 
   StoreBootstrapRecord? get bootstrapRecord => _bootstrapRecord;
@@ -52,6 +54,10 @@ class BootstrapController extends ChangeNotifier {
   bool get joining => _joining;
   String? get message => _message;
   String? get subnetPrefix => _subnetPrefix;
+  String? get localIpv4 => _localIpv4;
+  DateTime? get lastDiscoveryAt => _lastDiscoveryAt;
+  String? get lastDiscoveryError => _lastDiscoveryError;
+  int get discoveryPort => hostPort;
   List<DiscoveredHost> get discoveredHosts =>
       List<DiscoveredHost>.unmodifiable(_discoveredHosts);
 
@@ -67,6 +73,7 @@ class BootstrapController extends ChangeNotifier {
         deviceId: deviceRecord.deviceId,
         installedRole: installedRole,
       );
+      _localIpv4 = await localNetworkInfo.getLocalIpv4();
       _subnetPrefix = await localNetworkInfo.getSubnetPrefix();
     } catch (e) {
       _message = 'Bootstrap initialize failed: $e';
@@ -76,18 +83,36 @@ class BootstrapController extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshNetworkInfo() async {
+    try {
+      _localIpv4 = await localNetworkInfo.getLocalIpv4();
+      _subnetPrefix = await localNetworkInfo.getSubnetPrefix();
+      notifyListeners();
+    } catch (e) {
+      _lastDiscoveryError = 'Refresh network info failed: $e';
+      notifyListeners();
+    }
+  }
+
   Future<void> createNewStore({
     String? storeName,
   }) async {
+    if (_creatingStore) return;
+
     _creatingStore = true;
     _message = null;
     notifyListeners();
 
     try {
-      await hostServer.start();
-      final hostUrl = await hostServer.buildHostUrl();
+      final String? localIp = await localNetworkInfo.getLocalIpv4();
+      _localIpv4 = localIp;
 
-      final storeId = _uuid.v4();
+      if (localIp == null || localIp.trim().isEmpty) {
+        throw StateError('Unable to determine local IPv4 address.');
+      }
+
+      final String hostUrl = 'http://$localIp:$hostPort';
+      final String storeId = _uuid.v4();
 
       _bootstrapRecord = await storeBootstrapStore.configureAsNewStore(
         deviceId: deviceRecord.deviceId,
@@ -116,27 +141,37 @@ class BootstrapController extends ChangeNotifier {
   }
 
   Future<void> discoverStores() async {
+    if (_discovering) return;
+
     _discovering = true;
     _message = null;
+    _lastDiscoveryError = null;
     _discoveredHosts = const <DiscoveredHost>[];
     notifyListeners();
 
     try {
+      _localIpv4 = await localNetworkInfo.getLocalIpv4();
       final subnet = _subnetPrefix ?? await localNetworkInfo.getSubnetPrefix();
       _subnetPrefix = subnet;
+      _lastDiscoveryAt = DateTime.now();
 
       if (subnet == null || subnet.isEmpty) {
         _message = 'Unable to determine LAN subnet';
+        _lastDiscoveryError = 'LAN subnet unavailable';
         return;
       }
 
       final hosts = await hostDiscoveryService.scanSubnet(subnet);
       _discoveredHosts = hosts;
+
       if (_discoveredHosts.isEmpty) {
         _message = 'No stores found on local network';
+      } else {
+        _message = 'Found ${_discoveredHosts.length} store(s) on local network';
       }
     } catch (e) {
       _message = 'Discovery failed: $e';
+      _lastDiscoveryError = e.toString();
     } finally {
       _discovering = false;
       notifyListeners();
@@ -144,6 +179,8 @@ class BootstrapController extends ChangeNotifier {
   }
 
   Future<void> joinDiscoveredHost(DiscoveredHost host) async {
+    if (_joining) return;
+
     _joining = true;
     _message = null;
     notifyListeners();
