@@ -165,6 +165,8 @@ Future<AppBootstrapContext> _createBootstrapContext({
       menuRepository: menuRepository,
       orderRepository: orderRepository,
       syncEventRepository: syncEventRepository,
+      storeBootstrapRecord: storeBootstrapRecord,
+      runtimeRole: runtimeRole,
     );
     await hostApiServer.start(port: 8787);
 

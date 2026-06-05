@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pos_kds_app/app_role.dart';
 import 'package:pos_kds_app/data/repositories/menu_repository.dart';
 import 'package:pos_kds_app/data/repositories/order_repository.dart';
 import 'package:pos_kds_app/data/repositories/sync_event_repository.dart';
+import 'package:pos_kds_app/device_persistence/store_bootstrap_record.dart';
 
 import 'host_api_models.dart';
 
@@ -12,11 +14,15 @@ class HostApiServer {
     required this.menuRepository,
     required this.orderRepository,
     required this.syncEventRepository,
+    required this.storeBootstrapRecord,
+    required this.runtimeRole,
   });
 
   final MenuRepository menuRepository;
   final OrderRepository orderRepository;
   final SyncEventRepository syncEventRepository;
+  final StoreBootstrapRecord storeBootstrapRecord;
+  final AppRole runtimeRole;
 
   HttpServer? _server;
 
@@ -56,6 +62,20 @@ class HostApiServer {
         return;
       }
 
+      if (method == 'GET' && path == '/host-info') {
+        _writeJson(request.response, HttpStatus.ok, <String, Object?>{
+          'ok': true,
+          'device_id': storeBootstrapRecord.hostDeviceId ??
+              storeBootstrapRecord.deviceId,
+          'store_id': storeBootstrapRecord.storeId,
+          'store_name': storeBootstrapRecord.storeName,
+          'host_url': _buildHostUrl(request),
+          'role': runtimeRole.name,
+          'port': _server?.port,
+        });
+        return;
+      }
+
       if (method == 'GET' && path == '/menu') {
         final menu = await menuRepository.getAllActive();
         _writeRawJson(request.response, HttpStatus.ok, encodeMenuList(menu));
@@ -72,9 +92,8 @@ class HostApiServer {
         return;
       }
 
-      // NEW: sync events API
       if (method == 'GET' && path == '/sync/events') {
-        final String? since = request.uri.queryParameters['since']; // [web:79]
+        final String? since = request.uri.queryParameters['since'];
 
         final events = await syncEventRepository.listSince(
           minHlcExclusive: since,
@@ -118,6 +137,13 @@ class HostApiServer {
         },
       );
     }
+  }
+
+  String _buildHostUrl(HttpRequest request) {
+    final int resolvedPort = _server?.port ?? 8787;
+    final String host =
+        request.connectionInfo?.localAddress.address ?? '127.0.0.1';
+    return 'http://$host:$resolvedPort';
   }
 
   void _writeJson(
