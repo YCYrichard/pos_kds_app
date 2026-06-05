@@ -141,8 +141,9 @@ class HostApiServer {
 
   String _buildHostUrl(HttpRequest request) {
     final int resolvedPort = _server?.port ?? 8787;
-    final String host =
-        request.connectionInfo?.localAddress.address ?? '127.0.0.1';
+    final String host = request.requestedUri.host.isNotEmpty
+        ? request.requestedUri.host
+        : '127.0.0.1';
     return 'http://$host:$resolvedPort';
   }
 
