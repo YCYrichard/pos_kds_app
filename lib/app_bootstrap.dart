@@ -13,6 +13,9 @@ import 'data/repositories/sync_event_repository.dart';
 import 'device_config.dart';
 import 'device_persistence/device_config_store.dart';
 import 'device_persistence/device_record.dart';
+import 'device_persistence/store_bootstrap_record.dart';
+import 'device_persistence/store_bootstrap_store.dart';
+import 'features/bootstrap/bootstrap_gate_app.dart';
 import 'network/host_api_server.dart';
 import 'network/host_client.dart';
 import 'network/manual_host_config.dart';
@@ -46,8 +49,29 @@ Future<void> bootstrapApp(
     return;
   }
 
+  final StoreBootstrapStore storeBootstrapStore = StoreBootstrapStore();
+  final StoreBootstrapRecord storeBootstrapRecord =
+      await storeBootstrapStore.loadOrCreate(
+    deviceId: deviceRecord.deviceId,
+    installedRole: installedRole,
+  );
+
+  if (!storeBootstrapRecord.isConfigured) {
+    runApp(
+      BootstrapGateApp(
+        installedRole: installedRole,
+        deviceRecord: deviceRecord,
+        deviceConfigStore: deviceConfigStore,
+        storeBootstrapStore: storeBootstrapStore,
+      ),
+    );
+    return;
+  }
+
   final DeviceConfig deviceConfig = _toDeviceConfig(deviceRecord);
+
   final String? effectiveHostDeviceId = _normalizeNullable(hostDeviceId) ??
+      _normalizeNullable(storeBootstrapRecord.hostDeviceId) ??
       _normalizeNullable(deviceRecord.hostDeviceId);
 
   const RolePolicyService rolePolicyService = RolePolicyService();
@@ -64,6 +88,7 @@ Future<void> bootstrapApp(
     resolutionReason: resolution.reason,
     hostDeviceId: resolution.hostDeviceId,
     takeoverSourceRole: resolution.takeoverSourceRole,
+    storeBootstrapRecord: storeBootstrapRecord,
   );
 
   final AppSessionState sessionState = AppSessionState(
@@ -104,6 +129,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
   required String resolutionReason,
   required String? hostDeviceId,
   required AppRole? takeoverSourceRole,
+  required StoreBootstrapRecord storeBootstrapRecord,
 }) async {
   const DatabaseStrategyResolver databaseStrategyResolver =
       DatabaseStrategyResolver();
@@ -146,11 +172,16 @@ Future<AppBootstrapContext> _createBootstrapContext({
       mode: 'host',
       server: hostApiServer,
     );
-  } else if (runtimeRole == AppRole.kitchen && hostDeviceId != null) {
-    final ManualHostConfig hostConfig = ManualHostConfig(
-      host: hostDeviceId,
-      port: 8787,
-    );
+  } else if (runtimeRole == AppRole.kitchen) {
+    final ManualHostConfig? hostConfig =
+        _manualHostConfigFromBootstrap(storeBootstrapRecord);
+
+    if (hostConfig == null) {
+      throw StateError(
+        'Kitchen app requires a valid hostUrl in store bootstrap config.',
+      );
+    }
+
     final HostClient hostClient = HostClient(config: hostConfig);
 
     await hostClient.healthCheck();
@@ -198,6 +229,29 @@ Future<AppBootstrapContext> _createBootstrapContext({
     networkSession: networkSession,
     hostDeviceId: hostDeviceId,
     takeoverSourceRole: takeoverSourceRole,
+  );
+}
+
+ManualHostConfig? _manualHostConfigFromBootstrap(
+  StoreBootstrapRecord record,
+) {
+  final String? hostUrl = _normalizeNullable(record.hostUrl);
+  if (hostUrl == null) {
+    return null;
+  }
+
+  final Uri? uri = Uri.tryParse(hostUrl);
+  if (uri == null || uri.host.isEmpty) {
+    throw FormatException(
+      'Invalid hostUrl in store bootstrap config: $hostUrl',
+    );
+  }
+
+  final int port = uri.hasPort ? uri.port : 8787;
+
+  return ManualHostConfig(
+    host: uri.host,
+    port: port,
   );
 }
 
