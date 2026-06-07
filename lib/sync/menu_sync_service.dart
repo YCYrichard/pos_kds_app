@@ -60,7 +60,7 @@ class MenuSyncService {
 
       if (payloadJson == null || payloadJson.isEmpty || hlc == null) {
         debugPrint(
-          'MenuSyncService: skip invalid event, missing payload json or hlc: $event',
+          'MenuSyncService: skip invalid event, missing payload_json or hlc: $event',
         );
         continue;
       }
@@ -68,7 +68,7 @@ class MenuSyncService {
       final MenuItem? item = _tryParseMenuItemPayload(payloadJson);
       if (item == null) {
         debugPrint(
-          'MenuSyncService: skip invalid menu payload json: $payloadJson',
+          'MenuSyncService: skip invalid menu payload_json: $payloadJson',
         );
         continue;
       }
@@ -86,42 +86,49 @@ class MenuSyncService {
   }
 
   MenuItem? _tryParseMenuItemPayload(String payloadJson) {
-    final dynamic decoded = jsonDecode(payloadJson);
+    try {
+      final dynamic decoded = jsonDecode(payloadJson);
 
-    if (decoded is! Map) {
+      if (decoded is! Map) {
+        return null;
+      }
+
+      final Map<String, dynamic> map = Map<String, dynamic>.from(decoded);
+
+      final String? itemCode = _asString(
+        map['itemCode'] ?? map['item_code'] ?? map['itemcode'],
+      );
+      final String? itemName = _asString(
+        map['itemName'] ?? map['item_name'] ?? map['itemname'],
+      );
+      final int? price = _asInt(map['price']);
+      final bool isActive = _asBool(
+            map['isActive'] ?? map['is_active'] ?? map['isactive'],
+          ) ??
+          true;
+
+      if (itemCode == null || itemCode.isEmpty) {
+        return null;
+      }
+      if (itemName == null || itemName.isEmpty) {
+        return null;
+      }
+      if (price == null) {
+        return null;
+      }
+
+      return MenuItem(
+        itemCode: itemCode,
+        itemName: itemName,
+        price: price,
+        isActive: isActive,
+      );
+    } catch (error) {
+      debugPrint(
+        'MenuSyncService: failed to decode payload_json: $error',
+      );
       return null;
     }
-
-    final Map<String, dynamic> map = Map<String, dynamic>.from(decoded);
-
-    final String? itemCode = _asString(
-      map['itemCode'] ?? map['item_code'] ?? map['itemcode'],
-    );
-    final String? itemName = _asString(
-      map['itemName'] ?? map['item_name'] ?? map['itemname'],
-    );
-    final int? price = _asInt(map['price']);
-    final bool isActive = _asBool(
-          map['isActive'] ?? map['is_active'] ?? map['isactive'],
-        ) ??
-        true;
-
-    if (itemCode == null || itemCode.isEmpty) {
-      return null;
-    }
-    if (itemName == null || itemName.isEmpty) {
-      return null;
-    }
-    if (price == null) {
-      return null;
-    }
-
-    return MenuItem(
-      itemCode: itemCode,
-      itemName: itemName,
-      price: price,
-      isActive: isActive,
-    );
   }
 
   String? _asString(Object? value) {
