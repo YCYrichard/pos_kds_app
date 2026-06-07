@@ -160,7 +160,7 @@ Future<AppBootstrapContext> _createBootstrapContext({
 
   NetworkSession networkSession = const NetworkSession(mode: 'local');
 
-  if (runtimeRole == AppRole.combined || runtimeRole == AppRole.frontdesk) {
+  if (resolvedSyncMode == SyncMode.host) {
     final HostApiServer hostApiServer = HostApiServer(
       menuRepository: menuRepository,
       orderRepository: orderRepository,
@@ -174,19 +174,24 @@ Future<AppBootstrapContext> _createBootstrapContext({
       mode: 'host',
       server: hostApiServer,
     );
-  } else if (runtimeRole == AppRole.kitchen) {
+  } else if (resolvedSyncMode == SyncMode.client) {
     final ManualHostConfig? hostConfig =
         _manualHostConfigFromBootstrap(storeBootstrapRecord);
 
     if (hostConfig == null) {
       throw StateError(
-        'Kitchen app requires a valid hostUrl in store bootstrap config.',
+        'Client mode requires a valid hostUrl in store bootstrap config.',
       );
     }
 
     final HostClient hostClient = HostClient(config: hostConfig);
+    final bool healthy = await hostClient.healthCheck();
 
-    await hostClient.healthCheck();
+    if (!healthy) {
+      throw StateError(
+        'Unable to reach configured host at ${hostConfig.host}:${hostConfig.port}.',
+      );
+    }
 
     final MenuSyncService menuSyncService = MenuSyncService(
       localMenuRepository: menuRepository,
