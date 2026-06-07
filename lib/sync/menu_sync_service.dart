@@ -45,9 +45,13 @@ class MenuSyncService {
     String? maxHlc;
 
     for (final Map<String, dynamic> event in events) {
-      final String? entityType = _asString(event['entity_type']);
+      final String? entityType = _asString(
+        event['entityType'] ?? event['entity_type'] ?? event['entitytype'],
+      );
       final String? action = _asString(event['action']);
-      final String? payloadJson = _asString(event['payload_json']);
+      final String? payloadJson = _asString(
+        event['payloadJson'] ?? event['payload_json'] ?? event['payloadjson'],
+      );
       final String? hlc = _asString(event['hlc']);
 
       if (entityType != 'menuItem' || action != 'menuUpsert') {
@@ -56,7 +60,7 @@ class MenuSyncService {
 
       if (payloadJson == null || payloadJson.isEmpty || hlc == null) {
         debugPrint(
-          'MenuSyncService: skip invalid event, missing payload_json or hlc: $event',
+          'MenuSyncService: skip invalid event, missing payload json or hlc: $event',
         );
         continue;
       }
@@ -64,7 +68,7 @@ class MenuSyncService {
       final MenuItem? item = _tryParseMenuItemPayload(payloadJson);
       if (item == null) {
         debugPrint(
-          'MenuSyncService: skip invalid menu payload_json: $payloadJson',
+          'MenuSyncService: skip invalid menu payload json: $payloadJson',
         );
         continue;
       }
@@ -90,10 +94,17 @@ class MenuSyncService {
 
     final Map<String, dynamic> map = Map<String, dynamic>.from(decoded);
 
-    final String? itemCode = _asString(map['itemCode'] ?? map['item_code']);
-    final String? itemName = _asString(map['itemName'] ?? map['item_name']);
+    final String? itemCode = _asString(
+      map['itemCode'] ?? map['item_code'] ?? map['itemcode'],
+    );
+    final String? itemName = _asString(
+      map['itemName'] ?? map['item_name'] ?? map['itemname'],
+    );
     final int? price = _asInt(map['price']);
-    final bool isActive = _asBool(map['isActive'] ?? map['is_active']) ?? true;
+    final bool isActive = _asBool(
+          map['isActive'] ?? map['is_active'] ?? map['isactive'],
+        ) ??
+        true;
 
     if (itemCode == null || itemCode.isEmpty) {
       return null;
@@ -127,6 +138,9 @@ class MenuSyncService {
     if (value is num) {
       return value.toInt();
     }
+    if (value is String) {
+      return int.tryParse(value);
+    }
     return null;
   }
 
@@ -136,6 +150,15 @@ class MenuSyncService {
     }
     if (value is int) {
       return value != 0;
+    }
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0') {
+        return false;
+      }
     }
     return null;
   }
