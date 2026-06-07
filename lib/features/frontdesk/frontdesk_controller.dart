@@ -1,4 +1,3 @@
-// lib/features/frontdesk/frontdesk_controller.dart
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -345,33 +344,48 @@ class FrontdeskController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final now = DateTime.now();
-      final orderNo = 'OD${now.millisecondsSinceEpoch}';
+      final DateTime now = DateTime.now();
+      final String orderNo = 'OD${now.millisecondsSinceEpoch}';
 
-      await _orderRepository.createOrder(
-        order: OrderEntity(
-          orderNo: orderNo,
-          orderType: _orderType.name,
-          tableNo: _orderType == OrderType.dineIn ? _tableNo.trim() : null,
-          pickupNo: _orderType == OrderType.takeaway ? _pickupNo.trim() : null,
-          status: 'pending',
-          totalItems: totalQty,
-          createdAt: now.toIso8601String(),
-          releasedAt: null,
-        ),
-        items: _items
-            .map(
-              (item) => OrderItemEntity(
-                orderId: 0,
-                itemCode: item.itemCode,
-                itemName: item.itemName,
-                qty: item.qty,
-                spicyLevel: item.spicyLevel?.name,
-                status: 'pending',
-              ),
-            )
-            .toList(),
+      final OrderEntity order = OrderEntity(
+        orderNo: orderNo,
+        orderType: _orderType.name,
+        tableNo: _orderType == OrderType.dineIn ? _tableNo.trim() : null,
+        pickupNo: _orderType == OrderType.takeaway ? _pickupNo.trim() : null,
+        status: 'pending',
+        totalItems: totalQty,
+        createdAt: now.toIso8601String(),
+        releasedAt: null,
       );
+
+      final List<OrderItemEntity> orderItems = _items
+          .map(
+            (item) => OrderItemEntity(
+              orderId: 0,
+              itemCode: item.itemCode,
+              itemName: item.itemName,
+              qty: item.qty,
+              spicyLevel: item.spicyLevel?.name,
+              status: 'pending',
+            ),
+          )
+          .toList();
+
+      final hostClient = _networkSession?.hostClient;
+      final bool submitToRemoteHost =
+          _networkSession?.isClient == true && hostClient != null;
+
+      if (submitToRemoteHost) {
+        await hostClient.submitOrder(
+          order: _buildRemoteOrderPayload(order),
+          items: orderItems.map(_buildRemoteOrderItemPayload).toList(),
+        );
+      } else {
+        await _orderRepository.createOrder(
+          order: order,
+          items: orderItems,
+        );
+      }
 
       _items.clear();
       _itemCodeInput = '';
@@ -384,6 +398,33 @@ class FrontdeskController extends ChangeNotifier {
       _isSubmitting = false;
       notifyListeners();
     }
+  }
+
+  Map<String, Object?> _buildRemoteOrderPayload(OrderEntity order) {
+    return <String, Object?>{
+      'order_no': order.orderNo,
+      'order_type': order.orderType,
+      'table_no': order.tableNo,
+      'pickup_no': order.pickupNo,
+      'status': order.status,
+      'total_items': order.totalItems,
+      'created_at': order.createdAt,
+      'completed_at': order.completedAt,
+      'released_at': order.releasedAt,
+    };
+  }
+
+  Map<String, Object?> _buildRemoteOrderItemPayload(OrderItemEntity item) {
+    return <String, Object?>{
+      'order_id': 0,
+      'item_code': item.itemCode,
+      'item_name': item.itemName,
+      'qty': item.qty,
+      'spicy_level': item.spicyLevel,
+      'status': item.status,
+      'completed_at': item.completedAt,
+      'unit_price': item.unitPrice,
+    };
   }
 
   Future<void> _syncMenuIfNeeded() async {

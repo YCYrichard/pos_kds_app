@@ -94,6 +94,33 @@ class HostClient {
     return decodeActiveBundles(raw);
   }
 
+  Future<void> submitOrder({
+    required Map<String, Object?> order,
+    required List<Map<String, Object?>> items,
+  }) async {
+    final Uri uri = _buildUri('/orders');
+    debugPrint('HostClient.submitOrder POST $uri');
+
+    final http.Response response = await _httpClient
+        .post(
+          uri,
+          headers: const <String, String>{
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(<String, Object?>{
+            'order': order,
+            'items': items,
+          }),
+        )
+        .timeout(const Duration(seconds: 8));
+
+    debugPrint(
+      'HostClient.submitOrder status=${response.statusCode} body=${response.body}',
+    );
+
+    _ensureOk(response);
+  }
+
   Future<void> completeOrderItem(int itemId) async {
     final Uri uri = _buildUri('/order-items/$itemId/complete');
     debugPrint('HostClient.completeOrderItem POST $uri');

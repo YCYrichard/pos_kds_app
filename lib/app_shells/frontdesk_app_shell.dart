@@ -1,4 +1,3 @@
-// lib/app_shells/frontdesk_app_shell.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,17 +15,16 @@ class FrontdeskAppShell extends StatefulWidget {
 }
 
 class _FrontdeskAppShellState extends State<FrontdeskAppShell> {
-  late final FrontdeskController _frontdeskController;
+  late final FrontdeskController frontdeskController;
 
   @override
   void initState() {
     super.initState();
-
     final menuRepository = context.read<MenuRepository>();
     final orderRepository = context.read<OrderRepository>();
     final bootstrapContext = context.read<AppBootstrapContext>();
 
-    _frontdeskController = FrontdeskController(
+    frontdeskController = FrontdeskController(
       menuRepository: menuRepository,
       orderRepository: orderRepository,
       networkSession: bootstrapContext.networkSession,
@@ -35,14 +33,14 @@ class _FrontdeskAppShellState extends State<FrontdeskAppShell> {
 
   @override
   void dispose() {
-    _frontdeskController.dispose();
+    frontdeskController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<FrontdeskController>.value(
-      value: _frontdeskController,
+      value: frontdeskController,
       child: const FrontdeskPage(),
     );
   }

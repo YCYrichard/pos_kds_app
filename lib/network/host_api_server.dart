@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pos_kds_app/app_role.dart';
+import 'package:pos_kds_app/data/models/order.dart';
+import 'package:pos_kds_app/data/models/order_item.dart';
 import 'package:pos_kds_app/data/repositories/menu_repository.dart';
 import 'package:pos_kds_app/data/repositories/order_repository.dart';
 import 'package:pos_kds_app/data/repositories/sync_event_repository.dart';
@@ -127,6 +129,62 @@ class HostApiServer {
           HttpStatus.ok,
           encodeActiveBundles(bundles),
         );
+        return;
+      }
+
+      if (method == 'POST' && path == '/orders') {
+        final String rawBody = await utf8.decoder.bind(request).join();
+        final dynamic decoded =
+            rawBody.trim().isEmpty ? <String, dynamic>{} : jsonDecode(rawBody);
+
+        if (decoded is! Map<String, dynamic>) {
+          _writeJson(request.response, HttpStatus.badRequest, <String, Object?>{
+            'ok': false,
+            'message': 'Invalid JSON body',
+          });
+          return;
+        }
+
+        final dynamic rawOrder = decoded['order'];
+        final dynamic rawItems = decoded['items'];
+
+        if (rawOrder is! Map) {
+          _writeJson(request.response, HttpStatus.badRequest, <String, Object?>{
+            'ok': false,
+            'message': 'order is required',
+          });
+          return;
+        }
+
+        if (rawItems is! List) {
+          _writeJson(request.response, HttpStatus.badRequest, <String, Object?>{
+            'ok': false,
+            'message': 'items must be a list',
+          });
+          return;
+        }
+
+        final OrderEntity order = OrderEntity.fromMap(
+          Map<String, Object?>.from(rawOrder as Map),
+        );
+
+        final List<OrderItemEntity> items = rawItems
+            .map(
+              (dynamic e) =>
+                  OrderItemEntity.fromMap(Map<String, Object?>.from(e as Map)),
+            )
+            .toList();
+
+        final int orderId = await orderRepository.createOrder(
+          order: order,
+          items: items,
+        );
+
+        _writeJson(request.response, HttpStatus.ok, <String, Object?>{
+          'ok': true,
+          'order_id': orderId,
+          'order_no': order.orderNo,
+        });
         return;
       }
 
