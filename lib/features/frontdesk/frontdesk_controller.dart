@@ -1,3 +1,4 @@
+// lib/features/frontdesk/frontdesk_controller.dart
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,7 @@ import '../../data/repositories/menu_repository.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../domain/enums/order_type.dart';
 import '../../domain/enums/spicy_level.dart';
+import '../../network/network_session.dart';
 
 class DraftOrderItem {
   final String itemCode;
@@ -55,12 +57,15 @@ class FrontdeskController extends ChangeNotifier {
   FrontdeskController({
     required MenuRepository menuRepository,
     required OrderRepository orderRepository,
+    NetworkSession? networkSession,
   })  : _menuRepository = menuRepository,
-        _orderRepository = orderRepository {
+        _orderRepository = orderRepository,
+        _networkSession = networkSession {
     _orderEventSubscription = OrderEventBus.instance.stream.listen(
       _handleOrderEvent,
     );
     loadServiceOptions();
+    _startMenuSyncPollingIfNeeded();
   }
 
   static const List<String> _allTables = [
@@ -76,7 +81,10 @@ class FrontdeskController extends ChangeNotifier {
 
   final MenuRepository _menuRepository;
   final OrderRepository _orderRepository;
+  final NetworkSession? _networkSession;
+
   StreamSubscription<OrderEvent>? _orderEventSubscription;
+  Timer? _menuSyncTimer;
 
   OrderType _orderType = OrderType.dineIn;
   String _tableNo = '';
@@ -136,6 +144,8 @@ class FrontdeskController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      await _syncMenuIfNeeded();
+
       final occupiedTables = await _orderRepository.getOccupiedTableNumbers();
       final nextTakeawaySerial = await _orderRepository.getNextTakeawaySerial();
 
@@ -245,6 +255,8 @@ class FrontdeskController extends ChangeNotifier {
 
   Future<bool> addCurrentItem() async {
     _clearMessage();
+
+    await _syncMenuIfNeeded();
 
     if (_itemCodeInput.trim().isEmpty) {
       _setMessage(FrontdeskMessage.enterItemCodeFirst);
@@ -374,12 +386,33 @@ class FrontdeskController extends ChangeNotifier {
     }
   }
 
+  Future<void> _syncMenuIfNeeded() async {
+    final service = _networkSession?.menuSyncService;
+    if (service == null) {
+      return;
+    }
+    await service.syncOnce();
+  }
+
+  void _startMenuSyncPollingIfNeeded() {
+    if (_networkSession?.menuSyncService == null) {
+      return;
+    }
+
+    _menuSyncTimer?.cancel();
+    _menuSyncTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => unawaited(loadServiceOptions()),
+    );
+  }
+
   void _handleOrderEvent(OrderEvent event) {
     unawaited(loadServiceOptions());
   }
 
   @override
   void dispose() {
+    _menuSyncTimer?.cancel();
     _orderEventSubscription?.cancel();
     super.dispose();
   }
