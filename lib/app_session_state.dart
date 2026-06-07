@@ -41,7 +41,7 @@ class AppSessionState extends ChangeNotifier {
   AppRole? get takeoverSourceRole => _takeoverSourceRole;
 
   bool get isBoundToRemoteHost {
-    final normalizedHost = _hostDeviceId?.trim();
+    final String? normalizedHost = _hostDeviceId?.trim();
     if (normalizedHost == null || normalizedHost.isEmpty) {
       return false;
     }
@@ -49,7 +49,7 @@ class AppSessionState extends ChangeNotifier {
   }
 
   bool get isBoundToSelf {
-    final normalizedHost = _hostDeviceId?.trim();
+    final String? normalizedHost = _hostDeviceId?.trim();
     if (normalizedHost == null || normalizedHost.isEmpty) {
       return false;
     }
@@ -60,7 +60,7 @@ class AppSessionState extends ChangeNotifier {
   bool get isHostMode => _resolvedSyncMode == SyncMode.host;
   bool get isStandaloneMode => _resolvedSyncMode == SyncMode.standalone;
 
-  bool get canUseFrontdesk => !isBoundToRemoteHost;
+  bool get canUseFrontdesk => true;
   bool get canUseKitchen => true;
   bool get canUseBackoffice => true;
   bool get canUseCombined => !isBoundToRemoteHost;
@@ -88,7 +88,7 @@ class AppSessionState extends ChangeNotifier {
       hostDeviceId: _hostDeviceId,
       fallback: _resolvedSyncMode,
     );
-    _resolutionReason = 'manual override to ${runtimeRole.name}';
+    _resolutionReason = 'Manual debug override to ${runtimeRole.name}.';
     notifyListeners();
   }
 
@@ -134,7 +134,7 @@ class AppSessionState extends ChangeNotifier {
   }
 
   String? _normalizeNullable(String? value) {
-    final trimmed = value?.trim();
+    final String? trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) {
       return null;
     }

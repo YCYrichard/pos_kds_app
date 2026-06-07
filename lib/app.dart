@@ -25,7 +25,7 @@ class PosKdsApp extends StatelessWidget {
     final bootstrapContext = context.read<AppBootstrapContext>();
 
     return MaterialApp(
-      title: _appTitle(bootstrapContext.runtimeRole),
+      title: appTitle(bootstrapContext.runtimeRole),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -40,49 +40,59 @@ class PosKdsApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const _AppFrame(),
+      home: const AppFrame(),
     );
-  }
-
-  String _appTitle(AppRole role) {
-    switch (role) {
-      case AppRole.frontdesk:
-        return 'POS Frontdesk App';
-      case AppRole.kitchen:
-        return 'POS Kitchen App';
-      case AppRole.backoffice:
-        return 'POS Backoffice App';
-      case AppRole.combined:
-        return 'POS KDS App';
-    }
   }
 }
 
-class _AppFrame extends StatelessWidget {
-  const _AppFrame();
+String appTitle(AppRole role) {
+  switch (role) {
+    case AppRole.frontdesk:
+      return 'POS Frontdesk App';
+    case AppRole.kitchen:
+      return 'POS Kitchen App';
+    case AppRole.backoffice:
+      return 'POS Backoffice App';
+    case AppRole.combined:
+      return 'POS KDS App';
+  }
+}
+
+class AppFrame extends StatelessWidget {
+  const AppFrame({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        const AppSessionBanner(),
+      children: const [
+        AppSessionBanner(),
         Expanded(
-          child: Consumer<AppSessionState>(
-            builder: (context, session, child) {
-              return _AppRoot(
-                role: session.runtimeRole,
-                session: session,
-              );
-            },
-          ),
+          child: _AppFrameBody(),
         ),
       ],
     );
   }
 }
 
-class _AppRoot extends StatelessWidget {
-  const _AppRoot({
+class _AppFrameBody extends StatelessWidget {
+  const _AppFrameBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppSessionState>(
+      builder: (context, session, child) {
+        return AppRoot(
+          role: session.runtimeRole,
+          session: session,
+        );
+      },
+    );
+  }
+}
+
+class AppRoot extends StatelessWidget {
+  const AppRoot({
+    super.key,
     required this.role,
     required this.session,
   });
@@ -91,7 +101,7 @@ class _AppRoot extends StatelessWidget {
   final AppSessionState session;
 
   bool _isBoundToRemoteHost(AppSessionState session) {
-    final hostDeviceId = session.hostDeviceId?.trim();
+    final String? hostDeviceId = session.hostDeviceId?.trim();
     if (hostDeviceId == null || hostDeviceId.isEmpty) {
       return false;
     }
@@ -99,7 +109,7 @@ class _AppRoot extends StatelessWidget {
   }
 
   String _boundHostLabel(AppSessionState session) {
-    final hostDeviceId = session.hostDeviceId?.trim();
+    final String? hostDeviceId = session.hostDeviceId?.trim();
     if (hostDeviceId == null || hostDeviceId.isEmpty) {
       return 'unknown';
     }
@@ -113,25 +123,16 @@ class _AppRoot extends StatelessWidget {
     switch (role) {
       case AppRole.frontdesk:
         if (!session.canUseFrontdesk) {
-          return const _FeatureBlockedPage(
+          return const FeatureBlockedPage(
             title: 'Frontdesk unavailable',
             message: 'Frontdesk mode is not available on this device.',
           );
         }
-
-        if (boundToRemoteHost) {
-          return _FeatureBlockedPage(
-            title: 'Frontdesk blocked on client device',
-            message:
-                'This device is currently bound to remote host ${_boundHostLabel(session)}, so frontdesk order creation is disabled in client mode.',
-          );
-        }
-
         return const FrontdeskAppShell();
 
       case AppRole.kitchen:
         if (!session.canUseKitchen) {
-          return const _FeatureBlockedPage(
+          return const FeatureBlockedPage(
             title: 'Kitchen unavailable',
             message: 'Kitchen mode is not available on this device.',
           );
@@ -140,7 +141,7 @@ class _AppRoot extends StatelessWidget {
 
       case AppRole.backoffice:
         if (!session.canUseBackoffice) {
-          return const _FeatureBlockedPage(
+          return const FeatureBlockedPage(
             title: 'Backoffice unavailable',
             message: 'Backoffice mode is not available on this device.',
           );
@@ -148,20 +149,29 @@ class _AppRoot extends StatelessWidget {
         return const BackofficeAppShell();
 
       case AppRole.combined:
+        if (!session.canUseCombined) {
+          return const FeatureBlockedPage(
+            title: 'Combined unavailable',
+            message: 'Combined mode is not available on this device.',
+          );
+        }
+
         if (boundToRemoteHost) {
-          return _FeatureBlockedPage(
+          return FeatureBlockedPage(
             title: 'Combined mode blocked on client device',
             message:
                 'This device is currently bound to remote host ${_boundHostLabel(session)}, so combined host workflow is disabled in client mode.',
           );
         }
+
         return const CombinedAppShell();
     }
   }
 }
 
-class _FeatureBlockedPage extends StatelessWidget {
-  const _FeatureBlockedPage({
+class FeatureBlockedPage extends StatelessWidget {
+  const FeatureBlockedPage({
+    super.key,
     required this.title,
     required this.message,
   });
@@ -198,7 +208,7 @@ class _FeatureBlockedPage extends StatelessWidget {
                     Text(message),
                     const SizedBox(height: 12),
                     Text(
-                      'Use the debug session controls to switch to kitchen or backoffice while testing client separation.',
+                      'Use the debug session controls to switch to another runtime role while testing device separation.',
                       style: theme.textTheme.bodyMedium,
                     ),
                   ],
