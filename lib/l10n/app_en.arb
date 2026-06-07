@@ -166,6 +166,26 @@
   "@backofficeLoadFailed": {
     "description": "Message shown when backoffice data fails to load."
   },
+  "menuLoadFailed": "Failed to load menu data",
+  "@menuLoadFailed": {
+    "description": "Message shown when menu data fails to load."
+  },
+  "menuSaveFailed": "Failed to save menu data",
+  "@menuSaveFailed": {
+    "description": "Message shown when menu data fails to save."
+  },
+  "menuManagementTitle": "Menu management",
+  "@menuManagementTitle": {
+    "description": "Menu management section title in backoffice."
+  },
+  "noMenuItems": "No menu items",
+  "@noMenuItems": {
+    "description": "Message shown when there are no menu items."
+  },
+  "addMenuItem": "Add menu item",
+  "@addMenuItem": {
+    "description": "Button label to add a new menu item."
+  },
   "todayOrders": "Today's orders",
   "@todayOrders": {
     "description": "Dashboard label for today's order count."

@@ -133,6 +133,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backofficeLoadFailed => '後台資料載入失敗';
 
   @override
+  String get menuLoadFailed => '菜單資料載入失敗';
+
+  @override
+  String get menuSaveFailed => '菜單儲存失敗';
+
+  @override
+  String get menuManagementTitle => '菜單管理';
+
+  @override
+  String get noMenuItems => '目前沒有菜單品項';
+
+  @override
+  String get addMenuItem => '新增品項';
+
+  @override
   String get todayOrders => '今日訂單';
 
   @override

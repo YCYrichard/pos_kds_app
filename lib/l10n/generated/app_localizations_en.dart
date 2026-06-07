@@ -134,6 +134,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backofficeLoadFailed => 'Failed to load backoffice data';
 
   @override
+  String get menuLoadFailed => 'Failed to load menu data';
+
+  @override
+  String get menuSaveFailed => 'Failed to save menu data';
+
+  @override
+  String get menuManagementTitle => 'Menu management';
+
+  @override
+  String get noMenuItems => 'No menu items';
+
+  @override
+  String get addMenuItem => 'Add menu item';
+
+  @override
   String get todayOrders => 'Today\'s orders';
 
   @override

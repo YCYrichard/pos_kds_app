@@ -338,6 +338,36 @@ abstract class AppLocalizations {
   /// **'Failed to load backoffice data'**
   String get backofficeLoadFailed;
 
+  /// Message shown when menu data fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load menu data'**
+  String get menuLoadFailed;
+
+  /// Message shown when menu data fails to save.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save menu data'**
+  String get menuSaveFailed;
+
+  /// Menu management section title in backoffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu management'**
+  String get menuManagementTitle;
+
+  /// Message shown when there are no menu items.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu items'**
+  String get noMenuItems;
+
+  /// Button label to add a new menu item.
+  ///
+  /// In en, this message translates to:
+  /// **'Add menu item'**
+  String get addMenuItem;
+
   /// Dashboard label for today's order count.
   ///
   /// In en, this message translates to:
