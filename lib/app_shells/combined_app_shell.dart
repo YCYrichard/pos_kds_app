@@ -1,3 +1,4 @@
+// lib/app_shells/combined_app_shell.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +38,7 @@ class _CombinedAppShellState extends State<CombinedAppShell> {
     _frontdeskController = FrontdeskController(
       menuRepository: menuRepository,
       orderRepository: orderRepository,
+      networkSession: bootstrapContext.networkSession,
     );
 
     _kitchenController = KitchenController(

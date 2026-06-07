@@ -1,6 +1,8 @@
+// lib/app_shells/frontdesk_app_shell.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_bootstrap_context.dart';
 import '../data/repositories/menu_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../features/frontdesk/frontdesk_controller.dart';
@@ -22,10 +24,12 @@ class _FrontdeskAppShellState extends State<FrontdeskAppShell> {
 
     final menuRepository = context.read<MenuRepository>();
     final orderRepository = context.read<OrderRepository>();
+    final bootstrapContext = context.read<AppBootstrapContext>();
 
     _frontdeskController = FrontdeskController(
       menuRepository: menuRepository,
       orderRepository: orderRepository,
+      networkSession: bootstrapContext.networkSession,
     );
   }
 
