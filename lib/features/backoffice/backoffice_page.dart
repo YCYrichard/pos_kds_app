@@ -27,26 +27,18 @@ class _BackofficePageState extends State<BackofficePage> {
   @override
   void didUpdateWidget(covariant BackofficePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.isActive != widget.isActive) {
-      if (widget.isActive) {
-        _didRefreshOnActivate = false;
-      }
+      if (widget.isActive) _didRefreshOnActivate = false;
       _syncLifecycleRefresh();
     }
   }
 
   void _syncLifecycleRefresh() {
-    if (!mounted) {
-      return;
-    }
-
+    if (!mounted) return;
     if (widget.isActive && !_didRefreshOnActivate) {
       _didRefreshOnActivate = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !widget.isActive) {
-          return;
-        }
+        if (!mounted || !widget.isActive) return;
         final BackofficeController controller =
             context.read<BackofficeController>();
         controller.loadDashboard();
@@ -56,20 +48,17 @@ class _BackofficePageState extends State<BackofficePage> {
   }
 
   String? _resolveBackofficeMessage(
-    BuildContext context,
-    BackofficeController controller,
-  ) {
+      BuildContext context, BackofficeController controller) {
     final l10n = context.l10n;
-
     switch (controller.messageKey) {
       case BackofficeMessage.noOrderRecords:
         return l10n.noOrderRecords;
       case BackofficeMessage.loadFailed:
         return l10n.backofficeLoadFailed;
       case BackofficeMessage.menuLoadFailed:
-        return '菜單載入失敗';
+        return l10n.menuLoadFailed;
       case BackofficeMessage.menuSaveFailed:
-        return '菜單儲存失敗';
+        return l10n.menuSaveFailed;
       default:
         return null;
     }
@@ -80,108 +69,13 @@ class _BackofficePageState extends State<BackofficePage> {
     BackofficeController controller, {
     MenuItem? item,
   }) async {
-    final TextEditingController codeController = TextEditingController(
-      text: item?.itemCode ?? '',
-    );
-    final TextEditingController nameController = TextEditingController(
-      text: item?.itemName ?? '',
-    );
-    final TextEditingController priceController = TextEditingController(
-      text: item?.price.toString() ?? '',
-    );
-    bool isActive = item?.isActive ?? true;
-
-    await showDialog<void>(
+    final MenuItem? result = await showDialog<MenuItem>(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder:
-              (BuildContext context, void Function(void Function()) setState) {
-            return AlertDialog(
-              title: Text(item == null ? '新增菜單項目' : '編輯菜單項目'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: codeController,
-                      enabled: item == null,
-                      decoration: const InputDecoration(
-                        labelText: '品項代碼',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: '品項名稱',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: priceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: '價格',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('啟用'),
-                      value: isActive,
-                      onChanged: (bool value) {
-                        setState(() {
-                          isActive = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: const Text('取消'),
-                ),
-                FilledButton(
-                  onPressed: () async {
-                    final String code = codeController.text.trim();
-                    final String name = nameController.text.trim();
-                    final int? price =
-                        int.tryParse(priceController.text.trim());
-
-                    if (code.isEmpty || name.isEmpty || price == null) {
-                      return;
-                    }
-
-                    await controller.saveMenuItem(
-                      MenuItem(
-                        itemCode: code,
-                        itemName: name,
-                        price: price,
-                        isActive: isActive,
-                      ),
-                    );
-
-                    if (context.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                  },
-                  child: const Text('儲存'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (dialogContext) => _MenuItemEditorDialog(item: item),
     );
 
-    codeController.dispose();
-    nameController.dispose();
-    priceController.dispose();
+    if (result == null) return;
+    await controller.saveMenuItem(result);
   }
 
   @override
@@ -189,10 +83,9 @@ class _BackofficePageState extends State<BackofficePage> {
     final l10n = context.l10n;
 
     return Consumer<BackofficeController>(
-      builder: (BuildContext context, BackofficeController controller, _) {
+      builder: (context, controller, _) {
         final String? messageText =
             _resolveBackofficeMessage(context, controller);
-
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.backofficeTitle),
@@ -210,12 +103,9 @@ class _BackofficePageState extends State<BackofficePage> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: controller.savingMenu
                 ? null
-                : () => _showMenuItemEditor(
-                      context,
-                      controller,
-                    ),
+                : () => _showMenuItemEditor(context, controller),
             icon: const Icon(Icons.add),
-            label: const Text('新增菜單'),
+            label: Text(l10n.addMenuItem),
           ),
           body: SafeArea(
             child: controller.loading
@@ -231,19 +121,15 @@ class _BackofficePageState extends State<BackofficePage> {
                       children: [
                         _SummarySection(controller: controller),
                         const SizedBox(height: 24),
-                        Text(
-                          l10n.orderListTitle,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        Text(l10n.orderListTitle,
+                            style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         if (controller.orders.isEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 24),
                             child: Center(
-                              child: Text(
-                                messageText ?? l10n.noOrderRecords,
-                              ),
-                            ),
+                                child:
+                                    Text(messageText ?? l10n.noOrderRecords)),
                           )
                         else
                           ...controller.orders.map(
@@ -256,10 +142,9 @@ class _BackofficePageState extends State<BackofficePage> {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                '菜單管理',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
+                              child: Text(l10n.menuManagementTitle,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium),
                             ),
                             if (controller.savingMenu)
                               const SizedBox(
@@ -272,10 +157,10 @@ class _BackofficePageState extends State<BackofficePage> {
                         ),
                         const SizedBox(height: 8),
                         if (controller.menuItems.isEmpty)
-                          const Card(
+                          Card(
                             child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Text('目前沒有菜單項目'),
+                              padding: const EdgeInsets.all(16),
+                              child: Text(l10n.noMenuItems),
                             ),
                           )
                         else
@@ -285,10 +170,8 @@ class _BackofficePageState extends State<BackofficePage> {
                               child: _MenuItemCard(
                                 item: item,
                                 onEdit: () => _showMenuItemEditor(
-                                  context,
-                                  controller,
-                                  item: item,
-                                ),
+                                    context, controller,
+                                    item: item),
                                 onToggleActive: () =>
                                     controller.toggleMenuItemActive(item),
                               ),
@@ -304,59 +187,141 @@ class _BackofficePageState extends State<BackofficePage> {
   }
 }
 
-class _SummarySection extends StatelessWidget {
-  const _SummarySection({required this.controller});
+class _MenuItemEditorDialog extends StatefulWidget {
+  const _MenuItemEditorDialog({this.item});
 
-  final BackofficeController controller;
+  final MenuItem? item;
+
+  @override
+  State<_MenuItemEditorDialog> createState() => _MenuItemEditorDialogState();
+}
+
+class _MenuItemEditorDialogState extends State<_MenuItemEditorDialog> {
+  late final TextEditingController _codeController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _priceController;
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    final item = widget.item;
+    _codeController = TextEditingController(text: item?.itemCode ?? '');
+    _nameController = TextEditingController(text: item?.itemName ?? '');
+    _priceController =
+        TextEditingController(text: item?.price.toString() ?? '');
+    _isActive = item?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    _nameController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final code = _codeController.text.trim();
+    final name = _nameController.text.trim();
+    final price = int.tryParse(_priceController.text.trim());
+    if (code.isEmpty || name.isEmpty || price == null) return;
+    Navigator.of(context).pop(
+      MenuItem(
+          itemCode: code, itemName: name, price: price, isActive: _isActive),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final summary = controller.summary;
-
-    return Column(
-      children: [
-        Row(
+    final isEditing = widget.item != null;
+    return AlertDialog(
+      title: Text(isEditing ? 'Edit menu item' : 'Add menu item'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: _SummaryCard(
-                label: l10n.todayOrders,
-                value: '${summary.todayOrders}',
-                icon: Icons.receipt_long_outlined,
-              ),
+            TextField(
+              controller: _codeController,
+              enabled: !isEditing,
+              decoration: const InputDecoration(labelText: 'Item code'),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _SummaryCard(
-                label: l10n.pendingOrders,
-                value: '${summary.pendingOrders}',
-                icon: Icons.pending_actions_outlined,
-              ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Item name'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _priceController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Price'),
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Active'),
+              value: _isActive,
+              onChanged: (value) => setState(() => _isActive = value),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        _SummaryCard(
-          label: l10n.todayRevenue,
-          value: 'NT\$ ${summary.todayRevenue}',
-          icon: Icons.attach_money_outlined,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Save'),
         ),
       ],
     );
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+class _SummarySection extends StatelessWidget {
+  const _SummarySection({required this.controller});
+  final BackofficeController controller;
 
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final summary = controller.summary;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+                child: _SummaryCard(
+                    label: l10n.todayOrders,
+                    value: '${summary.todayOrders}',
+                    icon: Icons.receipt_long_outlined)),
+            const SizedBox(width: 12),
+            Expanded(
+                child: _SummaryCard(
+                    label: l10n.pendingOrders,
+                    value: '${summary.pendingOrders}',
+                    icon: Icons.pending_actions_outlined)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _SummaryCard(
+            label: l10n.todayRevenue,
+            value: 'NT\$ ${summary.todayRevenue}',
+            icon: Icons.attach_money_outlined),
+      ],
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard(
+      {required this.label, required this.value, required this.icon});
   final String label;
   final String value;
   final IconData icon;
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -384,43 +349,33 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _MenuItemCard extends StatelessWidget {
-  const _MenuItemCard({
-    required this.item,
-    required this.onEdit,
-    required this.onToggleActive,
-  });
-
+  const _MenuItemCard(
+      {required this.item, required this.onEdit, required this.onToggleActive});
   final MenuItem item;
   final VoidCallback onEdit;
   final VoidCallback onToggleActive;
-
   @override
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text('${item.itemCode}｜${item.itemName}'),
+        title: Text('${item.itemCode} · ${item.itemName}'),
         subtitle: Text('NT\$ ${item.price}'),
         leading: Icon(
-          item.isActive ? Icons.check_circle : Icons.cancel_outlined,
-          color: item.isActive ? Colors.green : Colors.grey,
-        ),
+            item.isActive ? Icons.check_circle : Icons.cancel_outlined,
+            color: item.isActive ? Colors.green : Colors.grey),
         trailing: Wrap(
           spacing: 8,
           children: [
             IconButton(
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: '編輯',
-            ),
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Edit'),
             IconButton(
-              onPressed: onToggleActive,
-              icon: Icon(
-                item.isActive
+                onPressed: onToggleActive,
+                icon: Icon(item.isActive
                     ? Icons.visibility_off_outlined
-                    : Icons.visibility,
-              ),
-              tooltip: item.isActive ? '停用' : '啟用',
-            ),
+                    : Icons.visibility),
+                tooltip: item.isActive ? 'Deactivate' : 'Activate'),
           ],
         ),
       ),
@@ -430,9 +385,7 @@ class _MenuItemCard extends StatelessWidget {
 
 class _OrderListCard extends StatelessWidget {
   const _OrderListCard({required this.bundle});
-
   final BackofficeOrderBundle bundle;
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -440,7 +393,6 @@ class _OrderListCard extends StatelessWidget {
     final subtitle = order.orderType == 'dineIn'
         ? l10n.dineInWithTable(order.tableNo ?? '-')
         : l10n.takeawayWithPickup(order.pickupNo ?? '-');
-
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -461,20 +413,17 @@ class _OrderListCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      order.orderNo,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
+                      child: Text(order.orderNo,
+                          style: Theme.of(context).textTheme.titleMedium)),
                   _StatusChip(status: order.status),
                 ],
               ),
               const SizedBox(height: 8),
               Text(subtitle),
               const SizedBox(height: 4),
-              Text('${l10n.createdTime}：${_formatDateTime(order.createdAt)}'),
+              Text('${l10n.createdTime}: ${_formatDateTime(order.createdAt)}'),
               const SizedBox(height: 4),
-              Text('${l10n.totalItems}：${order.totalItems}'),
+              Text('${l10n.totalItems}: ${order.totalItems}'),
             ],
           ),
         ),
@@ -485,12 +434,9 @@ class _OrderListCard extends StatelessWidget {
 
 class _OrderDetailSheet extends StatelessWidget {
   const _OrderDetailSheet({required this.bundle});
-
   final BackofficeOrderBundle bundle;
-
   String _statusText(BuildContext context, String status) {
     final l10n = context.l10n;
-
     switch (status) {
       case 'completed':
         return l10n.statusCompleted;
@@ -503,11 +449,7 @@ class _OrderDetailSheet extends StatelessWidget {
 
   String _spicyText(BuildContext context, String? spicyLevel) {
     final l10n = context.l10n;
-
-    if (spicyLevel == null || spicyLevel.isEmpty) {
-      return l10n.noSpicyConfigured;
-    }
-
+    if (spicyLevel == null || spicyLevel.isEmpty) return l10n.noSpicyConfigured;
     switch (spicyLevel.toLowerCase()) {
       case 'mild':
         return l10n.spicyLevelValue(l10n.spicyMild);
@@ -523,16 +465,13 @@ class _OrderDetailSheet extends StatelessWidget {
   String _itemSubtitle(BuildContext context, OrderItemEntity item) {
     final l10n = context.l10n;
     return l10n.quantityWithSpicy(
-      item.qty.toString(),
-      _spicyText(context, item.spicyLevel),
-    );
+        item.qty.toString(), _spicyText(context, item.spicyLevel));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final order = bundle.order;
-
     return SafeArea(
       child: DraggableScrollableSheet(
         expand: false,
@@ -545,52 +484,40 @@ class _OrderDetailSheet extends StatelessWidget {
             child: ListView(
               controller: scrollController,
               children: [
-                Text(
-                  l10n.orderDetailTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text(l10n.orderDetailTitle,
+                    style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 _DetailRow(label: l10n.orderNumber, value: order.orderNo),
                 _DetailRow(
-                  label: l10n.orderTypeLabel,
-                  value: order.orderType == 'dineIn'
-                      ? l10n.orderTypeDineIn
-                      : l10n.orderTypeTakeaway,
-                ),
+                    label: l10n.orderTypeLabel,
+                    value: order.orderType == 'dineIn'
+                        ? l10n.orderTypeDineIn
+                        : l10n.orderTypeTakeaway),
                 if (order.orderType == 'dineIn')
                   _DetailRow(
-                    label: l10n.tableLabel,
-                    value: order.tableNo ?? '-',
-                  ),
+                      label: l10n.tableLabel, value: order.tableNo ?? '-'),
                 if (order.orderType == 'takeaway')
                   _DetailRow(
-                    label: l10n.pickupLabel,
-                    value: order.pickupNo ?? '-',
-                  ),
+                      label: l10n.pickupLabel, value: order.pickupNo ?? '-'),
                 _DetailRow(
-                  label: l10n.statusLabel,
-                  value: _statusText(context, order.status),
-                ),
+                    label: l10n.statusLabel,
+                    value: _statusText(context, order.status)),
                 _DetailRow(
-                  label: l10n.createdTime,
-                  value: _formatDateTime(order.createdAt),
-                ),
+                    label: l10n.createdTime,
+                    value: _formatDateTime(order.createdAt)),
                 if (order.completedAt != null)
                   _DetailRow(
-                    label: l10n.completedTime,
-                    value: _formatDateTime(order.completedAt!),
-                  ),
+                      label: l10n.completedTime,
+                      value: _formatDateTime(order.completedAt!)),
                 const SizedBox(height: 16),
-                Text(
-                  l10n.itemsTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text(l10n.itemsTitle,
+                    style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 ...bundle.items.map(
                   (OrderItemEntity item) => Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      title: Text('${item.itemCode}｜${item.itemName}'),
+                      title: Text('${item.itemCode} · ${item.itemName}'),
                       subtitle: Text(_itemSubtitle(context, item)),
                       trailing: _StatusChip(status: item.status),
                     ),
@@ -607,10 +534,8 @@ class _OrderDetailSheet extends StatelessWidget {
 
 class _DetailRow extends StatelessWidget {
   const _DetailRow({required this.label, required this.value});
-
   final String label;
   final String value;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -619,18 +544,11 @@ class _DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 92,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
+              width: 92,
+              child:
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium)),
           Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
+              child: Text(value, style: Theme.of(context).textTheme.bodyLarge)),
         ],
       ),
     );
@@ -639,16 +557,12 @@ class _DetailRow extends StatelessWidget {
 
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.status});
-
   final String status;
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-
     final String label;
     final Color color;
-
     switch (status) {
       case 'completed':
         label = l10n.statusCompleted;
@@ -663,7 +577,6 @@ class _StatusChip extends StatelessWidget {
         color = Colors.blueGrey;
         break;
     }
-
     return Chip(
       label: Text(label),
       labelStyle: const TextStyle(color: Colors.white),
@@ -675,10 +588,7 @@ class _StatusChip extends StatelessWidget {
 
 String _formatDateTime(String value) {
   final DateTime? dateTime = DateTime.tryParse(value);
-  if (dateTime == null) {
-    return value;
-  }
-
+  if (dateTime == null) return value;
   final String hour = dateTime.hour.toString().padLeft(2, '0');
   final String minute = dateTime.minute.toString().padLeft(2, '0');
   return '${dateTime.year}/${dateTime.month}/${dateTime.day} $hour:$minute';
